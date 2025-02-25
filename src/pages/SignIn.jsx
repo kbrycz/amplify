@@ -1,16 +1,42 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, Mail } from 'lucide-react';
+import { auth } from '../lib/firebase';
+import { signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Add authentication logic here
-    setTimeout(() => setIsLoading(false), 1000);
+    setError('');
+
+    const formData = new FormData(e.target);
+    const email = formData.get('email');
+    const password = formData.get('password');
+
+    try {
+      await signIn(email, password);
+      navigate('/');
+    } catch (err) {
+      setError(err.message.includes('Firebase') ? 'Invalid email or password' : err.message);
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      await signInWithGoogle(result);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -113,6 +139,19 @@ export default function SignIn() {
               </div>
             </div>
 
+            {error && (
+              <div className="rounded-md bg-red-50 dark:bg-red-900/50 p-4">
+                <div className="flex">
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+                    <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                      {error}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <button
                 type="submit"
@@ -137,6 +176,10 @@ export default function SignIn() {
             <div className="mt-6">
               <a
                 href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleGoogleSignIn();
+                }}
                 className="flex w-full items-center justify-center gap-3 rounded-md bg-white dark:bg-gray-900 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:ring-transparent"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">

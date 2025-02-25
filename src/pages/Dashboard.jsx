@@ -14,13 +14,13 @@ export default function Dashboard() {
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Track and manage your campaign responses</p>
           <div className="mt-6 flex items-center justify-center gap-3">
             <button
-              onClick={() => navigate('/campaigns/new')}
+              onClick={() => navigate('/app/campaigns/new')}
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-500"
             >
               Create Campaign
             </button>
             <button
-              onClick={() => navigate('/campaigns')}
+              onClick={() => navigate('/app/campaigns')}
               className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               Manage Campaigns

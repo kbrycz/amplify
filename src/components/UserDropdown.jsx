@@ -1,11 +1,22 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { ChevronDown, Settings, LogOut, User, HelpCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { auth } from '../lib/firebase';
+import { signOut } from 'firebase/auth';
 import { Dropdown } from './ui/Dropdown';
 import { DropdownItem } from './ui/DropdownItem';
 /* UserDropdown Component */
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
   const buttonRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Get user's display name or email
+  const displayName = user?.firstName ? `${user.firstName} ${user.lastName}` : user?.email?.split('@')[0] || 'User';
+  const firstName = displayName.split(' ')[0];
 
   const toggleDropdown = (e) => {
     e.stopPropagation();
@@ -14,6 +25,19 @@ export default function UserDropdown() {
 
   const closeDropdown = () => setIsOpen(false);
 
+  const handleSignOut = async () => {
+    try {
+      setIsLoading(true);
+      await signOut(auth);
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    } finally {
+      setIsLoading(false);
+      closeDropdown();
+    }
+  };
+
   return (
     <div className="relative">
       <button
@@ -21,16 +45,8 @@ export default function UserDropdown() {
         onClick={toggleDropdown}
         className={`flex items-center gap-2 p-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 ${isOpen ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
       >
-        <span className="overflow-hidden rounded-full h-8 w-8 bg-gray-200 dark:bg-gray-700">
-          <img
-            width={32}
-            height={32}
-            src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=32&h=32&q=80&fit=crop"
-            alt="User"
-            className="object-cover w-full h-full"
-          />
-        </span>
-        <span className="hidden md:block font-medium">Musharof</span>
+        <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+        <span className="hidden md:block font-medium">{firstName}</span>
         <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
@@ -41,34 +57,24 @@ export default function UserDropdown() {
         className="absolute right-0 mt-2 w-[260px] rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-800 dark:bg-gray-900"
       >
         <div className="px-2 py-2 border-b border-gray-200 dark:border-gray-800">
-          <p className="font-medium text-gray-900 dark:text-white">Musharof Chowdhury</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">randomuser@pimjo.com</p>
+          <p className="font-medium text-gray-900 dark:text-white">{displayName}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
         </div>
 
         <div className="py-2">
           <DropdownItem
-            tag="a"
-            href="/profile"
+            tag={Link}
+            to="/app/account"
             className="flex items-center gap-2 w-full px-2 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
             onItemClick={closeDropdown}
           >
             <User className="w-4 h-4" />
-            <span>Edit profile</span>
+            <span>Edit account</span>
           </DropdownItem>
 
           <DropdownItem
-            tag="a"
-            href="/settings"
-            className="flex items-center gap-2 w-full px-2 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-            onItemClick={closeDropdown}
-          >
-            <Settings className="w-4 h-4" />
-            <span>Account settings</span>
-          </DropdownItem>
-
-          <DropdownItem
-            tag="a"
-            href="/support"
+            tag={Link}
+            to="/app/support"
             className="flex items-center gap-2 w-full px-2 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
             onItemClick={closeDropdown}
           >
@@ -79,13 +85,13 @@ export default function UserDropdown() {
 
         <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
           <DropdownItem
-            tag="a"
-            href="/signout"
+            tag="button"
+            disabled={isLoading}
+            onClick={handleSignOut}
             className="flex items-center gap-2 w-full px-2 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-            onItemClick={closeDropdown}
           >
             <LogOut className="w-4 h-4" />
-            <span>Sign out</span>
+            <span>{isLoading ? 'Signing out...' : 'Sign out'}</span>
           </DropdownItem>
         </div>
       </Dropdown>

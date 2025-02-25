@@ -7,7 +7,7 @@ const navItems = [
   { 
     icon: <Home className="w-5 h-5" />,
     name: 'Dashboard',
-    path: '/app'
+    path: '/app/'
   },
   { 
     icon: <Users className="w-5 h-5" />, 
@@ -100,7 +100,7 @@ function Sidebar() {
           </ul>
         </nav>
 
-        <div className="mt-auto">
+        <div className="mt-auto pb-8">
           <div className="sticky bottom-0 pb-8">
             <Link
               to="/settings"
@@ -116,4 +116,4 @@ function Sidebar() {
   );
 }
 
-export default Sidebar
+export default Sidebar;
