@@ -114,16 +114,16 @@ export default function Dashboard() {
       <div className="mt-10">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                   <CardTitle className="text-2xl">Boys and Girls Club</CardTitle>
+                  <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
+                Recent Campaign
+              </span>
                 </div>
                 <CardDescription className="mt-2">Annual fundraising campaign for local youth programs</CardDescription>
               </div>
-              <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
-                Recent Campaign
-              </span>
             </div>
           </CardHeader>
           <CardContent>
