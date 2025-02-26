@@ -233,7 +233,7 @@ export default function Dashboard() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                      <CardTitle className="text-2xl">Get Started with Amplify</CardTitle>
+                      <CardTitle className="text-2xl">Get Started with Shout</CardTitle>
                       <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
                         New Account
                       </span>
@@ -357,7 +357,7 @@ export default function Dashboard() {
       </div>
 
       <div className="mt-20 text-center text-sm text-gray-500 dark:text-gray-400">
-        &copy; 2025 Amplify. All rights reserved.
+        &copy; 2025 Shout. All rights reserved.
       </div>
     </div>
   );

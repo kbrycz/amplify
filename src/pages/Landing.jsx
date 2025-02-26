@@ -187,7 +187,7 @@ export default function Landing() {
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h1 className="text-balance text-5xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-7xl">
-                Amplify your community's voice
+                Shout your community's voice
               </h1>
               <p className="mt-8 text-pretty text-lg font-medium text-gray-600 dark:text-gray-400 sm:text-xl/8">
                 Create engaging video campaigns that capture authentic stories from your community. Transform responses into powerful content that resonates with your audience.
@@ -541,7 +541,7 @@ export default function Landing() {
             ))}
           </div>
           <p className="mt-10 text-center text-sm leading-5 text-gray-500 dark:text-gray-400">
-            &copy; 2025 Amplify. All rights reserved.
+            &copy; 2025 Shout. All rights reserved.
           </p>
         </div>
       </footer>

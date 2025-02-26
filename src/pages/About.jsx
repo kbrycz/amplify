@@ -32,11 +32,11 @@ export default function About() {
 
       <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-2xl lg:max-w-4xl">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">About Amplify</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">About Shout</h1>
           
           <div className="mt-10 space-y-8 text-base leading-7 text-gray-600 dark:text-gray-400">
             <p>
-              Founded in 2025, Amplify helps organizations capture and share authentic stories from their communities. Our platform combines cutting-edge video technology with intuitive campaign management tools, making it easier than ever to collect, curate, and share meaningful testimonials.
+              Founded in 2025, Shout helps organizations capture and share authentic stories from their communities. Our platform combines cutting-edge video technology with intuitive campaign management tools, making it easier than ever to collect, curate, and share meaningful testimonials.
             </p>
 
             <div className="grid gap-8 sm:grid-cols-2">

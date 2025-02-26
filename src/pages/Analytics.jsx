@@ -256,7 +256,7 @@ export default function Analytics() {
         </CardContent>
       </Card>
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
-        &copy; 2025 Amplify. All rights reserved.
+        &copy; 2025 Shout. All rights reserved.
       </div>
     </div>
   );

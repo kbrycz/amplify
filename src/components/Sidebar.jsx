@@ -56,7 +56,7 @@ function Sidebar() {
       <div className="flex flex-col h-full">
         <div className={`py-8 flex items-center ${!isOpen ? "lg:justify-center" : "justify-between"}`}>
           <a href="/" className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-            {isOpen ? 'Amplify' : 'A'}
+            {isOpen ? 'Shout' : 'S'}
           </a>
           {isMobileOpen && (
             <button
