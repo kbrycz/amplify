@@ -1,23 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { SERVER_URL, auth } from '../lib/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { MetricCard } from '../components/ui/metric-card';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Video, Users, Clock, TrendingUp, Zap, Award, Play, Pause, Settings, Share2 } from 'lucide-react';
-
-// Mock data for the specific campaign
-const campaignData = {
-  id: 1,
-  name: "Boys and Girls Club",
-  status: "Active",
-  description: "Annual fundraising campaign for local youth programs",
-  responses: 1234,
-  audience: 5000,
-  lastUpdated: "2024-03-15",
-  completionRate: 92,
-  avgResponseTime: "2:15",
-  engagement: 87,
-};
+import { Video, Users, Clock, TrendingUp, Zap, Award, Play, Pause, Settings, Share2, ExternalLink } from 'lucide-react';
+import { LoadingSpinner } from '../components/ui/loading-spinner';
+import { ShareModal } from '../components/ui/share-modal';
 
 // Mock data for charts
 const dailyResponses = [
@@ -63,60 +52,134 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function CampaignDetails() {
   const { id } = useParams();
-  const campaign = campaignData; // In a real app, fetch campaign data based on id
+  const [campaign, setCampaign] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [metrics, setMetrics] = useState({
+    responses: 0,
+    audience: 0,
+    completionRate: 0,
+    avgResponseTime: 0
+  });
+
+  useEffect(() => {
+    fetchCampaignData();
+  }, [id]);
+
+  const fetchCampaignData = async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/campaign/campaigns/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch campaign');
+      }
+
+      const data = await response.json();
+      setCampaign(data);
+
+      // For now, generate some random metrics since they're not in the API yet
+      setMetrics({
+        responses: Math.floor(Math.random() * 2000),
+        audience: Math.floor(Math.random() * 5000) + 1000,
+        completionRate: Math.floor(Math.random() * 20) + 80,
+        avgResponseTime: Math.floor(Math.random() * 60) + 30
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingSpinner message="Loading campaign details..." />;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/50">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                <p>{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!campaign) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Campaign not found</h3>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            The campaign you're looking for doesn't exist or has been deleted.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{campaign.name}</h1>
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
-              Recent Campaign
-            </span>
-          </div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{campaign.name}</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{campaign.description}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
-            <Share2 className="h-4 w-4" />
-            Share
-          </button>
-          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
+          <button 
+            onClick={() => navigate(`/survey/${campaign.id}`)}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
             <Settings className="h-4 w-4" />
             Settings
           </button>
-          <button className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700">
-            <Pause className="h-4 w-4" />
-            Pause Campaign
+          <button 
+            onClick={() => setIsShareModalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <Share2 className="h-4 w-4" />
+            Share
           </button>
         </div>
       </div>
 
       {/* Key Metrics */}
-      <div className="mt-8 grid gap-6 grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Total Responses"
-          value={1234}
+          value={metrics.responses}
           icon={Video}
           onClick={() => console.log('Responses clicked')}
         />
         <MetricCard
           title="Target Audience"
-          value={5000}
+          value={metrics.audience}
           icon={Users}
           onClick={() => console.log('Audience clicked')}
         />
         <MetricCard
           title="Completion Rate"
-          value={92}
+          value={metrics.completionRate}
           icon={Award}
           onClick={() => console.log('Completion Rate clicked')}
         />
         <MetricCard
           title="Avg Response Time"
-          value={87}
+          value={metrics.avgResponseTime}
           icon={Clock}
           onClick={() => console.log('Response Time clicked')}
         />
@@ -236,6 +299,13 @@ export default function CampaignDetails() {
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         &copy; 2025 Amplify. All rights reserved.
       </div>
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        campaignId={campaign?.id}
+        campaignName={campaign?.name}
+      />
     </div>
   );
 }

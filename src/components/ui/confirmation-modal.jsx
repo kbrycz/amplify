@@ -13,6 +13,7 @@ export function ConfirmationModal({
 }) {
   const [inputValue, setInputValue] = useState('');
   const [isValid, setIsValid] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -30,8 +31,11 @@ export function ConfirmationModal({
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    if (isValid && !isLoading) {
-      onConfirm();
+    if (isValid && !isDeleting) {
+      setIsDeleting(true);
+      onConfirm().finally(() => {
+        setIsDeleting(false);
+      });
     }
   };
 
@@ -93,14 +97,24 @@ export function ConfirmationModal({
             <button
               type="button"
               className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto ${
-                isValid && !isLoading
+                isValid && !isDeleting
                   ? 'bg-red-600 hover:bg-red-500'
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
               onClick={handleConfirm}
-              disabled={!isValid || isLoading}
+              disabled={!isValid || isDeleting}
             >
-              {isLoading ? 'Deleting...' : confirmButtonText}
+              {isDeleting ? (
+                <span className="flex items-center gap-2">
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Deleting...
+                </span>
+              ) : (
+                confirmButtonText
+              )}
             </button>
             <button
               type="button"

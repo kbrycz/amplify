@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { SERVER_URL } from '../lib/firebase';
+import { SERVER_URL, auth } from '../lib/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -7,6 +7,8 @@ import { Select } from '../components/ui/select';
 import { Label } from '../components/ui/label';
 import { Upload, Plus, FileText, ChevronDown, HelpCircle, X, Sparkles } from 'lucide-react';
 import { Iphone15Pro } from '../components/ui/iphone';
+import { useNavigate } from 'react-router-dom';
+import { SuccessModal } from '../components/ui/success-modal';
 
 export default function CreateCampaign() {
   const [selectedTheme, setSelectedTheme] = useState('sunset');
@@ -17,6 +19,10 @@ export default function CreateCampaign() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiError, setAiError] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const [successModal, setSuccessModal] = useState({ isOpen: false, campaignId: null, campaignName: '' });
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -26,9 +32,7 @@ export default function CreateCampaign() {
     email: '',
     phone: ''
   });
-  const [surveyQuestions, setSurveyQuestions] = useState([
-    { id: 1, question: 'What inspired you to join our cause?' }
-  ]);
+  const [surveyQuestions, setSurveyQuestions] = useState([]);
   const draftsRef = useRef(null);
 
   const themes = {
@@ -98,9 +102,56 @@ export default function CreateCampaign() {
     setPreviewImage(null);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted', formData);
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/campaign/campaigns`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...formData,
+          surveyQuestions: surveyQuestions.map(q => q.question)
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create campaign');
+      }
+
+      const campaign = await response.json();
+      // Reset form data
+      setFormData({
+        name: '',
+        description: '',
+        category: '',
+        businessName: '',
+        website: '',
+        email: '',
+        phone: ''
+      });
+      setSurveyQuestions([]);
+      setPreviewImage(null);
+
+      setSuccessModal({
+        isOpen: true,
+        campaignId: campaign.id,
+        campaignName: formData.name
+      });
+    } catch (err) {
+      console.error('Error creating campaign:', err);
+      setError(err.message);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAIGenerate = async () => {
@@ -110,9 +161,11 @@ export default function CreateCampaign() {
   setAiError('');
   
   try {
+    const idToken = await auth.currentUser.getIdToken();
     const response = await fetch(`${SERVER_URL}/campaign/generate-campaign`, {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${idToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ prompt: aiPrompt }),
@@ -326,9 +379,12 @@ export default function CreateCampaign() {
                       <Label htmlFor="name">Campaign Name</Label>
                       <Input
                         id="name"
+                        name="campaign-title"
                         placeholder="Enter campaign name"
                         value={formData.name}
                         onChange={handleInputChange}
+                        autoComplete="off"
+                        data-form-type="other"
                         required
                       />
                     </div>
@@ -522,6 +578,7 @@ export default function CreateCampaign() {
                         placeholder="Enter business name"
                         value={formData.businessName}
                         onChange={handleInputChange}
+                        autoComplete="off"
                         required
                       />
                     </div>
@@ -543,6 +600,7 @@ export default function CreateCampaign() {
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder="contact@business.com"
+                        autoComplete="off"
                         required
                       />
                     </div>
@@ -559,18 +617,37 @@ export default function CreateCampaign() {
                   </div>
                 </div>
 
+                {error && (
+                  <div className="mb-6 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
+                    <X className="h-4 w-4" />
+                    {error}
+                  </div>
+                )}
+
                 <div className="flex justify-end gap-4">
                   <button
                     type="button"
+                    disabled={isSubmitting}
                     className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                   >
                     Save as Draft
                   </button>
                   <button
                     type="submit"
+                    disabled={isSubmitting}
                     className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
                   >
-                    Create Campaign
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Creating...
+                      </div>
+                    ) : (
+                      'Create Campaign'
+                    )}
                   </button>
                 </div>
               </form>
@@ -656,6 +733,12 @@ export default function CreateCampaign() {
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         © 2025 Amplify. All rights reserved.
       </div>
+      <SuccessModal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ isOpen: false, campaignId: null, campaignName: '' })}
+        campaignId={successModal.campaignId}
+        campaignName={successModal.campaignName}
+      />
     </div>
   );
 }

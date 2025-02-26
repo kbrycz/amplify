@@ -17,6 +17,7 @@ import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
 import EditAccount from './pages/EditAccount';
 import Support from './pages/Support';
+import Survey from './pages/Survey.jsx';
 
 function LoadingScreen() {
   return (
@@ -88,6 +89,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Public routes */}
+          <Route path="/survey/:id" element={<Survey />} />
           <Route path="/" element={<AppContent />} />
           <Route path="/about" element={<About />} />
           <Route
