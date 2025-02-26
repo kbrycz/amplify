@@ -177,35 +177,41 @@ export default function EditAccount() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Basic Plan</h3>
-                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
-                  Current Plan
-                </span>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Basic Plan</h3>
+                  <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
+                    Current Plan
+                  </span>
+                </div>
               </div>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 Free tier with basic features
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-right hidden sm:block">
               <p className="text-sm text-gray-600 dark:text-gray-400">Current billing period</p>
               <p className="text-sm font-medium text-gray-900 dark:text-white">N/A (Free plan)</p>
             </div>
           </div>
+          <div className="mt-4 sm:hidden">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Current billing period</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">N/A (Free plan)</p>
+          </div>
 
           <div className="mt-8">
-            <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6 dark:border-gray-700 dark:from-indigo-950/30 dark:via-gray-900 dark:to-purple-950/30">
-              <div className="flex items-start gap-4">
-                <div className="rounded-full bg-indigo-100 p-2.5 dark:bg-indigo-900/50">
+            <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:border-gray-700 dark:from-indigo-950/30 dark:via-gray-900 dark:to-purple-950/30">
+              <div className="flex flex-col p-6 sm:flex-row sm:items-start sm:gap-4">
+                <div className="mx-auto mb-4 rounded-full bg-indigo-100 p-2.5 dark:bg-indigo-900/50 sm:mx-0 sm:mb-0">
                   <Crown className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-center text-lg font-semibold text-gray-900 dark:text-white sm:text-left">
                     Upgrade to Premium
                   </h3>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <p className="mt-1 text-center text-sm text-gray-600 dark:text-gray-400 sm:text-left">
                     Get access to advanced features and unlimited campaigns
                   </p>
-                  <ul className="mt-4 space-y-3">
+                  <ul className="mt-6 space-y-4 sm:mt-4 sm:space-y-3">
                     <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                       Unlimited video responses
@@ -223,12 +229,12 @@ export default function EditAccount() {
                       Priority support
                     </li>
                   </ul>
-                  <div className="mt-6 flex items-center gap-4">
+                  <div className="mt-8 flex flex-col items-center gap-4 sm:mt-6 sm:flex-row">
                     <button className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500">
                       <Zap className="h-4 w-4" />
                       Upgrade Now
                     </button>
-                    <div>
+                    <div className="text-center sm:text-left">
                       <p className="font-medium text-gray-900 dark:text-white">$49/month</p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Billed monthly</p>
                     </div>
@@ -434,6 +440,9 @@ export default function EditAccount() {
             isLoading={isLoading}
           />
         </div>
+      </div>
+      <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
+        &copy; 2025 Amplify. All rights reserved.
       </div>
     </div>
   );

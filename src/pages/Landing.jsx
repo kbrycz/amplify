@@ -5,7 +5,7 @@ import { ChevronRight, Check, X, Video, BarChart2, Zap, Users, MessageSquare, Sp
 
 const navigation = {
   main: [
-    { name: 'About', href: '#' },
+    { name: 'About', href: '/about' },
     { name: 'Blog', href: '#' },
     { name: 'Jobs', href: '#' },
     { name: 'Press', href: '#' },
@@ -76,63 +76,85 @@ const pricing = {
   ],
   tiers: [
     {
-      name: 'Starter',
-      id: 'tier-starter',
+      name: 'Basic',
+      id: 'tier-basic',
       href: '#',
       featured: false,
-      description: 'Everything you need to get started.',
-      price: { monthly: '$19', annually: '$199' },
-      highlights: ['Custom campaigns', 'Basic analytics', 'Up to 500 responses'],
-    },
-    {
-      name: 'Scale',
-      id: 'tier-scale',
-      href: '#',
-      featured: true,
-      description: 'Added flexibility at scale.',
-      price: { monthly: '$99', annually: '$999' },
+      description: 'Perfect for small organizations and startups.',
+      price: { monthly: '$20', annually: '$192' },
       highlights: [
-        'Custom campaigns',
-        'Advanced analytics',
-        'Unlimited responses',
-        'Priority support',
-        'Custom branding',
-        'API access',
+        'Up to 3 active campaigns',
+        'Basic video analytics',
+        'Up to 500 responses/month',
+        'Standard video quality',
+        'Email support'
       ],
     },
     {
-      name: 'Growth',
-      id: 'tier-growth',
+      name: 'Pro',
+      id: 'tier-pro',
+      href: '#',
+      featured: true,
+      description: 'For growing organizations with advanced needs.',
+      price: { monthly: '$100', annually: '$960' },
+      highlights: [
+        'Up to 10 active campaigns',
+        'Advanced analytics',
+        'Up to 2,000 responses/month',
+        'HD video quality',
+        'AI-powered insights',
+        'Custom branding',
+        'Priority support',
+        'Team collaboration tools'
+      ],
+    },
+    {
+      name: 'Premium',
+      id: 'tier-premium',
       href: '#',
       featured: false,
-      description: 'All the extras for your growing team.',
-      price: { monthly: '$49', annually: '$499' },
-      highlights: ['Custom campaigns', 'Advanced analytics', 'Up to 2000 responses', 'Basic support'],
+      description: 'Enterprise-grade features for large organizations.',
+      price: { monthly: '$500', annually: '$4,800' },
+      highlights: [
+        'Unlimited active campaigns',
+        'Enterprise analytics',
+        'Unlimited responses',
+        '4K video quality',
+        'Advanced AI features',
+        'White-labeling',
+        'Dedicated support',
+        'API access'
+      ],
     },
   ],
   sections: [
     {
       name: 'Features',
       features: [
-        { name: 'Custom campaigns', tiers: { Starter: '2', Growth: '10', Scale: 'Unlimited' } },
-        { name: 'Team members', tiers: { Starter: '3', Growth: '10', Scale: 'Unlimited' } },
-        { name: 'Custom branding', tiers: { Starter: false, Growth: false, Scale: true } },
+        { name: 'Active campaigns', tiers: { Basic: '3', Pro: '10', Premium: 'Unlimited' } },
+        { name: 'Monthly responses', tiers: { Basic: '500', Pro: '2,000', Premium: 'Unlimited' } },
+        { name: 'Video quality', tiers: { Basic: 'Standard', Pro: 'HD', Premium: '4K' } },
+        { name: 'Team members', tiers: { Basic: '3', Pro: '10', Premium: 'Unlimited' } },
+        { name: 'Custom branding', tiers: { Basic: false, Pro: true, Premium: true } },
+        { name: 'White-labeling', tiers: { Basic: false, Pro: false, Premium: true } },
       ],
     },
     {
       name: 'Analytics',
       features: [
-        { name: 'Basic analytics', tiers: { Starter: true, Growth: true, Scale: true } },
-        { name: 'Advanced reports', tiers: { Starter: false, Growth: true, Scale: true } },
-        { name: 'Custom dashboards', tiers: { Starter: false, Growth: false, Scale: true } },
+        { name: 'Response analytics', tiers: { Basic: 'Basic', Pro: 'Advanced', Premium: 'Enterprise' } },
+        { name: 'AI-powered insights', tiers: { Basic: false, Pro: true, Premium: true } },
+        { name: 'Custom dashboards', tiers: { Basic: false, Pro: true, Premium: true } },
+        { name: 'Export capabilities', tiers: { Basic: 'Basic', Pro: 'Advanced', Premium: 'Full' } },
       ],
     },
     {
       name: 'Support',
       features: [
-        { name: 'Email support', tiers: { Starter: true, Growth: true, Scale: true } },
-        { name: 'Priority support', tiers: { Starter: false, Growth: false, Scale: true } },
-        { name: 'API access', tiers: { Starter: false, Growth: false, Scale: true } },
+        { name: 'Support level', tiers: { Basic: 'Email', Pro: 'Priority', Premium: 'Dedicated' } },
+        { name: 'Response time', tiers: { Basic: '48h', Pro: '24h', Premium: '4h' } },
+        { name: 'Training sessions', tiers: { Basic: false, Pro: '2/month', Premium: 'Unlimited' } },
+        { name: 'API access', tiers: { Basic: false, Pro: false, Premium: true } },
       ],
     },
   ],
@@ -250,7 +272,7 @@ export default function Landing() {
               Simple, transparent pricing
             </p>
             <p className="mt-6 text-lg text-gray-600 dark:text-gray-400 mx-auto max-w-2xl">
-              Choose the perfect plan for your needs. All plans include unlimited storage for responses.
+              Choose the perfect plan for your needs. Save 20% with annual billing. All plans include unlimited storage for responses.
             </p>
           </div>
           <div className="mt-16">
@@ -307,7 +329,7 @@ export default function Landing() {
                         <div className="text-sm">
                           <p className={tier.featured ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'}>USD</p>
                           <p className={tier.featured ? 'text-gray-500 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400'}>
-                            {`Billed ${frequency.value}`}
+                            {frequency.value === 'annually' ? 'Billed yearly (20% off)' : 'Billed monthly'}
                           </p>
                         </div>
                       </div>
@@ -493,17 +515,17 @@ export default function Landing() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900">
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
         <div className="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
           <nav className="-mb-6 flex flex-wrap justify-center gap-x-12 gap-y-3" aria-label="Footer">
             {navigation.main.map((item) => (
-              <a
+              <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 className="text-sm leading-6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
               >
                 {item.name}
-              </a>
+              </Link>
             ))}
           </nav>
           <div className="mt-10 flex justify-center gap-x-8">
@@ -519,7 +541,7 @@ export default function Landing() {
             ))}
           </div>
           <p className="mt-10 text-center text-sm leading-5 text-gray-500 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} Amplify. All rights reserved.
+            &copy; 2025 Amplify. All rights reserved.
           </p>
         </div>
       </footer>

@@ -9,15 +9,15 @@ export function MetricCard({ title, value, icon: Icon, onClick }) {
         transition-all duration-200 ease-in-out hover:scale-[1.02] hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-700
         cursor-pointer"
     >
-      <div className="space-y-2">
+      <div className="space-y-1">
         <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
           {title}
         </div>
         
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-center justify-between">
           <NumberTicker 
             value={value} 
-            className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-white"
+            className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white"
           />
           {Icon && (
             <div className="rounded-md bg-gray-100/80 p-2 dark:bg-gray-800">

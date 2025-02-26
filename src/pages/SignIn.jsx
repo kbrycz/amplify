@@ -40,7 +40,20 @@ export default function SignIn() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
+    <div className="relative isolate flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+      >
+        <div
+          style={{
+            clipPath:
+              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+          }}
+          className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+        />
+      </div>
+
       <button
         onClick={() => navigate('/')}
         className="absolute left-4 top-4 md:left-8 md:top-8 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -60,7 +73,7 @@ export default function SignIn() {
         </h2>
       </div>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
+      <div className="mx-auto mt-10 w-[90%] sm:w-full sm:max-w-[480px]">
         <div className="bg-white dark:bg-gray-800 px-6 py-12 shadow sm:rounded-lg sm:px-12">
           <form action="#" method="POST" className="space-y-6" onSubmit={handleSubmit}>
             <div>
@@ -206,12 +219,28 @@ export default function SignIn() {
           </div>
         </div>
 
-        <p className="mt-10 text-center text-sm/6 text-gray-500 dark:text-gray-400">
+        <p className="mx-auto mt-10 text-center text-sm/6 text-gray-500 dark:text-gray-400">
           Not a member?{' '}
           <Link to="/signup" className="font-semibold text-indigo-600 hover:text-indigo-500">
             Start a 14 day free trial
           </Link>
         </p>
+        <p className="mx-auto mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
+          &copy; 2025 Amplify. All rights reserved.
+        </p>
+
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
+        >
+          <div
+            style={{
+              clipPath:
+                'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+            }}
+            className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-20 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
+          />
+        </div>
       </div>
     </div>
   );

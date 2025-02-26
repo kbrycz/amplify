@@ -230,6 +230,9 @@ export default function Support() {
             </form>
           </div>
         </div>
+      <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
+        &copy; 2025 Amplify. All rights reserved.
+      </div>
     </div>
   );
 }

@@ -28,7 +28,8 @@ export function SidebarProvider({ children }) {
   }, []);
 
   const toggleSidebar = () => setIsExpanded(!isExpanded);
-  const toggleMobileSidebar = () => setIsMobileOpen(!isMobileOpen);
+  const toggleMobileSidebar = () => setIsMobileOpen(!isMobileOpen); 
+  const closeMobileSidebar = () => setIsMobileOpen(false);
   const toggleSubmenu = (item) => setOpenSubmenu(openSubmenu === item ? null : item);
 
   return (
@@ -41,6 +42,7 @@ export function SidebarProvider({ children }) {
         openSubmenu,
         toggleSidebar,
         toggleMobileSidebar,
+        closeMobileSidebar,
         setIsHovered,
         setActiveItem,
         toggleSubmenu

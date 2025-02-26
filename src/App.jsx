@@ -5,12 +5,16 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import About from './pages/About';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Backdrop from './components/Backdrop';
 import Dashboard from './pages/Dashboard';
 import CreateCampaign from './pages/CreateCampaign';
 import ManageCampaigns from './pages/ManageCampaigns';
+import CampaignDetails from './pages/CampaignDetails';
+import Settings from './pages/Settings';
+import Analytics from './pages/Analytics';
 import EditAccount from './pages/EditAccount';
 import Support from './pages/Support';
 
@@ -85,6 +89,7 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<AppContent />} />
+          <Route path="/about" element={<About />} />
           <Route
             path="/login"
             element={
@@ -106,8 +111,11 @@ function App() {
           <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
             <Route index element={<Dashboard />} />
             <Route path="campaigns/new" element={<CreateCampaign />} />
+            <Route path="campaigns/:id" element={<CampaignDetails />} />
             <Route path="campaigns" element={<ManageCampaigns />} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="account" element={<EditAccount />} />
+            <Route path="settings" element={<Settings />} />
             <Route path="support" element={<Support />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

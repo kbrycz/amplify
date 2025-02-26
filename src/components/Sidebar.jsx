@@ -1,12 +1,12 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useSidebar } from '../context/SidebarContext';
-import { Home, BarChart3, Users, Settings, ChevronDown, X } from 'lucide-react';
+import { Home, BarChart3, Users, ChevronDown, X } from 'lucide-react';
 
 const navItems = [
   { 
     icon: <Home className="w-5 h-5" />,
-    name: 'Dashboard',
+    name: 'Home',
     path: '/app/'
   },
   { 
@@ -25,9 +25,24 @@ const navItems = [
 ];
 
 function Sidebar() {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered, openSubmenu, toggleSubmenu, toggleMobileSidebar } = useSidebar();
+  const { 
+    isExpanded, 
+    isMobileOpen, 
+    isHovered, 
+    setIsHovered, 
+    openSubmenu, 
+    toggleSubmenu, 
+    toggleMobileSidebar,
+    closeMobileSidebar 
+  } = useSidebar();
 
   const isOpen = isExpanded || isMobileOpen || isHovered;
+
+  const handleItemClick = () => {
+    if (isMobileOpen) {
+      closeMobileSidebar();
+    }
+  };
 
   return (
     <aside
@@ -60,7 +75,12 @@ function Sidebar() {
               {item.subItems ? (
                 <div>
                   <button
-                    onClick={() => toggleSubmenu(item.name)}
+                    onClick={() => {
+                      toggleSubmenu(item.name);
+                      if (isMobileOpen && !openSubmenu) {
+                        closeMobileSidebar();
+                      }
+                    }}
                     className="flex items-center w-full p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                   >
                     {item.icon}
@@ -76,6 +96,7 @@ function Sidebar() {
                       {item.subItems.map((subItem) => (
                         <li key={subItem.name}>
                           <Link
+                            onClick={handleItemClick}
                             to={subItem.path}
                             className="block py-2 px-3 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-500 dark:hover:bg-gray-800"
                           >
@@ -89,6 +110,7 @@ function Sidebar() {
               ) : (
                 <Link
                   to={item.path}
+                  onClick={handleItemClick}
                   className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                 >
                   {item.icon}
@@ -100,17 +122,7 @@ function Sidebar() {
           </ul>
         </nav>
 
-        <div className="mt-auto pb-8">
-          <div className="sticky bottom-0 pb-8">
-            <Link
-              to="/settings"
-              className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-            >
-              <Settings className="w-5 h-5" />
-              {isOpen && <span className="ml-3">Settings</span>}
-            </Link>
-          </div>
-        </div>
+        <div className="mt-auto pb-8" />
       </div>
     </aside>
   );

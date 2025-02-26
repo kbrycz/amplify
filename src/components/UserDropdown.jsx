@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ChevronDown, Settings, LogOut, User, HelpCircle } from 'lucide-react';
+import { ChevronDown, Cog, LogOut, User, HelpCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -61,7 +61,7 @@ export default function UserDropdown() {
           <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
         </div>
 
-        <div className="py-2">
+        <div className="py-2 border-b border-gray-200 dark:border-gray-800">
           <DropdownItem
             tag={Link}
             to="/app/account"
@@ -69,7 +69,17 @@ export default function UserDropdown() {
             onItemClick={closeDropdown}
           >
             <User className="w-4 h-4" />
-            <span>Edit account</span>
+            <span>Account</span>
+          </DropdownItem>
+
+          <DropdownItem
+            tag={Link}
+            to="/app/settings"
+            className="flex items-center gap-2 w-full px-2 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            onItemClick={closeDropdown}
+          >
+            <Cog className="w-4 h-4" />
+            <span>Settings</span>
           </DropdownItem>
 
           <DropdownItem
