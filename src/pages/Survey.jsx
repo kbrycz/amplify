@@ -35,7 +35,12 @@ export default function Survey() {
 
   const fetchCampaign = async () => {
     try {
-      const response = await fetch(`${SERVER_URL}/campaign/campaigns/survey/${id}`);
+      // Use the deployed API URL directly in production
+      const apiUrl = import.meta.env.PROD
+        ? `https://amplify-dev-6b1c7.uc.r.appspot.com/campaign/campaigns/survey/${id}`
+        : `${SERVER_URL}/campaign/campaigns/survey/${id}`;
+
+      const response = await fetch(apiUrl);
       if (!response.ok) {
         throw new Error('Campaign not found');
       }

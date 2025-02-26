@@ -2,7 +2,8 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { MetricCard } from '../components/ui/metric-card';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Video, Users, Clock, TrendingUp, Zap, Award } from 'lucide-react';
+import { Video, Users, Clock, TrendingUp, Zap, Award, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 // Mock data for charts
 const responseData = [
@@ -57,6 +58,21 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function Analytics() {
+  const [metrics, setMetrics] = useState({
+    videos: 0,
+    users: 0,
+    responseTime: 0
+  });
+
+  useEffect(() => {
+    // Simulate loading metrics with random values
+    setMetrics({
+      videos: Math.floor(Math.random() * 1000),
+      users: Math.floor(Math.random() * 5000),
+      responseTime: Math.floor(Math.random() * 120)
+    });
+  }, []);
+
   return (
     <div className="p-6">
       <div className="mb-8">
@@ -68,19 +84,19 @@ export default function Analytics() {
       <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <MetricCard
           title="Videos Created"
-          value={278}
+          value={metrics.videos}
           icon={Video}
           onClick={() => console.log('Videos clicked')}
         />
         <MetricCard
           title="Active Users"
-          value={1234}
+          value={metrics.users}
           icon={Users}
           onClick={() => console.log('Users clicked')}
         />
         <MetricCard
           title="Avg. Response Time"
-          value={89}
+          value={metrics.responseTime}
           icon={Clock}
           onClick={() => console.log('Response Time clicked')}
         />

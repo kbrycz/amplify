@@ -107,6 +107,14 @@ export default function CreateCampaign() {
     setIsSubmitting(true);
     setError('');
 
+    // Validate required fields
+    if (!formData.name || !formData.description || !formData.category || surveyQuestions.length === 0) {
+      setError('Please fill in all required fields and add at least one question');
+      setIsSubmitting(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     try {
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${SERVER_URL}/campaign/campaigns`, {
@@ -377,6 +385,7 @@ export default function CreateCampaign() {
                   <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
                     <div className="flex-1">
                       <Label htmlFor="name">Campaign Name</Label>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Required</div>
                       <Input
                         id="name"
                         name="campaign-title"
@@ -448,6 +457,7 @@ export default function CreateCampaign() {
 
                   <div>
                     <Label htmlFor="description">Campaign Description</Label>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Required</div>
                     <Textarea
                       id="description"
                       placeholder="Describe your campaign's purpose and goals"
@@ -459,6 +469,7 @@ export default function CreateCampaign() {
 
                   <div>
                     <Label htmlFor="category">Campaign Category</Label>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Required</div>
                     <Select 
                       id="category" 
                       value={formData.category}
@@ -478,20 +489,23 @@ export default function CreateCampaign() {
                 {/* Survey Questions */}
                 <div className="space-y-4">
                   <div className="flex items-center">
-                    <Label className="flex items-center gap-1.5">
-                      Survey Questions
-                      <button
-                        type="button"
-                        onClick={() => setIsHelpOpen(true)}
-                        className="inline-flex items-center justify-center text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                          <line x1="12" y1="17" x2="12" y2="17" />
-                        </svg>
-                      </button>
-                    </Label>
+                    <div>
+                      <Label className="flex items-center gap-1.5">
+                        Survey Questions
+                        <button
+                          type="button"
+                          onClick={() => setIsHelpOpen(true)}
+                          className="inline-flex items-center justify-center text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                            <line x1="12" y1="17" x2="12" y2="17" />
+                          </svg>
+                        </button>
+                      </Label>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">At least one question required</div>
+                    </div>
                     <button
                       type="button"
                       onClick={handleAddQuestion}
@@ -569,7 +583,10 @@ export default function CreateCampaign() {
 
                 {/* Business Information */}
                 <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Business Information</h3>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Business Information</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Optional - Fill in if you want to display your business details</p>
+                  </div>
                   <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div>
                       <Label htmlFor="businessName">Business Name</Label>
@@ -579,7 +596,6 @@ export default function CreateCampaign() {
                         value={formData.businessName}
                         onChange={handleInputChange}
                         autoComplete="off"
-                        required
                       />
                     </div>
                     <div>
@@ -601,7 +617,6 @@ export default function CreateCampaign() {
                         onChange={handleInputChange}
                         placeholder="contact@business.com"
                         autoComplete="off"
-                        required
                       />
                     </div>
                     <div>

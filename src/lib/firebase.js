@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, browserSessionPersistence, setPersistence } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDU1L2RmFbL2APSbmTMDS4OAdXWQwzxMcY",
@@ -11,7 +11,16 @@ const firebaseConfig = {
   measurementId: "G-2S6GXVL1LW"
 };
 
-export const SERVER_URL = "https://amplify-dev-6b1c7.uc.r.appspot.com";
+// Get the server URL based on the environment
+export const SERVER_URL = "https://amplify-dev-6b1c7.uc.r.appspot.com";  // Always use production server
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+const auth = getAuth(app);
+
+// Set auth persistence to session
+setPersistence(auth, browserSessionPersistence)
+  .catch((error) => {
+    console.error('Error setting auth persistence:', error);
+  });
+
+export { auth };

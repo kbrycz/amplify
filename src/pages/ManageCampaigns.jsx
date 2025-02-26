@@ -1,15 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
-import { Plus, BarChart3, Users, Clock, Trash2, Pencil, X } from 'lucide-react';
+import { Plus, BarChart3, Users, Clock, Trash2, Pencil, X, Video } from 'lucide-react';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { EditCampaignModal } from '../components/ui/edit-campaign-modal';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
+import { NumberTicker } from '../components/ui/number-ticker';
 
 function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [metrics, setMetrics] = useState({
+    responses: Math.floor(Math.random() * 2000),
+    audience: Math.floor(Math.random() * 5000) + 1000
+  });
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Update metrics every 3 seconds
+    const interval = setInterval(() => {
+      setMetrics({
+        responses: Math.floor(Math.random() * 2000),
+        audience: Math.floor(Math.random() * 5000) + 1000
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const statusColors = {
     Active: "bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20",
@@ -39,11 +56,11 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
   return (
     <div 
       onClick={() => !isEditMode && navigate(`/app/campaigns/${campaign.id}`)}
-      className={`group relative flex flex-col items-start gap-4 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-300 ease-in-out
+      className={`group relative flex flex-col sm:flex-row items-start gap-4 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-300 ease-in-out
         ${!isEditMode ? 'cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50' : ''}
         dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-800/50`}
     >
-      <div className="flex-1 min-w-0 w-full">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-3">
           <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">
             {campaign.name}
@@ -55,8 +72,11 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
           {campaign.description || 'No description provided'}
         </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 w-full sm:w-auto">
         {isEditMode && (
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2 order-first sm:order-last sm:ml-4">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -77,13 +97,11 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
             </button>
           </div>
         )}
-      </div>
 
-      <div className="flex items-center gap-8">
         <div className="block">
           <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${!isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''} transition-colors`}>
             <Users className="h-4 w-4" />
-            <span className="tabular-nums font-medium">{campaign.responses.toLocaleString()}</span>
+            <NumberTicker value={metrics.responses} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Responses</div>
         </div>
@@ -91,7 +109,7 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
         <div className="block">
           <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${!isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''} transition-colors`}>
             <BarChart3 className="h-4 w-4" />
-            <span className="tabular-nums font-medium">{campaign.audience.toLocaleString()}</span>
+            <NumberTicker value={metrics.audience} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Audience</div>
         </div>
@@ -153,9 +171,7 @@ export default function ManageCampaigns() {
       
       // Add mock data for responses and audience since they're not in the API yet
       const enhancedData = data.map(campaign => ({
-        ...campaign,
-        responses: Math.floor(Math.random() * 2000),
-        audience: Math.floor(Math.random() * 5000) + 1000,
+        ...campaign
       }));
       
       setCampaigns(enhancedData);
@@ -246,13 +262,13 @@ export default function ManageCampaigns() {
         </div>
       )}
 
-      <div className="mb-6 space-y-4">
+      <div className="mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Manage Campaigns</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Create and manage your marketing campaigns</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {!isLoading && campaigns.length > 0 && (
+        {!isLoading && campaigns.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <button
               onClick={() => setIsEditMode(!isEditMode)}
               className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors ${
@@ -273,15 +289,15 @@ export default function ManageCampaigns() {
                 </>
               )}
             </button>
-          )}
-          <button
-            onClick={() => navigate('/app/campaigns/new')}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
-          >
-            <Plus className="h-4 w-4" />
-            New Campaign
-          </button>
-        </div>
+            <button
+              onClick={() => navigate('/app/campaigns/new')}
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
+            >
+              <Plus className="h-4 w-4" />
+              New Campaign
+            </button>
+          </div>
+        )}
       </div>
 
       {isLoading ? (
@@ -298,11 +314,72 @@ export default function ManageCampaigns() {
           </div>
         </div>
       ) : campaigns.length === 0 ? (
-        <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">No campaigns yet</h3>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Get started by creating your first campaign
-          </p>
+        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-50 via-white to-white opacity-50 dark:from-indigo-900/20 dark:via-gray-900 dark:to-gray-900" />
+          
+          <div className="relative">
+            <div className="mx-auto max-w-xl text-center">
+              <div className="mb-6 flex justify-center">
+                <div className="rounded-full bg-indigo-100 p-3 dark:bg-indigo-900/50">
+                  <Video className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Your First Campaign</h2>
+              <p className="mt-4 text-base text-gray-600 dark:text-gray-400">
+                Start collecting authentic video stories from your community. Create a campaign to engage with your audience and gather meaningful responses.
+              </p>
+              
+              <button
+                onClick={() => navigate('/app/campaigns/new')}
+                className="mt-8 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-base font-medium text-white transition-all duration-200 hover:bg-indigo-500 hover:scale-105"
+              >
+                <Plus className="h-5 w-5" />
+                Create Campaign
+              </button>
+              
+              <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
+                <div className="flex flex-col items-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                    <Video className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Record Stories</h3>
+                  <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
+                    Capture authentic video testimonials
+                  </p>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/50">
+                    <BarChart3 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Track Analytics</h3>
+                  <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
+                    Monitor engagement and insights
+                  </p>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
+                    <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Collaborate</h3>
+                  <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
+                    Work together with your team
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mt-12 flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <span>Need help getting started?</span>
+                <Link
+                  to="/app/support"
+                  className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                >
+                  View our guide
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="space-y-3">

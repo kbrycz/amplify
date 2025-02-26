@@ -1,14 +1,11 @@
 import React from 'react';
-import { X, Copy, Share2, Facebook, Twitter, Linkedin as LinkedIn, ExternalLink } from 'lucide-react';
+import { X, Share2, Facebook, Twitter, Linkedin as LinkedIn, ExternalLink } from 'lucide-react';
+import { CopyButton } from './copy-button';
 
 export function ShareModal({ isOpen, onClose, campaignId, campaignName }) {
   if (!isOpen) return null;
 
   const surveyUrl = `${window.location.origin}/survey/${campaignId}`;
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(surveyUrl);
-  };
 
   const shareOnSocial = (platform) => {
     const text = encodeURIComponent(`Check out this survey: ${campaignName}`);
@@ -79,13 +76,7 @@ export function ShareModal({ isOpen, onClose, campaignId, campaignName }) {
                   className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
-              <button
-                onClick={copyToClipboard}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              >
-                <Copy className="h-4 w-4" />
-                Copy
-              </button>
+              <CopyButton text={surveyUrl} />
             </div>
           </div>
 

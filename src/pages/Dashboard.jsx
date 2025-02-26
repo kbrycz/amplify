@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Inbox, CheckCircle, Clock, CreditCard, Film, FolderOpen, TrendingUp, Users, Star, ChevronRight, Plus } from 'lucide-react';
+import { Inbox, CheckCircle, Clock, CreditCard, Film, FolderOpen, TrendingUp, Users, Star, ChevronRight, Plus, Video, BarChart3 } from 'lucide-react';
+import { SERVER_URL, auth } from '../lib/firebase';
 import { MetricCard } from '../components/ui/metric-card';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // Mock data for charts
 const responseData = [
@@ -41,6 +41,69 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [metrics, setMetrics] = useState({
+    recentCampaign: null,
+    credits: 0,
+    campaigns: 0,
+    videos: 0,
+    users: 0,
+    unread: 0,
+    collected: 0,
+    waiting: 0
+  });
+
+  const fetchRecentCampaign = async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/campaign/campaigns`, { 
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          // No campaigns yet, this is normal for new users
+          return;
+        }
+        throw new Error('Failed to fetch recent campaign');
+      }
+      
+      const data = await response.json();
+      
+      // Get the most recent campaign
+      const sortedCampaigns = data.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+      const recentCampaign = sortedCampaigns[0];
+      
+      if (recentCampaign) {
+        setMetrics(prev => ({
+          ...prev,
+          recentCampaign
+        }));
+      }
+    } catch (err) {
+      if (err.message !== 'Failed to fetch recent campaign') {
+        console.error('Error fetching recent campaign:', err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Simulate loading metrics with random values
+    setMetrics({
+      recentCampaign: null,
+      credits: Math.floor(Math.random() * 5000),
+      campaigns: Math.floor(Math.random() * 30),
+      videos: Math.floor(Math.random() * 1000),
+      users: Math.floor(Math.random() * 5000),
+      unread: Math.floor(Math.random() * 100),
+      collected: Math.floor(Math.random() * 2000),
+      waiting: Math.floor(Math.random() * 200)
+    });
+    
+    fetchRecentCampaign();
+  }, []);
   const [isNewUser, setIsNewUser] = useState(false);
 
   useEffect(() => {
@@ -86,25 +149,25 @@ export default function Dashboard() {
       <div className="mt-10 grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Unused Credits"
-          value={2500}
+          value={metrics.credits}
           icon={CreditCard}
           onClick={() => console.log('Credits clicked')}
         />
         <MetricCard
           title="Total Campaigns"
-          value={15}
+          value={metrics.campaigns}
           icon={FolderOpen}
           onClick={() => console.log('Campaigns clicked')}
         />
         <MetricCard
           title="Videos Generated"
-          value={347}
+          value={metrics.videos}
           icon={Film}
           onClick={() => console.log('Videos clicked')}
         />
         <MetricCard
           title="Active Users"
-          value={1234}
+          value={metrics.users}
           icon={Users}
           onClick={() => console.log('Users clicked')}
         />
@@ -113,54 +176,115 @@ export default function Dashboard() {
       {/* Most Recent Campaign */}
       <div className="mt-10">
         <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                  <CardTitle className="text-2xl">Boys and Girls Club</CardTitle>
-                  <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
-                Recent Campaign
-              </span>
+          {metrics.recentCampaign ? (
+            <>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                      <CardTitle className="text-2xl">{metrics.recentCampaign.name}</CardTitle>
+                      <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
+                        Recent Campaign
+                      </span>
+                    </div>
+                    <CardDescription className="mt-2">{metrics.recentCampaign.description || 'No description provided'}</CardDescription>
+                  </div>
                 </div>
-                <CardDescription className="mt-2">Annual fundraising campaign for local youth programs</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mt-2">
-              <div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <Inbox className="h-4 w-4" />
-                  <span className="font-medium">42</span>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mt-2">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <Inbox className="h-4 w-4" />
+                      <span className="font-medium">{metrics.unread}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Unread</div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="font-medium">{metrics.collected}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Collected</div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <Clock className="h-4 w-4" />
+                      <span className="font-medium">{metrics.waiting}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Waiting</div>
+                  </div>
                 </div>
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Unread</div>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <CheckCircle className="h-4 w-4" />
-                  <span className="font-medium">1,234</span>
-                </div>
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Collected</div>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <Clock className="h-4 w-4" />
-                  <span className="font-medium">89</span>
-                </div>
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Waiting</div>
-              </div>
-            </div>
 
-            <div className="mt-8">
-              <Link
-                to="/app/campaigns/1"
-                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                View campaign details
-                <ChevronRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </CardContent>
+                <div className="mt-8">
+                  <Link
+                    to={`/app/campaigns/${metrics.recentCampaign.id}`}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    View campaign details
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </CardContent>
+            </>
+          ) : (
+            <>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                      <CardTitle className="text-2xl">Get Started with Amplify</CardTitle>
+                      <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
+                        New Account
+                      </span>
+                    </div>
+                    <CardDescription className="mt-2">Create your first campaign and start collecting authentic stories</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <Video className="h-4 w-4" />
+                      <span className="font-medium">Video Stories</span>
+                    </div>
+                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-500">
+                      Collect authentic video testimonials from your community
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <BarChart3 className="h-4 w-4" />
+                      <span className="font-medium">Analytics</span>
+                    </div>
+                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-500">
+                      Track engagement and measure campaign success
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <Users className="h-4 w-4" />
+                      <span className="font-medium">Team Collaboration</span>
+                    </div>
+                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-500">
+                      Work together seamlessly with your team
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <button
+                    onClick={() => navigate('/app/campaigns/new')}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    Create your first campaign
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </CardContent>
+            </>
+          )}
         </Card>
       </div>
 

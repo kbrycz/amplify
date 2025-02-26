@@ -44,26 +44,47 @@ export function AuthProvider({ children }) {
 
   const fetchUserProfile = async (firebaseUser) => {
     const idToken = await firebaseUser.getIdToken();
-    const response = await fetch(`${SERVER_URL}/auth/profile`, {
-      headers: { 'Authorization': `Bearer ${idToken}` }
-    });
-    if (!response.ok) {
-      throw new Error('User profile does not exist. Please complete signup.');
+    try {
+      const response = await fetch(`${SERVER_URL}/auth/profile`, { 
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${idToken}` }
+      });
+      
+      if (response.status === 404) {
+        // Profile doesn't exist yet, just use Firebase user data
+        setUser(firebaseUser);
+        return firebaseUser;
+      }
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile');
+      }
+      
+      const profileData = await response.json();
+      setUser({ ...firebaseUser, ...profileData });
+      return profileData;
+    } catch (error) {
+      if (error.message !== 'Failed to fetch profile') {
+        console.error('Error fetching profile:', error);
+      }
+      // If profile doesn't exist, just use Firebase user data
+      setUser(firebaseUser);
+      return firebaseUser;
     }
-    const profileData = await response.json();
-    setUser({ ...firebaseUser, ...profileData });
-    return profileData;
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser && !isSigningUp) {
         try {
-          await fetchUserProfile(firebaseUser);
+          // Set basic user data immediately
+          setUser(firebaseUser);
+          // Then fetch additional profile data
+          fetchUserProfile(firebaseUser);
         } catch (error) {
           console.error('Error fetching profile:', error.message);
-          setUser(null);
-          await signOut(auth); // Sign out if profile fetch fails
+          // Keep the user signed in even if profile fetch fails
+          setUser(firebaseUser);
         }
       } else {
         setUser(null);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CheckCircle, X, Copy, ExternalLink } from 'lucide-react';
+import { CheckCircle, X, ExternalLink } from 'lucide-react';
+import { CopyButton } from './copy-button';
 
 export function SuccessModal({ isOpen, onClose, campaignId, campaignName }) {
   const navigate = useNavigate();
@@ -8,10 +9,6 @@ export function SuccessModal({ isOpen, onClose, campaignId, campaignName }) {
   if (!isOpen) return null;
 
   const surveyUrl = `${window.location.origin}/survey/${campaignId}`;
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(surveyUrl);
-  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -53,13 +50,7 @@ export function SuccessModal({ isOpen, onClose, campaignId, campaignName }) {
                   className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
-              <button
-                onClick={copyToClipboard}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              >
-                <Copy className="h-4 w-4" />
-                Copy
-              </button>
+              <CopyButton text={surveyUrl} />
             </div>
           </div>
 
