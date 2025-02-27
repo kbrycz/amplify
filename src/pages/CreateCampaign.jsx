@@ -125,6 +125,7 @@ export default function CreateCampaign() {
         },
         body: JSON.stringify({
           ...formData,
+          theme: selectedTheme,
           surveyQuestions: surveyQuestions.map(q => q.question)
         })
       });

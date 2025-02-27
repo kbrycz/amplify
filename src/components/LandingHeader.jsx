@@ -49,7 +49,7 @@ export default function LandingHeader() {
       <nav className="flex items-center justify-between p-6 lg:px-8 gap-4" aria-label="Global">
         <div className="flex">
           <Link to="/" className="-m-1.5 p-1.5 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Amplify
+            Shout
           </Link>
         </div>
         <div className="flex items-center gap-4 lg:hidden">
@@ -91,7 +91,7 @@ export default function LandingHeader() {
               className="-m-1.5 p-1.5 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
               onClick={closeMobileMenu}
             >
-              Amplify
+              Shout
             </Link>
             <button
               type="button"
