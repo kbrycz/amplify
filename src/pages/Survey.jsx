@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { SERVER_URL } from '../lib/firebase';
 import { Input } from '../components/ui/input';
@@ -47,6 +47,9 @@ export default function Survey() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(null);
+  const errorTimeoutRef = useRef(null);
+  const MAX_VIDEO_DURATION = 120; // 2 minutes in seconds
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -80,6 +83,26 @@ export default function Survey() {
     }
   };
 
+  // Clear error message after 5 seconds
+  useEffect(() => {
+    if (error) {
+      // Clear any existing timeout
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+      // Set new timeout
+      errorTimeoutRef.current = setTimeout(() => {
+        setError(null);
+      }, 5000);
+    }
+    // Cleanup timeout on unmount or when error changes
+    return () => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    };
+  }, [error]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -91,15 +114,35 @@ export default function Survey() {
   const handleVideoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData(prev => ({
-        ...prev,
-        videoFile: file,
-        videoUrl: URL.createObjectURL(file)
-      }));
+      // Create a temporary video element to check duration
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+
+      video.onloadedmetadata = function() {
+        window.URL.revokeObjectURL(video.src);
+        const duration = Math.round(video.duration);
+        setVideoDuration(duration);
+
+        if (duration > MAX_VIDEO_DURATION) {
+          setError(`Video is too long (${Math.round(duration / 60)}:${String(duration % 60).padStart(2, '0')}). Please upload a video shorter than 2 minutes.`);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          setError(null);
+          setFormData(prev => ({
+            ...prev,
+            videoFile: file,
+            videoUrl: URL.createObjectURL(file)
+          }));
+        }
+      };
+
+      video.src = URL.createObjectURL(file);
     }
   };
 
   const handleRemoveVideo = () => {
+    setVideoDuration(null);
+    setError(null);
     setFormData(prev => ({
       ...prev,
       videoFile: null,
@@ -111,7 +154,13 @@ export default function Survey() {
     e.preventDefault();
     if (!formData.videoFile) {
       setError('Please record or upload a video response before submitting');
-      console.log('No video file provided');
+      setError('Please record or upload a video response');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (videoDuration > MAX_VIDEO_DURATION) {
+      setError(`Video must be shorter than 2 minutes. Current length: ${Math.round(videoDuration / 60)}:${String(videoDuration % 60).padStart(2, '0')}`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -158,12 +207,14 @@ export default function Survey() {
 
   const goToNextStep = () => {
     if (!isLastStep) {
+      setError(null);
       setCurrentStep(steps[currentStepIndex + 1].id);
     }
   };
 
   const goToPreviousStep = () => {
     if (!isFirstStep) {
+      setError(null);
       setCurrentStep(steps[currentStepIndex - 1].id);
     }
   };
@@ -181,7 +232,7 @@ export default function Survey() {
     );
   }
 
-  if (error) {
+  if (error && !campaign) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -207,9 +258,13 @@ export default function Survey() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+      <div className={`mx-auto px-4 py-16 sm:px-6 sm:py-24 ${
+        currentStep === 'response' 
+          ? 'max-w-2xl lg:max-w-5xl' 
+          : 'max-w-2xl'
+      } lg:px-8`}>
         {error && (
-          <div className="mb-8 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
+          <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
             <X className="h-4 w-4 flex-shrink-0" />
             {error}
           </div>
@@ -253,7 +308,7 @@ export default function Survey() {
                     value={formData.firstName}
                     onChange={handleInputChange}
                     required
-                    className={`mt-2 ${campaign.theme ? `${themes[campaign.theme].border} ${themes[campaign.theme].input} ${themes[campaign.theme].text} placeholder:text-white/50` : ''}`}
+                    className={`mt-2 ${campaign.theme ? `${themes[campaign.theme].border} ${themes[campaign.theme].input} text-white placeholder:text-white/50 focus:ring-white/20` : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white'}`}
                   />
                 </div>
                 <div>
@@ -264,7 +319,7 @@ export default function Survey() {
                     value={formData.lastName}
                     onChange={handleInputChange}
                     required
-                    className={`mt-2 ${campaign.theme ? `${themes[campaign.theme].border} ${themes[campaign.theme].input} ${themes[campaign.theme].text} placeholder:text-white/50` : ''}`}
+                    className={`mt-2 ${campaign.theme ? `${themes[campaign.theme].border} ${themes[campaign.theme].input} text-white placeholder:text-white/50 focus:ring-white/20` : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white'}`}
                   />
                 </div>
               </div>
@@ -277,7 +332,7 @@ export default function Survey() {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className={`mt-2 ${campaign.theme ? `${themes[campaign.theme].border} ${themes[campaign.theme].input} ${themes[campaign.theme].text} placeholder:text-white/50` : ''}`}
+                  className={`mt-2 ${campaign.theme ? `${themes[campaign.theme].border} ${themes[campaign.theme].input} text-white placeholder:text-white/50 focus:ring-white/20` : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white'}`}
                 />
               </div>
             </div>
@@ -298,7 +353,7 @@ export default function Survey() {
                 value={formData.zipCode}
                 onChange={handleInputChange}
                 required
-                className={`mt-2 ${campaign.theme ? `${themes[campaign.theme].border} ${themes[campaign.theme].input} ${themes[campaign.theme].text} placeholder:text-white/50` : ''}`}
+                className={`mt-2 ${campaign.theme ? `${themes[campaign.theme].border} ${themes[campaign.theme].input} text-white placeholder:text-white/50 focus:ring-white/20` : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white'}`}
                 maxLength={5}
                 pattern="[0-9]*"
               />
@@ -308,18 +363,18 @@ export default function Survey() {
 
         {currentStep === 'response' && (
           <div>
-            <div className="flex flex-col md:flex-row gap-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:gap-12">
               {/* Questions Panel */}
               <div className="flex-1">
                 <h2 className={`text-2xl font-bold ${campaign.theme ? themes[campaign.theme].text : 'text-gray-900 dark:text-white'}`}>Questions</h2>
                 <p className={`mt-2 text-sm ${campaign.theme ? themes[campaign.theme].subtext : 'text-gray-600 dark:text-gray-400'}`}>
                   Choose one or more questions to answer in your video response.
                 </p>
-                <div className="mt-6 space-y-4">
+                <div className="mt-4 space-y-2 md:mt-6 md:space-y-4">
                   {campaign.surveyQuestions.map((question, index) => (
                     <div
                       key={index}
-                      className={`flex items-start gap-3 rounded-lg border p-4 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50 cursor-pointer ${
+                      className={`flex items-start gap-2 rounded-lg border p-3 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50 cursor-pointer md:gap-3 md:p-4 ${
                         campaign.theme ? `${themes[campaign.theme].border} hover:bg-white/5` : 'border-gray-200'
                       }`}
                       onClick={() => setCurrentQuestion(index)}
@@ -340,13 +395,13 @@ export default function Survey() {
               </div>
 
               {/* Video Recording Panel */}
-              <div className="flex-1">
+              <div className="flex-1 lg:flex-none lg:w-[420px]">
                 <h2 className={`text-2xl font-bold ${campaign.theme ? themes[campaign.theme].text : 'text-gray-900 dark:text-white'}`}>Record Response</h2>
                 <p className={`mt-2 text-sm ${campaign.theme ? themes[campaign.theme].subtext : 'text-gray-600 dark:text-gray-400'}`}>
-                  Record a video answering your selected question(s).
+                  Choose one or more questions to answer in your video response.
                 </p>
-                <div className="mt-6">
-                    <label className={`relative flex items-center justify-center w-full aspect-[9/16] border-2 border-dashed rounded-2xl cursor-pointer hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50 ${
+                <div className="mt-4 md:mt-6">
+                    <label className={`relative flex items-center justify-center w-full aspect-video border-2 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50 ${
                       campaign.theme 
                         ? `${themes[campaign.theme].border} hover:bg-white/5` 
                         : 'border-gray-300'
@@ -355,7 +410,7 @@ export default function Survey() {
                         <div className="relative w-full h-full p-4">
                           <video
                             src={formData.videoUrl}
-                            className="w-full h-full object-contain rounded-xl"
+                            className="w-full h-full object-cover rounded-lg"
                             controls
                             playsInline
                           />
@@ -377,11 +432,11 @@ export default function Survey() {
                             <Video className={`w-6 h-6 ${campaign.theme ? themes[campaign.theme].text : 'text-gray-500 dark:text-gray-400'}`} />
                           </div>
                           <p className={`text-base font-medium ${campaign.theme ? themes[campaign.theme].text : 'text-gray-900 dark:text-white'}`}>
-                            Record your response
+                            Record a video answering your selected question(s)
                           </p>
-                          <p className={`mt-1 text-xs ${campaign.theme ? themes[campaign.theme].subtext : 'text-gray-500 dark:text-gray-400'}`}>
-                            Answer one or more questions in a single video
-                          </p>
+                          <div className={`mt-1 text-xs ${campaign.theme ? themes[campaign.theme].subtext : 'text-gray-500 dark:text-gray-400'}`}>
+                            <p className="font-medium">Maximum video length: 2 minutes</p>
+                          </div>
                         </div>
                       )}
                       <input
@@ -392,6 +447,15 @@ export default function Survey() {
                         onChange={handleVideoUpload}
                       />
                     </label>
+                    {videoDuration && formData.videoUrl && (
+                      <div className={`mt-2 text-sm ${
+                        videoDuration > MAX_VIDEO_DURATION
+                          ? 'text-red-600 dark:text-red-400'
+                          : campaign.theme ? themes[campaign.theme].text : 'text-gray-600 dark:text-gray-400'
+                      }`}>
+                        Video length: {Math.floor(videoDuration / 60)}:{String(videoDuration % 60).padStart(2, '0')}
+                      </div>
+                    )}
                 </div>
               </div>
             </div>

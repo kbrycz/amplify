@@ -46,7 +46,7 @@ function Sidebar() {
 
   return (
     <aside
-      className={`fixed lg:sticky top-0 flex flex-col px-5 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-[50] border-r border-gray-200 
+      className={`fixed lg:sticky top-0 flex flex-col px-5 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-[60] border-r border-gray-200 
         ${isOpen ? "w-[290px]" : "w-[90px]"}
         ${isMobileOpen ? "translate-x-0" : "lg:translate-x-0 -translate-x-full"}
         lg:translate-x-0 lg:relative lg:block`}
@@ -69,7 +69,7 @@ function Sidebar() {
         </div>
 
         <nav className="flex-1 overflow-y-auto">
-          <ul className="space-y-2">
+          <ul className="space-y-2 relative z-[70]">
             {navItems.map((item) => (
               <li key={item.name}>
               {item.subItems ? (
@@ -77,9 +77,6 @@ function Sidebar() {
                   <button
                     onClick={() => {
                       toggleSubmenu(item.name);
-                      if (isMobileOpen && !openSubmenu) {
-                        closeMobileSidebar();
-                      }
                     }}
                     className="flex items-center w-full p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                   >

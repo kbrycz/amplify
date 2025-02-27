@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  overscroll-behavior: none;
+}
+
+body {
+  overscroll-behavior: none;
+  min-height: 100vh;
+  background-color: theme('colors.white');
+}
+
+.dark body {
+  background-color: theme('colors.gray.900');
+}
+
 @font-face {
   font-family: 'Geist';
   src: url('/fonts/Geist-Regular.woff2') format('woff2');

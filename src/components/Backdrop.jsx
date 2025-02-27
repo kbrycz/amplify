@@ -8,7 +8,7 @@ function Backdrop() {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-gray-900 bg-opacity-50 lg:hidden"
+      className="fixed inset-0 z-50 lg:hidden"
       onClick={toggleMobileSidebar}
     />
   );
