@@ -18,6 +18,7 @@ import Analytics from './pages/Analytics';
 import EditAccount from './pages/EditAccount';
 import Support from './pages/Support';
 import Survey from './pages/Survey.jsx';
+import Responses from './pages/Responses';
 
 function LoadingScreen() {
   return (
@@ -113,6 +114,7 @@ function App() {
           <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
             <Route index element={<Dashboard />} />
             <Route path="campaigns/new" element={<CreateCampaign />} />
+            <Route path="campaigns/:id/responses" element={<Responses />} />
             <Route path="campaigns/:id" element={<CampaignDetails />} />
             <Route path="campaigns" element={<ManageCampaigns />} />
             <Route path="analytics" element={<Analytics />} />

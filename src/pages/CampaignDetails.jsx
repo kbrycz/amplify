@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { MetricCard } from '../components/ui/metric-card';
@@ -52,6 +52,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function CampaignDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -163,7 +164,7 @@ export default function CampaignDetails() {
           title="Total Responses"
           value={metrics.responses}
           icon={Video}
-          onClick={() => console.log('Responses clicked')}
+          onClick={() => navigate(`/app/campaigns/${id}/responses`)}
         />
         <MetricCard
           title="Target Audience"

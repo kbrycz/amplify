@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Share2, Facebook, Twitter, Linkedin as LinkedIn, ExternalLink } from 'lucide-react';
+import { X, Share2, Facebook, Twitter, Linkedin as LinkedIn, Instagram, ExternalLink } from 'lucide-react';
 import { CopyButton } from './copy-button';
 
 export function ShareModal({ isOpen, onClose, campaignId, campaignName }) {
@@ -22,11 +22,25 @@ export function ShareModal({ isOpen, onClose, campaignId, campaignName }) {
       case 'linkedin':
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
         break;
+      case 'instagram':
+        // Instagram sharing is done via Stories using their URL scheme
+        shareUrl = `instagram://story?url=${url}&text=${text}`;
+        break;
       default:
         return;
     }
-    
-    window.open(shareUrl, '_blank', 'width=600,height=400');
+
+    // For Instagram, try to open the app, if it fails, open web version
+    if (platform === 'instagram') {
+      try {
+        window.location.href = shareUrl;
+      } catch (err) {
+        // Fallback to web version
+        window.open('https://instagram.com', '_blank');
+      }
+    } else {
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
   };
 
   return (
@@ -105,6 +119,13 @@ export function ShareModal({ isOpen, onClose, campaignId, campaignName }) {
               >
                 <LinkedIn className="h-4 w-4" />
                 LinkedIn
+              </button>
+              <button
+                onClick={() => shareOnSocial('instagram')}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                <Instagram className="h-4 w-4" />
+                Instagram
               </button>
             </div>
           </div>
