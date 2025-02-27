@@ -45,30 +45,33 @@ export function AuthProvider({ children }) {
   const fetchUserProfile = async (firebaseUser) => {
     const idToken = await firebaseUser.getIdToken();
     try {
+      // First set basic Firebase user data
+      setUser(firebaseUser);
+
       const response = await fetch(`${SERVER_URL}/auth/profile`, { 
         method: 'GET',
         headers: { 'Authorization': `Bearer ${idToken}` }
       });
       
       if (response.status === 404) {
-        // Profile doesn't exist yet, just use Firebase user data
-        setUser(firebaseUser);
+        // Profile doesn't exist yet, this is normal for new users
         return firebaseUser;
       }
       
       if (!response.ok) {
-        throw new Error('Failed to fetch profile');
+        throw new Error(`Failed to fetch profile: ${response.status}`);
       }
       
       const profileData = await response.json();
+      // Merge Firebase user data with profile data
       setUser({ ...firebaseUser, ...profileData });
       return profileData;
     } catch (error) {
-      if (error.message !== 'Failed to fetch profile') {
-        console.error('Error fetching profile:', error);
+      // Only log unexpected errors
+      if (!error.message.includes('404')) {
+        console.warn('Profile fetch warning:', error.message);
       }
-      // If profile doesn't exist, just use Firebase user data
-      setUser(firebaseUser);
+      // Keep using basic Firebase user data
       return firebaseUser;
     }
   };

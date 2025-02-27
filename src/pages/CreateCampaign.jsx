@@ -126,7 +126,8 @@ export default function CreateCampaign() {
         body: JSON.stringify({
           ...formData,
           theme: selectedTheme,
-          surveyQuestions: surveyQuestions.map(q => q.question)
+          surveyQuestions: surveyQuestions.map(q => q.question),
+          theme: selectedTheme // Ensure theme is included in the request
         })
       });
 
@@ -141,6 +142,7 @@ export default function CreateCampaign() {
         name: '',
         description: '',
         category: '',
+        theme: selectedTheme,
         businessName: '',
         website: '',
         email: '',

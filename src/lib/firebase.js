@@ -11,8 +11,8 @@ const firebaseConfig = {
   measurementId: "G-2S6GXVL1LW"
 };
 
-// Get the server URL based on the environment
-export const SERVER_URL = "https://amplify-dev-6b1c7.uc.r.appspot.com";  // Always use production server
+// Always use production server
+export const SERVER_URL = "https://amplify-dev-6b1c7.uc.r.appspot.com";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);

@@ -67,7 +67,7 @@ export default function Dashboard() {
           // No campaigns yet, this is normal for new users
           return;
         }
-        throw new Error('Failed to fetch recent campaign');
+        throw new Error(`Failed to fetch campaigns: ${response.status}`);
       }
       
       const data = await response.json();
@@ -83,9 +83,11 @@ export default function Dashboard() {
         }));
       }
     } catch (err) {
-      if (err.message !== 'Failed to fetch recent campaign') {
-        console.error('Error fetching recent campaign:', err);
+      // Only log unexpected errors
+      if (!err.message.includes('404')) {
+        console.warn('Campaign fetch warning:', err.message);
       }
+      // Continue with default metrics
     }
   };
 

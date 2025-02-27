@@ -46,7 +46,7 @@ export default function Survey() {
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isUploading, setIsUploading] = useState(false); 
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -64,10 +64,7 @@ export default function Survey() {
 
   const fetchCampaign = async () => {
     try {
-      // Use the deployed API URL directly in production
-      const apiUrl = import.meta.env.PROD
-        ? `https://amplify-dev-6b1c7.uc.r.appspot.com/campaign/campaigns/survey/${id}`
-        : `${SERVER_URL}/campaign/campaigns/survey/${id}`;
+      const apiUrl = `${SERVER_URL}/campaign/campaigns/survey/${id}`;
 
       const response = await fetch(apiUrl);
       if (!response.ok) {
@@ -76,6 +73,7 @@ export default function Survey() {
       const data = await response.json();
       setCampaign(data);
     } catch (err) {
+      console.error('Error fetching campaign:', err);
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -112,26 +110,26 @@ export default function Survey() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.videoFile) {
-      setError('Please record or upload a video before submitting.');
+      setError('Please record or upload a video response before submitting');
+      console.log('No video file provided');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     setIsUploading(true);
     setError(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const formDataToSend = new FormData();
+    formDataToSend.append('campaignId', id);
+    formDataToSend.append('firstName', formData.firstName);
+    formDataToSend.append('lastName', formData.lastName);
+    formDataToSend.append('email', formData.email);
+    formDataToSend.append('zipCode', formData.zipCode);
+    formDataToSend.append('video', formData.videoFile);
 
     try {
-      // Use the deployed API URL directly in production
-      const apiUrl = import.meta.env.PROD
-        ? 'https://amplify-dev-6b1c7.uc.r.appspot.com/survey/upload' 
-        : `${SERVER_URL}/survey/upload`; 
-
-      const formDataToSend = new FormData();
-      formDataToSend.append('campaignId', id);
-      formDataToSend.append('firstName', formData.firstName);
-      formDataToSend.append('lastName', formData.lastName);
-      formDataToSend.append('email', formData.email);
-      formDataToSend.append('video', formData.videoFile);
+      const apiUrl = `${SERVER_URL}/survey/upload`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -140,20 +138,14 @@ export default function Survey() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload video. Please try again.');
+        throw new Error(errorData.error || 'Failed to upload video response. Please try again.');
       }
 
       const data = await response.json();
-      console.log('Upload successful:', data);
-
-      // Wait a moment to show the loading state
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       setCurrentStep('success');
     } catch (err) {
-      console.error('Upload error:', err);
+      console.error('Upload error:', err.message);
       setError(err.message);
-      // Scroll error into view
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsUploading(false);
@@ -216,6 +208,13 @@ export default function Survey() {
       </div>
 
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        {error && (
+          <div className="mb-8 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
+            <X className="h-4 w-4 flex-shrink-0" />
+            {error}
+          </div>
+        )}
+
         {currentStep === 'intro' && (
           <div className="text-center">
             <h1 className={`mt-4 text-3xl font-bold tracking-tight ${campaign.theme ? themes[campaign.theme].text : 'text-gray-900 dark:text-white'} sm:text-4xl`}>
@@ -436,7 +435,7 @@ export default function Survey() {
               <ChevronLeft className="h-4 w-4" />
               Back
             </button>
-            {isLastStep && currentQuestion === campaign.surveyQuestions.length - 1 ? (
+            {currentStep === 'response' ? (
               <button
                 onClick={handleSubmit}
                 disabled={isUploading}
@@ -455,7 +454,10 @@ export default function Survey() {
                     Uploading...
                   </span>
                 ) : (
-                  'Upload Video'
+                  <>
+                    <Upload className="h-4 w-4" />
+                    Upload Video
+                  </>
                 )}
               </button>
             ) : (
