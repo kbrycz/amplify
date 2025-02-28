@@ -1,9 +1,10 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet, useNavigationType } from 'react-router-dom';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
+import { CookieConsent } from './components/ui/cookie-consent';
 import SignUp from './pages/SignUp';
 import About from './pages/About';
 import Header from './components/Header';
@@ -19,6 +20,20 @@ import EditAccount from './pages/EditAccount';
 import Support from './pages/Support';
 import Survey from './pages/Survey.jsx';
 import Responses from './pages/Responses';
+
+function ScrollToTop() {
+  const location = useLocation();
+  const navigationType = useNavigationType();
+
+  React.useEffect(() => {
+    // Only scroll to top on PUSH navigation (not on browser back/forward)
+    if (navigationType === 'PUSH') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location.pathname, navigationType]);
+
+  return null;
+}
 
 function LoadingScreen() {
   return (
@@ -88,6 +103,8 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollToTop />
+        <CookieConsent />
         <Routes>
           {/* Public routes */}
           <Route path="/survey/:id" element={<Survey />} />

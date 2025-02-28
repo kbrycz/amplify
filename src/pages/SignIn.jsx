@@ -220,9 +220,9 @@ export default function SignIn() {
         </div>
 
         <p className="mx-auto mt-10 text-center text-sm/6 text-gray-500 dark:text-gray-400">
-          Not a member?{' '}
+          Don't have an account?{' '}
           <Link to="/signup" className="font-semibold text-indigo-600 hover:text-indigo-500">
-            Start a 14 day free trial
+            Sign up
           </Link>
         </p>
         <p className="mx-auto mt-16 text-center text-sm text-gray-500 dark:text-gray-400">

@@ -1,16 +1,51 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
+import { Card, CardHeader, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Select } from '../components/ui/select';
 import { Label } from '../components/ui/label';
-import { Upload, Plus, FileText, ChevronDown, HelpCircle, X, Sparkles } from 'lucide-react';
-import { Iphone15Pro } from '../components/ui/iphone';
-import { useNavigate } from 'react-router-dom';
+import { Upload, Plus, FileText, ChevronDown, Sparkles, X } from 'lucide-react';
 import { SuccessModal } from '../components/ui/success-modal';
+import { AIModal } from '../components/create-campaign/AIModal';
+import { DraftsDropdown } from '../components/create-campaign/DraftsDropdown';
+import { HelpModal } from '../components/create-campaign/HelpModal';
+import { useUndoRedo } from '../hooks/useUndoRedo';
+import { PhonePreview } from '../components/create-campaign/PhonePreview';
+import { SurveyQuestions } from '../components/create-campaign/SurveyQuestions';
+import { Undo2, Redo2 } from 'lucide-react';
+
+// Theme configuration
+const themes = {
+  midnight: {
+    background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
+    text: 'text-white',
+    subtext: 'text-blue-200',
+    border: 'border-blue-900/50',
+    input: 'bg-blue-950/50',
+    name: 'Midnight Blue'
+  },
+  sunset: {
+    background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
+    text: 'text-white',
+    subtext: 'text-orange-100',
+    border: 'border-white/20',
+    input: 'bg-white/20',
+    name: 'Sunset Vibes'
+  },
+  nature: {
+    background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
+    text: 'text-white',
+    subtext: 'emerald-100',
+    border: 'border-white/20',
+    input: 'bg-white/20',
+    name: 'Nature Fresh'
+  }
+};
 
 export default function CreateCampaign() {
+  const navigate = useNavigate();
   const [selectedTheme, setSelectedTheme] = useState('sunset');
   const [isDraftsOpen, setIsDraftsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -21,9 +56,14 @@ export default function CreateCampaign() {
   const [previewImage, setPreviewImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
   const [successModal, setSuccessModal] = useState({ isOpen: false, campaignId: null, campaignName: '' });
-  const [formData, setFormData] = useState({
+  const [drafts, setDrafts] = useState([]);
+  const [isLoadingDrafts, setIsLoadingDrafts] = useState(true);
+  const [selectedDraftId, setSelectedDraftId] = useState(null);
+  const [isDeletingDraft, setIsDeletingDraft] = useState(false);
+  const [isEditingDraft, setIsEditingDraft] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const initialFormData = {
     name: '',
     description: '',
     category: '',
@@ -31,34 +71,171 @@ export default function CreateCampaign() {
     website: '',
     email: '',
     phone: ''
-  });
+  };
+  const { state: formData, setState: setFormData, undo, redo, canUndo, canRedo } = useUndoRedo(initialFormData);
   const [surveyQuestions, setSurveyQuestions] = useState([]);
   const draftsRef = useRef(null);
 
-  const themes = {
-    midnight: {
-      background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
-      text: 'text-white',
-      subtext: 'text-blue-200',
-      border: 'border-blue-900/50',
-      input: 'bg-blue-950/50',
-      name: 'Midnight Blue'
-    },
-    sunset: {
-      background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
-      text: 'text-white',
-      subtext: 'text-orange-100',
-      border: 'border-white/20',
-      input: 'bg-white/20',
-      name: 'Sunset Vibes'
-    },
-    nature: {
-      background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
-      text: 'text-white',
-      subtext: 'emerald-100',
-      border: 'border-white/20',
-      input: 'bg-white/20',
-      name: 'Nature Fresh'
+  useEffect(() => {
+    fetchDrafts();
+  }, []);
+
+  // Fetch drafts from the server
+  const fetchDrafts = async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch drafts');
+      }
+
+      const data = await response.json();
+      setDrafts(data);
+    } catch (err) {
+      console.error('Error fetching drafts:', err);
+    } finally {
+      setIsLoadingDrafts(false);
+    }
+  };
+
+  // Handle saving a draft
+  const handleSaveDraft = async () => {
+    if (!formData.name.trim()) {
+      setError('Please enter a campaign name to save as draft');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    setIsSavingDraft(true);
+
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const draftData = {
+        ...formData,
+        theme: selectedTheme,
+        surveyQuestions: surveyQuestions.map(q => q.question)
+      };
+
+      const response = await fetch(isEditingDraft 
+        ? `${SERVER_URL}/draftCampaign/drafts/${selectedDraftId}`
+        : `${SERVER_URL}/draftCampaign/drafts`, {
+        method: isEditingDraft ? 'PUT' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(draftData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save draft');
+      }
+
+      await fetchDrafts(); // Refresh drafts list
+      
+      // Show success message in green
+      setError({
+        type: 'success',
+        message: isEditingDraft ? 'Draft updated successfully!' : 'Draft saved successfully!'
+      });
+      setTimeout(() => setError(null), 3000);
+    } catch (err) {
+      console.error('Error saving draft:', err);
+      setError({
+        type: 'error',
+        message: `Failed to save draft: ${err.message}`
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  // Handle loading a draft
+  const handleLoadDraft = async (draftId) => {
+    try {
+      setSelectedDraftId(draftId);
+      setIsEditingDraft(true);
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts/${draftId}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load draft');
+      }
+
+      const draft = await response.json();
+      setFormData({
+        name: draft.name || '',
+        description: draft.description || '',
+        category: draft.category || '',
+        businessName: draft.businessName || '',
+        website: draft.website || '',
+        email: draft.email || '',
+        phone: draft.phone || ''
+      });
+      setSelectedTheme(draft.theme || 'sunset');
+      setSurveyQuestions(draft.surveyQuestions.map((question, index) => ({
+        id: index + 1,
+        question
+      })));
+      setIsDraftsOpen(false);
+    } catch (err) {
+      console.error('Error loading draft:', err);
+      setError(err.message);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Handle deleting a draft
+  const handleDeleteDraft = async (draftId) => {
+    if (!draftId) return;
+    
+    setIsDeletingDraft(true);
+    setError('');
+
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts/${draftId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete draft');
+      }
+
+      await fetchDrafts(); // Refresh drafts list
+      setIsDraftsOpen(false);
+      setSelectedDraftId(null);
+      
+      // Show success message
+      setError('Draft deleted successfully!');
+      const alert = document.querySelector('[role="alert"]');
+      if (alert) {
+        alert.classList.add('bg-green-50', 'text-green-700', 'dark:bg-green-900/30', 'dark:text-green-400');
+        const svg = alert.querySelector('svg');
+        if (svg) {
+          svg.classList.add('text-green-600', 'dark:text-green-400');
+        }
+      }
+      setTimeout(() => setError(null), 3000);
+    } catch (err) {
+      console.error('Error deleting draft:', err);
+      setError(err.message);
+    } finally {
+      setIsDeletingDraft(false);
     }
   };
 
@@ -126,8 +303,7 @@ export default function CreateCampaign() {
         body: JSON.stringify({
           ...formData,
           theme: selectedTheme,
-          surveyQuestions: surveyQuestions.map(q => q.question),
-          theme: selectedTheme // Ensure theme is included in the request
+          surveyQuestions: surveyQuestions.map(q => q.question)
         })
       });
 
@@ -166,55 +342,55 @@ export default function CreateCampaign() {
   };
 
   const handleAIGenerate = async () => {
-  if (!aiPrompt.trim()) return;
+    if (!aiPrompt.trim()) return;
 
-  setIsGenerating(true);
-  setAiError('');
-  
-  try {
-    const idToken = await auth.currentUser.getIdToken();
-    const response = await fetch(`${SERVER_URL}/campaign/generate-campaign`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ prompt: aiPrompt }),
-    });
+    setIsGenerating(true);
+    setAiError('');
+    
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/campaign/generate-campaign`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ prompt: aiPrompt }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (data.status === 'error') {
-      setAiError(data.message || 'Failed to generate campaign');
-      return;
+      if (data.status === 'error') {
+        setAiError(data.message || 'Failed to generate campaign');
+        return;
+      }
+
+      setFormData({
+        name: data.campaignData.name,
+        description: data.campaignData.description,
+        category: data.campaignData.category,
+        businessName: data.campaignData.businessName,
+        website: data.campaignData.website,
+        email: data.campaignData.email,
+        phone: data.campaignData.phone,
+      });
+
+      setSurveyQuestions(
+        data.campaignData.surveyQuestions.map((question, index) => ({
+          id: index + 1,
+          question,
+        }))
+      );
+
+      setIsAIModalOpen(false);
+      setAiPrompt('');
+    } catch (error) {
+      console.error('Fetch error:', error);
+      setAiError('Failed to connect to server. Please try again.');
+    } finally {
+      setIsGenerating(false);
     }
-
-    setFormData({
-      name: data.campaignData.name,
-      description: data.campaignData.description,
-      category: data.campaignData.category,
-      businessName: data.campaignData.businessName,
-      website: data.campaignData.website,
-      email: data.campaignData.email,
-      phone: data.campaignData.phone,
-    });
-
-    setSurveyQuestions(
-      data.campaignData.surveyQuestions.map((question, index) => ({
-        id: index + 1,
-        question,
-      }))
-    );
-
-    setIsAIModalOpen(false);
-    setAiPrompt('');
-  } catch (error) {
-    console.error('Fetch error:', error);
-    setAiError('Failed to connect to server. Please try again.');
-  } finally {
-    setIsGenerating(false);
-  }
-};
+  };
 
   return (
     <div className="p-6">
@@ -227,44 +403,30 @@ export default function CreateCampaign() {
         </div>
 
         <div className="relative max-w-[800px]" ref={draftsRef}>
-          <button
-            onClick={() => setIsDraftsOpen(!isDraftsOpen)}
-            className="w-full flex items-center gap-2 p-3 text-sm text-gray-600 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
-          >
-            <FileText className="w-4 h-4" />
-            <span className="font-medium">2 drafts</span>
-            <span className="ml-auto flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
-              <span>Click to view</span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${isDraftsOpen ? 'rotate-180' : ''}`} />
-            </span>
-          </button>
-
-          {isDraftsOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-white rounded-lg border border-gray-200 shadow-lg z-10 dark:bg-gray-900 dark:border-gray-800">
-              <div className="space-y-1">
-                <button
-                  className="w-full flex items-center gap-3 p-2 text-sm text-left text-gray-700 rounded hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                  onClick={() => {
-                    console.log('Load Summer Food Drive');
-                    setIsDraftsOpen(false);
-                  }}
-                >
-                  <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                  Summer Food Drive
-                </button>
-                <button
-                  className="w-full flex items-center gap-3 p-2 text-sm text-left text-gray-700 rounded hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                  onClick={() => {
-                    console.log('Load Community Cleanup');
-                    setIsDraftsOpen(false);
-                  }}
-                >
-                  <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                  Community Cleanup
-                </button>
-              </div>
-            </div>
+          {!isLoadingDrafts && drafts.length > 0 && (
+            <button
+              onClick={() => setIsDraftsOpen(!isDraftsOpen)}
+              className="w-full flex items-center gap-2 p-3 text-sm text-gray-600 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="font-medium">{drafts.length} draft{drafts.length !== 1 ? 's' : ''}</span>
+              <span className="ml-auto flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
+                <span>Click to view</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${isDraftsOpen ? 'rotate-180' : ''}`} />
+              </span>
+            </button>
           )}
+
+          <DraftsDropdown
+            isOpen={isDraftsOpen}
+            drafts={drafts}
+            handleLoadDraft={handleLoadDraft}
+            handleDeleteDraft={handleDeleteDraft}
+            setSelectedDraftId={setSelectedDraftId}
+            selectedDraftId={selectedDraftId}
+            setIsEditingDraft={setIsEditingDraft}
+            isDeletingDraft={isDeletingDraft}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[800px,auto] gap-4">
@@ -288,98 +450,6 @@ export default function CreateCampaign() {
                   </div>
                 </button>
               </div>
-              
-              {/* AI Campaign Creator Modal */}
-              {isAIModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                  <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900 mx-4">
-                    <button
-                      onClick={() => setIsAIModalOpen(false)}
-                      className="absolute right-4 top-4 rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                    
-                    <div className="mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                          <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            AI Campaign Creator
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Describe your campaign and let AI do the work
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="ai-prompt">Campaign Description</Label>
-                        <textarea
-                          id="ai-prompt"
-                          value={aiPrompt}
-                          onChange={(e) => setAiPrompt(e.target.value)}
-                          placeholder="Example: Create a campaign for a local food bank's summer donation drive targeting young professionals..."
-                          className="mt-2 block h-32 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/10"
-                        />
-                      </div>
-                      
-                      {aiError && (
-                        <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
-                          <X className="h-4 w-4" />
-                          {aiError}
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-3 rounded-lg border border-indigo-100 bg-indigo-50/50 p-3 dark:border-indigo-900/50 dark:bg-indigo-900/10">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                          <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-                          </svg>
-                        </div>
-                        <p className="text-sm text-indigo-700 dark:text-indigo-400">
-                          Our AI will generate campaign details, questions, and branding suggestions based on your description.
-                        </p>
-                      </div>
-                      
-                      <div className="flex justify-end gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setIsAIModalOpen(false)}
-                          className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleAIGenerate}
-                          disabled={!aiPrompt.trim() || isGenerating}
-                          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:bg-indigo-500 disabled:opacity-50"
-                        >
-                          {isGenerating ? (
-                            <>
-                              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                              </svg>
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="h-4 w-4" />
-                              Generate Campaign
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </CardHeader>
             <CardContent className="space-y-8">
               <form onSubmit={handleSubmit} className="space-y-8">
@@ -387,8 +457,7 @@ export default function CreateCampaign() {
                   {/* Campaign Details */}
                   <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
                     <div className="flex-1">
-                      <Label htmlFor="name">Campaign Name</Label>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Required</div>
+                      <Label htmlFor="name">Campaign Name *</Label>
                       <Input
                         id="name"
                         name="campaign-title"
@@ -433,9 +502,7 @@ export default function CreateCampaign() {
                                   onClick={handleRemoveImage}
                                   className="absolute -top-2 -right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
-                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M18 6L6 18M6 6l12 12" />
-                                  </svg>
+                                  <X className="w-5 h-5" />
                                 </button>
                               </div>
                             ) : (
@@ -459,8 +526,7 @@ export default function CreateCampaign() {
                   </div>
 
                   <div>
-                    <Label htmlFor="description">Campaign Description</Label>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Required</div>
+                    <Label htmlFor="description">Campaign Description *</Label>
                     <Textarea
                       id="description"
                       placeholder="Describe your campaign's purpose and goals"
@@ -471,8 +537,7 @@ export default function CreateCampaign() {
                   </div>
 
                   <div>
-                    <Label htmlFor="category">Campaign Category</Label>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Required</div>
+                    <Label htmlFor="category">Campaign Category *</Label>
                     <Select 
                       id="category" 
                       value={formData.category}
@@ -490,99 +555,13 @@ export default function CreateCampaign() {
                 </div>
 
                 {/* Survey Questions */}
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <div>
-                      <Label className="flex items-center gap-1.5">
-                        Survey Questions
-                        <button
-                          type="button"
-                          onClick={() => setIsHelpOpen(true)}
-                          className="inline-flex items-center justify-center text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                            <line x1="12" y1="17" x2="12" y2="17" />
-                          </svg>
-                        </button>
-                      </Label>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">At least one question required</div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleAddQuestion}
-                      className="ml-auto inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Question
-                    </button>
-                    
-                    {isHelpOpen && (
-                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                        <div className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-lg dark:bg-gray-900">
-                          <button
-                            onClick={() => setIsHelpOpen(false)}
-                            className="absolute right-4 top-4 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                          
-                          <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                              Creating Effective Survey Questions
-                            </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              We recommend making your questions broad and open-ended to let your members speak freely about their experiences. This approach often leads to more authentic and meaningful responses.
-                            </p>
-                            <div className="space-y-3">
-                              <div>
-                                <h4 className="font-medium text-gray-900 dark:text-white">Good Examples:</h4>
-                                <ul className="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                                  <li>• "What inspired you to join our cause?"</li>
-                                  <li>• "How has our community impacted your life?"</li>
-                                  <li>• "What's your favorite memory with us?"</li>
-                                </ul>
-                              </div>
-                              <div>
-                                <h4 className="font-medium text-gray-900 dark:text-white">Tips:</h4>
-                                <ul className="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                                  <li>• Keep questions simple and clear</li>
-                                  <li>• Avoid yes/no questions</li>
-                                  <li>• Focus on personal experiences</li>
-                                  <li>• Encourage storytelling</li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-4">
-                    {surveyQuestions.map((q) => (
-                      <div key={q.id} className="flex gap-3">
-                        <Input
-                          value={q.question}
-                          onChange={(e) => handleQuestionChange(q.id, e.target.value)}
-                          placeholder="Enter your survey question"
-                          className="flex-1"
-                        />
-                        {surveyQuestions.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveQuestion(q.id)}
-                            className="inline-flex items-center justify-center rounded-lg border border-gray-200 p-2 text-gray-500 hover:bg-gray-100 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
-                          >
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <SurveyQuestions
+                  surveyQuestions={surveyQuestions}
+                  handleAddQuestion={handleAddQuestion}
+                  handleRemoveQuestion={handleRemoveQuestion}
+                  handleQuestionChange={handleQuestionChange}
+                  setIsHelpOpen={setIsHelpOpen}
+                />
 
                 {/* Business Information */}
                 <div className="space-y-6">
@@ -636,19 +615,72 @@ export default function CreateCampaign() {
                 </div>
 
                 {error && (
-                  <div className="mb-6 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
-                    <X className="h-4 w-4" />
-                    {error}
+                  <div role="alert" className={`mb-6 flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+                    error.type === 'success'
+                      ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-red-50 text-red-700 dark:bg-red-900/50 dark:text-red-400'
+                  }`}>
+                    {error.type === 'success' ? (
+                      <svg className="h-4 w-4 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      <X className="h-4 w-4" />
+                    )}
+                    {error.message}
                   </div>
                 )}
 
                 <div className="flex justify-end gap-4">
+                  <div className="flex items-center gap-2 mr-auto">
+                    <button
+                      type="button"
+                      onClick={undo}
+                      disabled={!canUndo}
+                      className={`rounded-lg p-2 transition-colors ${
+                        canUndo
+                          ? 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                      } border border-gray-200 dark:border-gray-800`}
+                      title="Undo (Ctrl+Z)"
+                    >
+                      <Undo2 className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={redo}
+                      disabled={!canRedo}
+                      className={`rounded-lg p-2 transition-colors ${
+                        canRedo
+                          ? 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                      } border border-gray-200 dark:border-gray-800`}
+                      title="Redo (Ctrl+Y)"
+                    >
+                      <Redo2 className="h-5 w-5" />
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    disabled={isSubmitting}
-                    className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                    disabled={isSubmitting || !formData.name.trim() || isSavingDraft} 
+                    className={`rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium ${
+                      !formData.name.trim() 
+                        ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                        : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
+                    } dark:border-gray-800 dark:bg-gray-900`}
+                    onClick={handleSaveDraft}
                   >
-                    Save as Draft
+                    {isSavingDraft ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        {isEditingDraft ? 'Updating...' : 'Saving...'}
+                      </span>
+                    ) : (
+                      isEditingDraft ? 'Update Draft' : 'Save as Draft'
+                    )}
                   </button>
                   <button
                     type="submit"
@@ -672,85 +704,35 @@ export default function CreateCampaign() {
             </CardContent>
           </Card>
 
-          <div className="hidden lg:block sticky top-6 h-[calc(100vh-3rem)] w-[500px] xl:block">
-            <div className="flex flex-col items-center">
-              <div className="scale-[0.8] origin-top xl:scale-[0.85]">
-                <Iphone15Pro>
-                  <div className={`h-full ${themes[selectedTheme].background} transition-colors duration-200`}>
-                    <div className="flex flex-col h-full">
-                      {/* Add padding to avoid camera area */}
-                      <div className="h-[120px]" />
-                      
-                      {/* Logo or Campaign Image */}
-                      <div className="flex justify-center mb-8">
-                        {previewImage ? (
-                          <img src={previewImage} alt="Campaign" className="w-20 h-20 rounded-full object-cover ring-4 ring-white/20" />
-                        ) : (
-                          <div className={`w-20 h-20 rounded-full flex items-center justify-center ${themes[selectedTheme].border} border-2`}>
-                            <Upload className={`w-8 h-8 ${themes[selectedTheme].text} opacity-50`} />
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Campaign Name */}
-                      <div className="text-center mb-4">
-                        <h1 className={`text-2xl font-bold ${themes[selectedTheme].text} mb-2`}>
-                          {formData.name || 'Campaign Name'}
-                        </h1>
-                        <p className={`${themes[selectedTheme].subtext} text-sm`}>
-                          {formData.businessName || 'Business Name'}
-                        </p>
-                      </div>
-                      
-                      {/* Current Question Display */}
-                      <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-                        <h2 className={`text-3xl font-bold ${themes[selectedTheme].text} mb-6 leading-tight`}>
-                          {surveyQuestions[0]?.question || "What inspired you to join our cause?"}
-                        </h2>
-                        
-                        <div className={`w-32 h-32 rounded-full ${themes[selectedTheme].border} border-2 flex items-center justify-center mb-8`}>
-                          <div className={`w-28 h-28 rounded-full ${themes[selectedTheme].input} flex items-center justify-center`}>
-                            <svg className={`w-12 h-12 ${themes[selectedTheme].text}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10" />
-                              <circle cx="12" cy="12" r="3" fill="currentColor" />
-                            </svg>
-                          </div>
-                        </div>
-
-                        <button 
-                          className={`px-8 py-3 rounded-full ${themes[selectedTheme].text} ${themes[selectedTheme].border} border-2 font-medium hover:bg-white/10 transition-colors`}
-                        >
-                          Begin Recording
-                        </button>
-                      </div>
-                      
-                      {/* Progress Indicator */}
-                      <div className="mt-auto pt-6 flex justify-center gap-2">
-                        {surveyQuestions.map((_, index) => (
-                          <div
-                            key={index}
-                            className={`w-2 h-2 rounded-full ${index === 0 ? themes[selectedTheme].text : `${themes[selectedTheme].border} bg-white/20`}`}
-                          />
-                        ))}
-                      </div>
-                      
-                      {/* Footer */}
-                      <div className="mt-6 pb-6 text-center">
-                        <p className={`text-sm ${themes[selectedTheme].subtext}`}>
-                          Question 1 of {surveyQuestions.length}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </Iphone15Pro>
-              </div>
-            </div>
-          </div>
+          <PhonePreview
+            selectedTheme={selectedTheme}
+            themes={themes}
+            previewImage={previewImage}
+            formData={formData}
+            surveyQuestions={surveyQuestions}
+          />
         </div>
       </div>
+
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         © 2025 Amplify. All rights reserved.
       </div>
+
+      <AIModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        aiPrompt={aiPrompt}
+        setAiPrompt={setAiPrompt}
+        handleAIGenerate={handleAIGenerate}
+        isGenerating={isGenerating}
+        aiError={aiError}
+      />
+
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+      />
+
       <SuccessModal
         isOpen={successModal.isOpen}
         onClose={() => setSuccessModal({ isOpen: false, campaignId: null, campaignName: '' })}

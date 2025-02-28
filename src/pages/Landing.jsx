@@ -1,16 +1,14 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom'; 
 import { ChevronRight, Check, X, Video, BarChart2, Zap, Users, MessageSquare, Sparkles, ChevronDown, Facebook, Instagram, Twitter, Github, Youtube } from 'lucide-react';
+import LandingHeader from '../components/LandingHeader';
 
 const navigation = {
   main: [
     { name: 'About', href: '/about' },
-    { name: 'Blog', href: '#' },
-    { name: 'Jobs', href: '#' },
-    { name: 'Press', href: '#' },
-    { name: 'Accessibility', href: '#' },
-    { name: 'Partners', href: '#' },
+    { name: 'Features', href: '#features' },
+    { name: 'Pricing', href: '#pricing' },
+    { name: 'Contact', href: '#contact' }
   ],
   social: [
     { name: 'Facebook', href: '#', icon: Facebook },
@@ -20,7 +18,6 @@ const navigation = {
     { name: 'YouTube', href: '#', icon: Youtube },
   ],
 };
-import LandingHeader from '../components/LandingHeader';
 
 const features = [
   {
@@ -515,32 +512,39 @@ export default function Landing() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+      <footer className="bg-white dark:bg-gray-900">
         <div className="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
-          <nav className="-mb-6 flex flex-wrap justify-center gap-x-12 gap-y-3" aria-label="Footer">
-            {navigation.main.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className="text-sm leading-6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-              >
-                {item.name}
-              </Link>
+          <nav className="-mb-6 columns-2 sm:flex sm:justify-center sm:space-x-12" aria-label="Footer">
+            {navigation.main.map((item, index) => (
+              <div key={item.name} className="pb-6">
+                {item.href.startsWith('#') ? (
+                  <a
+                    href={item.href}
+                    onClick={(e) => scrollToSection(e, item.href.slice(1))}
+                    className="text-sm leading-6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
+                    {item.name}
+                  </a>
+                ) : (
+                  <Link
+                    to={item.href}
+                    className="text-sm leading-6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
+                    {item.name}
+                  </Link>
+                )}
+              </div>
             ))}
           </nav>
-          <div className="mt-10 flex justify-center gap-x-8">
+          <div className="mt-10 flex justify-center space-x-10">
             {navigation.social.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-              >
+              <a key={item.name} href={item.href} className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
                 <span className="sr-only">{item.name}</span>
                 <item.icon className="h-6 w-6" aria-hidden="true" />
               </a>
             ))}
           </div>
-          <p className="mt-10 text-center text-sm leading-5 text-gray-500 dark:text-gray-400">
+          <p className="mt-10 text-center text-xs leading-5 text-gray-500 dark:text-gray-400">
             &copy; 2025 Shout. All rights reserved.
           </p>
         </div>

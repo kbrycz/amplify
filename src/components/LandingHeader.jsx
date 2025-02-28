@@ -2,15 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Moon, Sun, X } from 'lucide-react';
 
+// Updated scroll function
 const scrollToSection = (e, id) => {
   e.preventDefault();
   const element = document.getElementById(id);
-  if (element) {
-    element.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  }
+  if (!element) return;
+
+  // Basic header height
+  const headerHeight = 80;
+  // Choose a larger offset for mobile
+  const isMobile = window.innerWidth < 768;
+  const scrollPadding = isMobile ? -125 : -150;
+
+  const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+  const offsetPosition = elementPosition - headerHeight - scrollPadding;
+  
+  window.scrollTo({
+    top: offsetPosition,
+    behavior: 'smooth'
+  });
 };
 
 export default function LandingHeader() {

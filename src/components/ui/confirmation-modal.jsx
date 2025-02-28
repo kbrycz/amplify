@@ -7,12 +7,11 @@ export function ConfirmationModal({
   onConfirm, 
   title, 
   message, 
-  confirmText = "delete my account",
-  confirmButtonText = "Delete Account",
+  confirmButtonText = "Delete",
+  simpleConfirm = false,
   isLoading = false
 }) {
-  const [inputValue, setInputValue] = useState('');
-  const [isValid, setIsValid] = useState(false);
+  const [isValid, setIsValid] = useState(simpleConfirm);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
@@ -20,13 +19,12 @@ export function ConfirmationModal({
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
-      setInputValue('');
-      setIsValid(false);
+      setIsValid(simpleConfirm);
     }
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
+  }, [isOpen, simpleConfirm]);
 
   if (!isOpen) return null;
 
@@ -37,12 +35,6 @@ export function ConfirmationModal({
         setIsDeleting(false);
       });
     }
-  };
-
-  const handleInputChange = (e) => {
-    const value = e.target.value.toLowerCase();
-    setInputValue(value);
-    setIsValid(value === confirmText.toLowerCase());
   };
 
   return (
@@ -76,19 +68,6 @@ export function ConfirmationModal({
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {message}
                 </p>
-              </div>
-              <div className="mt-4">
-                <label htmlFor="confirm" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Type <span className="font-mono text-red-600 dark:text-red-400">{confirmText}</span> to confirm
-                </label>
-                <input
-                  type="text"
-                  id="confirm"
-                  className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
-                  value={inputValue}
-                  onChange={handleInputChange}
-                  placeholder={`Type ${confirmText} to confirm`}
-                />
               </div>
             </div>
           </div>
