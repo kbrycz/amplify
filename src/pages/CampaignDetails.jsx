@@ -4,7 +4,7 @@ import { SERVER_URL, auth } from '../lib/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { MetricCard } from '../components/ui/metric-card';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Video, Users, Clock, TrendingUp, Zap, Award, Play, Pause, Settings, Share2, ExternalLink } from 'lucide-react';
+import { Video, Users, Clock, TrendingUp, Zap, Award, Play, Pause, Settings, Share2, ExternalLink, Sparkles } from 'lucide-react';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { ShareModal } from '../components/ui/share-modal';
 
@@ -170,13 +170,13 @@ export default function CampaignDetails() {
           title="Target Audience"
           value={metrics.audience}
           icon={Users}
-          onClick={() => console.log('Audience clicked')}
+          onClick={() => navigate(`/app/campaigns/${id}/ai-videos`)}
         />
         <MetricCard
-          title="Completion Rate"
-          value={metrics.completionRate}
-          icon={Award}
-          onClick={() => console.log('Completion Rate clicked')}
+          title="AI Videos"
+          value={metrics.videos}
+          icon={Sparkles}
+          onClick={() => navigate(`/app/campaigns/${id}/ai-videos`)}
         />
         <MetricCard
           title="Avg Response Time"

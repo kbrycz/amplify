@@ -20,6 +20,7 @@ import EditAccount from './pages/EditAccount';
 import Support from './pages/Support';
 import Survey from './pages/Survey.jsx';
 import Responses from './pages/Responses';
+import AIVideos from './pages/AIVideos';
 
 function ScrollToTop() {
   const location = useLocation();
@@ -131,6 +132,7 @@ function App() {
           <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
             <Route index element={<Dashboard />} />
             <Route path="campaigns/new" element={<CreateCampaign />} />
+            <Route path="campaigns/:id/ai-videos" element={<AIVideos />} />
             <Route path="campaigns/:id/responses" element={<Responses />} />
             <Route path="campaigns/:id" element={<CampaignDetails />} />
             <Route path="campaigns" element={<ManageCampaigns />} />

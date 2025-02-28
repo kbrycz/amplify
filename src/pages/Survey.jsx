@@ -48,6 +48,7 @@ export default function Survey() {
   const [error, setError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [videoDuration, setVideoDuration] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const errorTimeoutRef = useRef(null);
   const MAX_VIDEO_DURATION = 120; // 2 minutes in seconds
   const [formData, setFormData] = useState({
@@ -150,56 +151,62 @@ export default function Survey() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.videoFile) {
-      setError('Please record or upload a video response before submitting');
-      setError('Please record or upload a video response');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    if (videoDuration > MAX_VIDEO_DURATION) {
-      setError(`Video must be shorter than 2 minutes. Current length: ${Math.round(videoDuration / 60)}:${String(videoDuration % 60).padStart(2, '0')}`);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    setIsUploading(true);
-    setError(null);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!formData.videoFile) {
+    setError('Please record or upload a video response before submitting');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
 
-    const formDataToSend = new FormData();
-    formDataToSend.append('campaignId', id);
-    formDataToSend.append('firstName', formData.firstName);
-    formDataToSend.append('lastName', formData.lastName);
-    formDataToSend.append('email', formData.email);
-    formDataToSend.append('zipCode', formData.zipCode);
-    formDataToSend.append('video', formData.videoFile);
+  if (videoDuration > MAX_VIDEO_DURATION) {
+    setError(`Video must be shorter than 2 minutes. Current length: ${Math.round(videoDuration / 60)}:${String(videoDuration % 60).padStart(2, '0')}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
 
-    try {
-      const apiUrl = `${SERVER_URL}/survey/upload`;
+  setIsUploading(true);
+  setError('');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        body: formDataToSend
-      });
+  const formDataToSend = new FormData();
+  formDataToSend.append('campaignId', id);
+  formDataToSend.append('firstName', formData.firstName);
+  formDataToSend.append('lastName', formData.lastName);
+  formDataToSend.append('email', formData.email);
+  formDataToSend.append('zipCode', formData.zipCode);
+  formDataToSend.append('video', formData.videoFile);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload video response. Please try again.');
-      }
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', `${SERVER_URL}/survey/upload`, true);
 
-      const data = await response.json();
-      setCurrentStep('success');
-    } catch (err) {
-      console.error('Upload error:', err.message);
-      setError(err.message);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } finally {
-      setIsUploading(false);
+  xhr.upload.onprogress = (event) => {
+    if (event.lengthComputable) {
+      const progress = Math.round((event.loaded / event.total) * 100);
+      setUploadProgress(progress);
     }
   };
+
+  xhr.onload = () => {
+    if (xhr.status === 201) {
+      setCurrentStep('success');
+    } else {
+      setError(`Failed to upload video. Server responded with status ${xhr.status}`);
+      console.error('Upload failed:', xhr.status, xhr.responseText);
+    }
+    setIsUploading(false);
+    setUploadProgress(0);
+  };
+
+  xhr.onerror = () => {
+    setError('Failed to upload video due to a network error.');
+    console.error('Network error during upload');
+    setIsUploading(false);
+    setUploadProgress(0);
+  };
+
+  xhr.send(formDataToSend);
+};
 
   const currentStepIndex = steps.findIndex(step => step.id === currentStep);
   const isFirstStep = currentStepIndex === 0;
@@ -515,7 +522,7 @@ export default function Survey() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Uploading...
+                    Uploading... {uploadProgress}%
                   </span>
                 ) : (
                   <>

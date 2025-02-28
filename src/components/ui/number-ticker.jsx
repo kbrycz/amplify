@@ -1,6 +1,11 @@
 import React from "react";
 
 export function NumberTicker({ value, className = "" }) {
+  // Handle undefined, null or invalid values
+  if (value === undefined || value === null) {
+    return <div className={`${className} tabular-nums`}>0</div>;
+  }
+
   const stringValue = typeof value === 'number' ? value.toLocaleString() : value.toString();
 
   return (
