@@ -88,18 +88,18 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex flex-col rounded-lg border border-gray-200 bg-white transition-all duration-300 ease-in-out
+      className="group relative flex flex-col rounded-lg border border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden
         ${!isEditMode ? 'cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50' : ''}
         dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-800/50"
     >
-      <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:p-4">
         {/* Thumbnail */}
         <div
           onClick={(e) => {
             e.stopPropagation();
             onVideoClick(response);
           }}
-          className="video-area relative aspect-video w-full overflow-hidden rounded-lg"
+          className="video-area relative aspect-video w-full lg:w-48 overflow-hidden lg:rounded-lg"
         >
           {response.isNew && (
             <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-blue-500 px-2 py-1 text-xs font-medium text-white">
@@ -124,7 +124,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 lg:p-0 flex-1">
           {/* Info */}
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-gray-900 dark:text-white truncate">
@@ -169,17 +169,19 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
       {/* Expandable Content */}
       <div className={`overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-24' : 'max-h-0'}`}>
         <div className="border-t border-gray-200 dark:border-gray-800 p-4 space-x-2">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              className="action-button inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 w-full sm:w-auto justify-center"
-              onClick={(e) => {
-                e.stopPropagation();
-                onTransform(response);
-              }}
-            >
-              <Wand2 className="w-4 h-4" />
-              Transform into Polished Short
-            </button>
+          <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
+            {onTransform && (
+              <button
+                className="action-button inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 w-full sm:w-auto justify-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTransform(response);
+                }}
+              >
+                <Wand2 className="w-4 h-4" />
+                Transform into Polished Short
+              </button>
+            )}
             <button
               className="action-button inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 w-full sm:w-auto justify-center"
               onClick={(e) => {

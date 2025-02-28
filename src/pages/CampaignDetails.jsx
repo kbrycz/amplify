@@ -167,15 +167,15 @@ export default function CampaignDetails() {
           onClick={() => navigate(`/app/campaigns/${id}/responses`)}
         />
         <MetricCard
-          title="Target Audience"
-          value={metrics.audience}
-          icon={Users}
-          onClick={() => navigate(`/app/campaigns/${id}/ai-videos`)}
-        />
-        <MetricCard
           title="AI Videos"
           value={metrics.videos}
           icon={Sparkles}
+          onClick={() => navigate(`/app/campaigns/${id}/ai-videos`)}
+        />
+        <MetricCard
+          title="Target Audience"
+          value={metrics.audience}
+          icon={Users}
           onClick={() => navigate(`/app/campaigns/${id}/ai-videos`)}
         />
         <MetricCard

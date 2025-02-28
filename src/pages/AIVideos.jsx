@@ -15,6 +15,9 @@ export default function AIVideos() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedForAction, setSelectedForAction] = useState(null);
 
   useEffect(() => {
     fetchAIVideos();
@@ -43,6 +46,16 @@ export default function AIVideos() {
     }
   };
 
+  const handleEdit = (video) => {
+    setSelectedForAction(video);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (video) => {
+    setSelectedForAction(video);
+    setIsDeleteModalOpen(true);
+  };
+
   return (
     <div className="p-6">
       <button
@@ -69,43 +82,20 @@ export default function AIVideos() {
       ) : (
         <div className="mt-8 space-y-4">
           {aiVideos.map(video => (
-            <div
+            <ListViewResponse
               key={video.id}
-              className="group relative flex flex-col rounded-lg border border-gray-200 bg-white p-4 transition-all duration-300 ease-in-out hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-800/50 cursor-pointer"
-              onClick={() => setSelectedVideo(video)}
-            >
-              <div className="flex flex-col gap-4">
-                {/* Video Thumbnail */}
-                <div className="relative aspect-video w-full overflow-hidden rounded-lg">
-                  <img
-                    src={video.thumbnailUrl || 'https://images.unsplash.com/photo-1590856029826-c7a73142bbf1?q=80&w=2073'}
-                    alt="AI Video thumbnail"
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/40 transition-opacity group-hover:bg-black/50" />
-                  <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm">
-                    {video.createdAt ? new Date(video.createdAt).toLocaleDateString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: 'numeric'
-                    }) : 'Unknown'}
-                  </div>
-                </div>
-
-                {/* Video Info */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      AI Generated Video
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      Generated from original response
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+              response={{
+                ...video,
+                name: 'AI Generated Video',
+                email: 'Generated from original response',
+                videoUrl: video.processedVideoUrl,
+                thumbnailUrl: video.thumbnailUrl || 'https://images.unsplash.com/photo-1590856029826-c7a73142bbf1?q=80&w=2073'
+              }}
+              onVideoClick={setSelectedVideo}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onStarChange={() => {}}
+            />
           ))}
         </div>
       )}
@@ -113,10 +103,34 @@ export default function AIVideos() {
       {/* Video modal */}
       {selectedVideo && (
         <VideoModal
-          testimonial={{ videoUrl: selectedVideo.processedVideoUrl }}
+          testimonial={selectedVideo}
           onClose={() => setSelectedVideo(null)}
         />
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={async () => {
+          // TODO: Implement delete functionality
+          setIsDeleteModalOpen(false);
+        }}
+        title="Delete AI Video"
+        message="Are you sure you want to delete this AI-generated video? This action cannot be undone."
+      />
+
+      {/* Edit Modal */}
+      <VideoEditorModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        video={selectedForAction}
+        onSave={async () => {
+          // TODO: Implement save functionality
+          setIsEditModalOpen(false);
+          await fetchAIVideos();
+        }}
+      />
       
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         &copy; 2025 Shout. All rights reserved.
