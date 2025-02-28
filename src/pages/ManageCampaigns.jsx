@@ -10,23 +10,32 @@ import { NumberTicker } from '../components/ui/number-ticker';
 function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [metrics, setMetrics] = useState({
-    responses: Math.floor(Math.random() * 2000),
-    audience: Math.floor(Math.random() * 5000) + 1000
-  });
+  const [responseCount, setResponseCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Update metrics every 3 seconds
-    const interval = setInterval(() => {
-      setMetrics({
-        responses: Math.floor(Math.random() * 2000),
-        audience: Math.floor(Math.random() * 5000) + 1000
-      });
-    }, 3000);
+    fetchResponseCount();
+  }, [campaign.id]);
 
-    return () => clearInterval(interval);
-  }, []);
+  const fetchResponseCount = async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/survey/videos/${campaign.id}/count`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch response count');
+      }
+
+      const data = await response.json();
+      setResponseCount(data.count);
+    } catch (err) {
+      console.error('Error fetching response count:', err);
+    }
+  };
 
   const statusColors = {
     Active: "bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20",
@@ -101,7 +110,7 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
         <div className="block">
           <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${!isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''} transition-colors`}>
             <Users className="h-4 w-4" />
-            <NumberTicker value={metrics.responses} className="font-medium" />
+            <NumberTicker value={responseCount} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Responses</div>
         </div>
@@ -109,7 +118,7 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
         <div className="block">
           <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${!isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''} transition-colors`}>
             <BarChart3 className="h-4 w-4" />
-            <NumberTicker value={metrics.audience} className="font-medium" />
+            <NumberTicker value={Math.floor(Math.random() * 5000) + 1000} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Audience</div>
         </div>
@@ -117,7 +126,13 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
         <div className="block">
           <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${!isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''} transition-colors`}>
             <Clock className="h-4 w-4" />
-            <span className="tabular-nums font-medium">{new Date(campaign.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+            <span className="tabular-nums font-medium">
+{campaign.dateModified
+  ? (typeof campaign.dateModified.toDate === 'function'
+      ? campaign.dateModified.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : new Date(campaign.dateModified).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+  : 'N/A'}
+            </span>
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Last Update</div>
         </div>

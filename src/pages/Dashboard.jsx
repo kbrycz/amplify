@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Inbox, CheckCircle, Clock, CreditCard, Film, FolderOpen, TrendingUp, Users, Star, ChevronRight, Plus, Video, BarChart3 } from 'lucide-react';
+import { Inbox, CheckCircle, Clock, CreditCard, Film, FolderOpen, TrendingUp, Users, Star, ChevronRight, Plus, Video, BarChart3, FileText } from 'lucide-react';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { MetricCard } from '../components/ui/metric-card';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
@@ -43,8 +43,8 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState({
     recentCampaign: null,
-    credits: 0,
     campaigns: 0,
+    drafts: 0,
     videos: 0,
     users: 0,
     unread: 0,
@@ -94,18 +94,65 @@ export default function Dashboard() {
   useEffect(() => {
     // Simulate loading metrics with random values
     setMetrics({
-      recentCampaign: null,
-      credits: Math.floor(Math.random() * 5000),
-      campaigns: Math.floor(Math.random() * 30),
+      ...metrics,
       videos: Math.floor(Math.random() * 1000),
       users: Math.floor(Math.random() * 5000),
       unread: Math.floor(Math.random() * 100),
       collected: Math.floor(Math.random() * 2000),
       waiting: Math.floor(Math.random() * 200)
     });
-    
+
+    fetchCampaignCount();
+    fetchDraftCount();
     fetchRecentCampaign();
   }, []);
+
+  const fetchDraftCount = async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts/count`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch draft count');
+      }
+      
+      const data = await response.json();
+      setMetrics(prev => ({
+        ...prev,
+        drafts: data.count
+      }));
+    } catch (err) {
+      console.error('Error fetching draft count:', err);
+    }
+  };
+
+  const fetchCampaignCount = async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/campaign/campaigns/count`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch campaign count');
+      }
+      
+      const data = await response.json();
+      setMetrics(prev => ({
+        ...prev,
+        campaigns: data.count
+      }));
+    } catch (err) {
+      console.error('Error fetching campaign count:', err);
+    }
+  };
+
   const [isNewUser, setIsNewUser] = useState(false);
 
   useEffect(() => {
@@ -150,8 +197,8 @@ export default function Dashboard() {
       {/* Quick Stats */}
       <div className="mt-10 grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          title="Unused Credits"
-          value={metrics.credits}
+          title="Your Credits"
+          value={user?.credits || 0}
           icon={CreditCard}
           onClick={() => console.log('Credits clicked')}
         />
@@ -159,8 +206,16 @@ export default function Dashboard() {
           title="Total Campaigns"
           value={metrics.campaigns}
           icon={FolderOpen}
-          onClick={() => console.log('Campaigns clicked')}
+          onClick={() => navigate('/app/campaigns')}
         />
+        {metrics.drafts > 0 && (
+          <MetricCard
+            title="Campaign Drafts"
+            value={metrics.drafts}
+            icon={FileText}
+            onClick={() => navigate('/app/campaigns/new')}
+          />
+        )}
         <MetricCard
           title="Videos Generated"
           value={metrics.videos}

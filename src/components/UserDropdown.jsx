@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ChevronDown, Cog, LogOut, User, HelpCircle } from 'lucide-react';
+import { ChevronDown, Cog, LogOut, User, CreditCard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -57,40 +57,43 @@ export default function UserDropdown() {
         className="absolute right-0 mt-2 w-[260px] rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-800 dark:bg-gray-900"
       >
         <div className="px-2 py-2 border-b border-gray-200 dark:border-gray-800">
-          <p className="font-medium text-gray-900 dark:text-white">{displayName}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
+          <div className="space-y-1">
+            <p className="font-medium text-gray-900 dark:text-white">{displayName}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
+            <div className="mt-2 flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 dark:bg-indigo-900/20">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                <CreditCard className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-indigo-700 dark:text-indigo-400">
+                  {user?.credits || 0} {user?.credits === 1 ? 'credit' : 'credits'} remaining
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="py-2 border-b border-gray-200 dark:border-gray-800">
+          <DropdownItem
+            tag={Link}
+            to="/app/profile"
+            className="flex items-center gap-2 w-full px-2 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            onItemClick={closeDropdown}
+          >
+            <User className="w-4 h-4" />
+            <span>Profile</span>
+          </DropdownItem>
+
           <DropdownItem
             tag={Link}
             to="/app/account"
             className="flex items-center gap-2 w-full px-2 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
             onItemClick={closeDropdown}
           >
-            <User className="w-4 h-4" />
+            <Cog className="w-4 h-4" />
             <span>Account</span>
           </DropdownItem>
 
-          <DropdownItem
-            tag={Link}
-            to="/app/settings"
-            className="flex items-center gap-2 w-full px-2 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-            onItemClick={closeDropdown}
-          >
-            <Cog className="w-4 h-4" />
-            <span>Settings</span>
-          </DropdownItem>
-
-          <DropdownItem
-            tag={Link}
-            to="/app/support"
-            className="flex items-center gap-2 w-full px-2 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-            onItemClick={closeDropdown}
-          >
-            <HelpCircle className="w-4 h-4" />
-            <span>Support</span>
-          </DropdownItem>
         </div>
 
         <div className="pt-2 border-t border-gray-200 dark:border-gray-800">

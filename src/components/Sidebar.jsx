@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useSidebar } from '../context/SidebarContext';
-import { Home, BarChart3, Users, ChevronDown, X } from 'lucide-react';
+import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings } from 'lucide-react';
 
 const navItems = [
   { 
@@ -18,9 +18,14 @@ const navItems = [
     ]
   },
   {
+    icon: <Wand2 className="w-5 h-5" />,
+    name: 'Video Enhancer',
+    path: '/app/video-enhancer'
+  },
+  {
     icon: <BarChart3 className="w-5 h-5" />,
     name: 'Analytics',
-    path: '/app/analytics'
+    path: '/app/analytics',
   }
 ];
 
@@ -54,9 +59,11 @@ function Sidebar() {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex flex-col h-full">
-        <div className={`py-8 flex items-center ${!isOpen ? "lg:justify-center" : "justify-between"}`}>
-          <a href="/" className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-            {isOpen ? 'Shout' : 'S'}
+        <div className={`py-8 flex items-center ${!isOpen ? "lg:justify-center" : "justify-between"} relative`}>
+          <a href="/" className={`text-2xl font-bold tracking-tight ${isOpen ? 'w-full' : ''}`}>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 dark:from-blue-500 dark:via-blue-400 dark:to-blue-600">
+              {isOpen ? 'Shout' : 'S'}
+            </span>
           </a>
           {isMobileOpen && (
             <button
@@ -119,7 +126,28 @@ function Sidebar() {
           </ul>
         </nav>
 
-        <div className="mt-auto pb-8" />
+        <div className="mt-auto pb-8">
+          <Link
+            to="/app/support"
+            onClick={handleItemClick}
+            className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12" y2="17" />
+            </svg>
+            {isOpen && <span className="ml-3">Support</span>}
+          </Link>
+          <Link
+            to="/app/settings"
+            onClick={handleItemClick}
+            className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            <Settings className="w-5 h-5" />
+            {isOpen && <span className="ml-3">Settings</span>}
+          </Link>
+        </div>
       </div>
     </aside>
   );

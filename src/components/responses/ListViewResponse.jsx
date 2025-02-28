@@ -88,8 +88,8 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex flex-col rounded-lg border border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden
-        ${!isEditMode ? 'cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50' : ''}
+      className="group relative flex flex-col rounded-lg border border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden cursor-pointer
+        hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50
         dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-800/50"
     >
       <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:p-4">
@@ -99,7 +99,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
             e.stopPropagation();
             onVideoClick(response);
           }}
-          className="video-area relative aspect-video w-full lg:w-48 overflow-hidden lg:rounded-lg"
+          className="video-area relative aspect-video w-full lg:w-48 overflow-hidden lg:rounded-lg hover:opacity-90 transition-opacity"
         >
           {response.isNew && (
             <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-blue-500 px-2 py-1 text-xs font-medium text-white">
@@ -118,7 +118,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
             <span>{response.createdAt ? new Date(response.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Unknown'}</span>
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="rounded-full bg-white/10 p-3 backdrop-blur-sm transition-transform duration-200 group-hover:scale-110">
+            <div className="rounded-full bg-white/10 p-3 backdrop-blur-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-white/20">
               <Play className="h-6 w-6 text-white" />
             </div>
           </div>
@@ -143,7 +143,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
             <button
               onClick={handleStar}
               disabled={isStarring || !!error}
-              className={`action-button p-2 rounded-lg transition-colors ${
+              className={`action-button p-2 rounded-lg transition-all hover:scale-105 ${
                 isStarring ? 'opacity-50 cursor-not-allowed' : ''
               } ${
                 isStarred
@@ -155,6 +155,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
             </button>
             <ChevronDown
               className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+              className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-all duration-200 ${isExpanded ? 'rotate-180' : ''} group-hover:text-gray-700 dark:group-hover:text-gray-300`}
             />
           </div>
         </div>
@@ -172,7 +173,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
           <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
             {onTransform && (
               <button
-                className="action-button inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 w-full sm:w-auto justify-center"
+                className="action-button inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 hover:scale-105 transition-transform w-full sm:w-auto justify-center"
                 onClick={(e) => {
                   e.stopPropagation();
                   onTransform(response);
@@ -184,6 +185,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
             )}
             <button
               className="action-button inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 w-full sm:w-auto justify-center"
+              className="action-button inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:scale-105 transition-transform dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 w-full sm:w-auto justify-center"
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit(response);
@@ -194,6 +196,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
             </button>
             <button
               className="action-button inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-red-400 dark:hover:bg-gray-800 w-full sm:w-auto justify-center"
+              className="action-button inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-gray-50 hover:scale-105 transition-transform dark:border-gray-800 dark:bg-gray-900 dark:text-red-400 dark:hover:bg-gray-800 w-full sm:w-auto justify-center"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(response);

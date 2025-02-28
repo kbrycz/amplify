@@ -32,7 +32,8 @@ export function AuthProvider({ children }) {
       },
       body: JSON.stringify({
         firstName,
-        lastName
+        lastName,
+        credits: 10 // Assign 10 initial credits to new users
       })
     });
     if (!response.ok) {
@@ -45,17 +46,15 @@ export function AuthProvider({ children }) {
   const fetchUserProfile = async (firebaseUser) => {
     const idToken = await firebaseUser.getIdToken();
     try {
-      // First set basic Firebase user data
-      setUser(firebaseUser);
-
       const response = await fetch(`${SERVER_URL}/auth/profile`, { 
         method: 'GET',
         headers: { 'Authorization': `Bearer ${idToken}` }
       });
       
       if (response.status === 404) {
-        // Profile doesn't exist yet, this is normal for new users
-        return firebaseUser;
+        // Profile doesn't exist yet
+        setUser(firebaseUser);
+        return;
       }
       
       if (!response.ok) {
@@ -63,16 +62,17 @@ export function AuthProvider({ children }) {
       }
       
       const profileData = await response.json();
-      // Merge Firebase user data with profile data
-      setUser({ ...firebaseUser, ...profileData });
-      return profileData;
+      // Merge Firebase user data with profile data including credits
+      const mergedUser = { ...firebaseUser, ...profileData };
+      setUser(mergedUser);
+      return mergedUser;
     } catch (error) {
       // Only log unexpected errors
       if (!error.message.includes('404')) {
         console.warn('Profile fetch warning:', error.message);
       }
       // Keep using basic Firebase user data
-      return firebaseUser;
+      setUser(firebaseUser);
     }
   };
 

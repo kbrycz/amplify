@@ -6,6 +6,8 @@ import { SERVER_URL, auth } from '../lib/firebase';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { ListViewResponse } from '../components/responses/ListViewResponse';
 import { VideoModal } from '../components/responses/VideoModal';
+import { VideoEditorModal } from '../components/responses/VideoEditorModal';
+import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { ErrorMessage } from '../components/ui/error-message';
 
 export default function AIVideos() {
@@ -26,11 +28,16 @@ export default function AIVideos() {
   const fetchAIVideos = async () => {
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/videoProcessor/ai-videos`, {
+      const response = await fetch(`${SERVER_URL}/videoProcessor/ai-videos/campaign/${id}`, {
         headers: {
           'Authorization': `Bearer ${idToken}`
         }
       });
+
+      if (response.status === 404) {
+        setAiVideos([]);
+        return;
+      }
 
       if (!response.ok) {
         throw new Error('Failed to fetch AI videos');

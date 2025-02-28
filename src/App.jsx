@@ -16,11 +16,13 @@ import ManageCampaigns from './pages/ManageCampaigns';
 import CampaignDetails from './pages/CampaignDetails';
 import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
-import EditAccount from './pages/EditAccount';
+import EditProfile from './pages/EditProfile';
+import Account from './pages/Account';
 import Support from './pages/Support';
 import Survey from './pages/Survey.jsx';
 import Responses from './pages/Responses';
 import AIVideos from './pages/AIVideos';
+import VideoEnhancer from './pages/VideoEnhancer';
 
 function ScrollToTop() {
   const location = useLocation();
@@ -105,7 +107,11 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <ScrollToTop />
-        <CookieConsent />
+        <Routes>
+          {/* Public routes */}
+          <Route path="/survey/:id" element={<Survey />} />
+          <Route path="*" element={<CookieConsent />} />
+        </Routes>
         <Routes>
           {/* Public routes */}
           <Route path="/survey/:id" element={<Survey />} />
@@ -136,8 +142,10 @@ function App() {
             <Route path="campaigns/:id/responses" element={<Responses />} />
             <Route path="campaigns/:id" element={<CampaignDetails />} />
             <Route path="campaigns" element={<ManageCampaigns />} />
+            <Route path="video-enhancer" element={<VideoEnhancer />} />
             <Route path="analytics" element={<Analytics />} />
-            <Route path="account" element={<EditAccount />} />
+            <Route path="profile" element={<EditProfile />} />
+            <Route path="account" element={<Account />} />
             <Route path="settings" element={<Settings />} />
             <Route path="support" element={<Support />} />
           </Route>

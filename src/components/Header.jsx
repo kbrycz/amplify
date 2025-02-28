@@ -147,7 +147,7 @@ function Header() {
               isOpen={isNotificationsOpen}
               onClose={() => setIsNotificationsOpen(false)}
               buttonRef={notificationButtonRef}
-              className="fixed right-4 sm:right-auto sm:absolute mt-2 w-[calc(100vw-2rem)] max-w-[380px] rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
+              className="fixed sm:absolute right-4 sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-[380px] rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
             >
               <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
                 <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
