@@ -3,6 +3,7 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 
 export function ContactForm({ formData, handleInputChange, theme, themes }) {
+
   return (
     <div>
       <h2 className={`text-2xl font-bold ${theme ? themes[theme].text : 'text-gray-900 dark:text-white'}`}>Contact Information</h2>

@@ -1,7 +1,8 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useSidebar } from '../context/SidebarContext';
-import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings } from 'lucide-react';
+import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings, HelpCircle, CreditCard } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
   { 
@@ -30,6 +31,7 @@ const navItems = [
 ];
 
 function Sidebar() {
+  const { user } = useAuth();
   const { 
     isExpanded, 
     isMobileOpen, 
@@ -58,7 +60,7 @@ function Sidebar() {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full relative">
         <div className={`py-8 flex items-center ${!isOpen ? "lg:justify-center" : "justify-between"} relative`}>
           <a href="/" className={`text-2xl font-bold tracking-tight ${isOpen ? 'w-full' : ''}`}>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 dark:from-blue-500 dark:via-blue-400 dark:to-blue-600">
@@ -75,7 +77,7 @@ function Sidebar() {
           )}
         </div>
 
-        <nav className="flex-1 overflow-y-auto">
+        <nav className="flex-1 overflow-y-auto pb-32">
           <ul className="space-y-2 relative z-[70]">
             {navItems.map((item) => (
               <li key={item.name}>
@@ -126,23 +128,36 @@ function Sidebar() {
           </ul>
         </nav>
 
-        <div className="mt-auto pb-8">
+        {/* Credits Display */}
+        <div className="px-3 py-2 mt-4">
+          <div className="flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 dark:bg-indigo-900/20">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+              <CreditCard className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            {isOpen && (
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-indigo-700 dark:text-indigo-400">
+                  {user?.credits || 0} {user?.credits === 1 ? 'credit' : 'credits'} remaining
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Fixed Footer Navigation */}
+        <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 p-3 space-y-1">
           <Link
             to="/app/support"
             onClick={handleItemClick}
-            className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <line x1="12" y1="17" x2="12" y2="17" />
-            </svg>
+            <HelpCircle className="w-5 h-5" />
             {isOpen && <span className="ml-3">Support</span>}
           </Link>
           <Link
             to="/app/settings"
             onClick={handleItemClick}
-            className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
           >
             <Settings className="w-5 h-5" />
             {isOpen && <span className="ml-3">Settings</span>}

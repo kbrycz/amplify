@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Upload } from 'lucide-react';
 
-export function NavigationButtons({ 
+export function NavigationButtons({
   currentStep, 
   isUploading, 
   uploadProgress,
@@ -9,9 +9,27 @@ export function NavigationButtons({
   goToNextStep,
   handleSubmit,
   theme, 
-  themes 
+  themes,
+  formData,
+  videoFile,
+  repsLoaded
 }) {
   if (currentStep === 'intro' || currentStep === 'success') return null;
+
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 'contact':
+        return Boolean(formData.firstName?.trim() && formData.lastName?.trim() && formData.email?.trim());
+      case 'location':
+        return Boolean(formData.zipCode?.match(/^\d{5}$/));
+      case 'response':
+        return !!videoFile;
+      default:
+        return true;
+    }
+  };
+
+  const isValid = isStepValid();
 
   return (
     <div className="mt-8 flex justify-between">
@@ -55,12 +73,12 @@ export function NavigationButtons({
       ) : (
         <button
           onClick={goToNextStep}
-          disabled={isUploading}
+          disabled={isUploading || !isValid}
           className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
             theme 
               ? `${themes[theme].border} border-2 ${themes[theme].text} hover:bg-white/10` 
               : 'bg-indigo-600 text-white hover:bg-indigo-700'
-          } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          } ${(isUploading || !isValid) ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           Continue
           <ChevronRight className="h-4 w-4" />

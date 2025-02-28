@@ -31,6 +31,7 @@ export default function Survey() {
   const [videoDuration, setVideoDuration] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const errorTimeoutRef = useRef(null);
+  const [repsLoaded, setRepsLoaded] = useState(false);
   const MAX_VIDEO_DURATION = 120; // 2 minutes in seconds
   const [formData, setFormData] = useState({
     firstName: '',
@@ -219,9 +220,34 @@ export default function Survey() {
           : 'max-w-2xl'
       } lg:px-8`}>
         {error && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
-            <X className="h-4 w-4 flex-shrink-0" />
-            {error}
+          <div className={`mb-6 rounded-lg border ${
+            theme 
+              ? `${themes[theme].border} bg-black/20` 
+              : 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-900/50'
+          } p-4`}>
+            <div className="flex items-start">
+              <div className={`mr-3 flex-shrink-0 ${
+                theme 
+                  ? themes[theme].text 
+                  : 'text-red-600 dark:text-red-400'
+              }`}>
+                <X className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className={`text-sm font-medium ${
+                  theme 
+                    ? themes[theme].text 
+                    : 'text-red-800 dark:text-red-200'
+                }`}>Error</h3>
+                <div className={`mt-2 text-sm ${
+                  theme 
+                    ? themes[theme].subtext 
+                    : 'text-red-700 dark:text-red-300'
+                }`}>
+                  {error}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -238,8 +264,9 @@ export default function Survey() {
           <ContactForm 
             formData={formData} 
             handleInputChange={handleInputChange} 
-            theme={campaign.theme} 
+            theme={campaign.theme}
             themes={themes} 
+            onRepsLoaded={setRepsLoaded} 
           />
         )}
 
@@ -247,8 +274,9 @@ export default function Survey() {
           <LocationForm 
             formData={formData} 
             handleInputChange={handleInputChange} 
-            theme={campaign.theme} 
-            themes={themes} 
+            theme={campaign.theme}
+            themes={themes}
+            onRepsLoaded={setRepsLoaded}
           />
         )}
 
@@ -282,6 +310,9 @@ export default function Survey() {
           handleSubmit={handleSubmit}
           theme={campaign.theme}
           themes={themes}
+          formData={formData}
+          videoFile={formData.videoFile}
+          repsLoaded={repsLoaded} 
         />
       </div>
     </div>

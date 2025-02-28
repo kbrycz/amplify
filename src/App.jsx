@@ -107,11 +107,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <ScrollToTop />
-        <Routes>
-          {/* Public routes */}
-          <Route path="/survey/:id" element={<Survey />} />
-          <Route path="*" element={<CookieConsent />} />
-        </Routes>
+        <CookieConsent />
         <Routes>
           {/* Public routes */}
           <Route path="/survey/:id" element={<Survey />} />

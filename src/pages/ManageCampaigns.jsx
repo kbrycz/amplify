@@ -406,7 +406,7 @@ export default function ManageCampaigns() {
               onUpdate={handleUpdate}
               isEditMode={isEditMode}
             />
-          )).reverse()}
+          ))}
         </div>
       )}
 
