@@ -1,8 +1,7 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useSidebar } from '../context/SidebarContext';
-import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings, HelpCircle, CreditCard } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings, HelpCircle } from 'lucide-react';
 
 const navItems = [
   { 
@@ -26,12 +25,24 @@ const navItems = [
   {
     icon: <BarChart3 className="w-5 h-5" />,
     name: 'Analytics',
-    path: '/app/analytics',
+    path: '/app/analytics'
+  }
+];
+
+const mobileNavItems = [
+  { 
+    icon: <Settings className="w-5 h-5" />,
+    name: 'Settings',
+    path: '/app/settings'
+  },
+  {
+    icon: <HelpCircle className="w-5 h-5" />,
+    name: 'Support',
+    path: '/app/support'
   }
 ];
 
 function Sidebar() {
-  const { user } = useAuth();
   const { 
     isExpanded, 
     isMobileOpen, 
@@ -60,7 +71,7 @@ function Sidebar() {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex flex-col h-full relative">
+      <div className="flex flex-col h-full">
         <div className={`py-8 flex items-center ${!isOpen ? "lg:justify-center" : "justify-between"} relative`}>
           <a href="/" className={`text-2xl font-bold tracking-tight ${isOpen ? 'w-full' : ''}`}>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 dark:from-blue-500 dark:via-blue-400 dark:to-blue-600">
@@ -77,10 +88,10 @@ function Sidebar() {
           )}
         </div>
 
-        <nav className="flex-1 overflow-y-auto pb-32">
+        <nav className="flex-1 overflow-y-auto">
           <ul className="space-y-2 relative z-[70]">
             {navItems.map((item) => (
-              <li key={item.name}>
+              <li key={item.name} className="relative">
               {item.subItems ? (
                 <div>
                   <button
@@ -125,42 +136,39 @@ function Sidebar() {
               )}
               </li>
             ))}
+            {/* Mobile-only navigation items */}
+            <li className="lg:hidden mt-4">
+              {mobileNavItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  onClick={handleItemClick}
+                  className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                >
+                  {item.icon}
+                  {isOpen && <span className="ml-3">{item.name}</span>}
+                </Link>
+              ))}
+            </li>
           </ul>
         </nav>
 
-        {/* Credits Display */}
-        <div className="px-3 py-2 mt-4">
-          <div className="flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 dark:bg-indigo-900/20">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-              <CreditCard className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            {isOpen && (
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-indigo-700 dark:text-indigo-400">
-                  {user?.credits || 0} {user?.credits === 1 ? 'credit' : 'credits'} remaining
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Fixed Footer Navigation */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 p-3 space-y-1">
-          <Link
-            to="/app/support"
-            onClick={handleItemClick}
-            className="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
-          >
-            <HelpCircle className="w-5 h-5" />
-            {isOpen && <span className="ml-3">Support</span>}
-          </Link>
+        <div className="mt-auto pb-8 hidden lg:flex lg:flex-col lg:gap-1">
           <Link
             to="/app/settings"
             onClick={handleItemClick}
-            className="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+            className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="w-5 h-5 flex-shrink-0" />
             {isOpen && <span className="ml-3">Settings</span>}
+          </Link>
+          <Link
+            to="/app/support"
+            onClick={handleItemClick}
+            className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            <HelpCircle className="w-5 h-5 flex-shrink-0" />
+            {isOpen && <span className="ml-3">Support</span>}
           </Link>
         </div>
       </div>
