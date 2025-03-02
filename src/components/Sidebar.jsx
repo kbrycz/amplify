@@ -3,6 +3,33 @@ import { useLocation, Link } from 'react-router-dom';
 import { useSidebar } from '../context/SidebarContext';
 import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings, HelpCircle } from 'lucide-react';
 
+// Hook to detect dark mode
+function useDarkMode() {
+  const [isDark, setIsDark] = React.useState(() => {
+    if (typeof window === 'undefined') return false;
+    return document.documentElement.classList.contains('dark');
+  });
+
+  React.useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          setIsDark(document.documentElement.classList.contains('dark'));
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
+}
+
 const navItems = [
   { 
     icon: <Home className="w-5 h-5" />,
@@ -43,6 +70,7 @@ const mobileNavItems = [
 ];
 
 function Sidebar() {
+  const isDark = useDarkMode();
   const { 
     isExpanded, 
     isMobileOpen, 
@@ -72,16 +100,18 @@ function Sidebar() {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex flex-col h-full">
-        <div className={`py-8 flex items-center ${!isOpen ? "lg:justify-center" : "justify-between"} relative`}>
-          <a href="/" className={`text-2xl font-bold tracking-tight ${isOpen ? 'w-full' : ''}`}>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 dark:from-blue-500 dark:via-blue-400 dark:to-blue-600">
-              {isOpen ? 'Shout' : 'S'}
-            </span>
+        <div className={`py-8 flex items-center justify-center relative`}>
+          <a href="/" className={`${isOpen ? 'w-full' : ''}`}>
+            <img 
+              src={`/images/${isDark ? 'logo-white.png' : 'logo-color.png'}`}
+              alt="Shout"
+              className={`${isOpen ? 'h-12' : 'h-8'} w-auto transition-all duration-300 mx-auto`}
+            />
           </a>
           {isMobileOpen && (
             <button
-              onClick={toggleMobileSidebar}
-              className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+              onClick={toggleMobileSidebar} 
+              className="absolute right-0 p-2 text-gray-500 hover:bg-gray-100 rounded-lg dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
             >
               <X className="w-5 h-5" />
             </button>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Label } from '../../ui/label';
 import { Input } from '../../ui/input';
 import { Textarea } from '../../ui/textarea';
-import { Upload, X, Sparkles } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 
 export function BasicInfo({ 
   formData, 
@@ -10,29 +10,11 @@ export function BasicInfo({
   previewImage, 
   handleImageChange, 
   handleRemoveImage,
-  setIsAIModalOpen 
 }) {
   return (
     <div className="space-y-8">
-      <button
-        onClick={() => setIsAIModalOpen(true)}
-        className="group flex w-full items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 text-left transition-all hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800"
-      >
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 group-hover:bg-gray-200 dark:bg-gray-800 dark:group-hover:bg-gray-700">
-          <Sparkles className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-        </div>
-        <span className="font-medium text-gray-900 dark:text-white">
-          Try our AI Campaign Creator
-        </span>
-        <div className="ml-auto">
-          <div className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-            New
-          </div>
-        </div>
-      </button>
-
       <div>
-        <Label htmlFor="name">Campaign Name *</Label>
+        <Label htmlFor="name">Campaign Title *</Label>
         <Input
           id="name"
           name="campaign-title"
@@ -41,6 +23,17 @@ export function BasicInfo({
           onChange={handleInputChange}
           autoComplete="off"
           data-form-type="other"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="description">Campaign Description *</Label>
+        <Textarea
+          id="description"
+          placeholder="Describe your campaign's purpose and goals"
+          value={formData.description}
+          onChange={handleInputChange}
           required
         />
       </div>
@@ -84,17 +77,6 @@ export function BasicInfo({
             </label>
           </div>
         </div>
-      </div>
-
-      <div>
-        <Label htmlFor="description">Campaign Description *</Label>
-        <Textarea
-          id="description"
-          placeholder="Describe your campaign's purpose and goals"
-          value={formData.description}
-          onChange={handleInputChange}
-          required
-        />
       </div>
     </div>
   );

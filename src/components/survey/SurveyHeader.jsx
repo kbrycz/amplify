@@ -1,9 +1,18 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
 
-export function SurveyHeader({ campaign, theme, themes, goToNextStep }) {
+export function SurveyHeader({ campaign, theme, themes, goToNextStep, previewImage }) {
   return (
     <div className="text-center">
+      {previewImage && (
+        <div className="flex justify-center mb-8">
+          <img 
+            src={previewImage} 
+            alt={campaign.name} 
+            className={`w-20 h-20 rounded-full object-cover ${theme ? themes[theme].border : 'border-gray-200 dark:border-gray-800'} border-2`} 
+          />
+        </div>
+      )}
       <h1 className={`mt-4 text-3xl font-bold tracking-tight ${theme ? themes[theme].text : 'text-gray-900 dark:text-white'} sm:text-4xl`}>
         {campaign.name}
       </h1>

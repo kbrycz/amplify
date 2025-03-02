@@ -256,6 +256,7 @@ export default function Survey() {
             campaign={campaign} 
             theme={campaign.theme} 
             themes={themes}
+            previewImage={campaign.previewImage}
             goToNextStep={goToNextStep}
           />
         )}

@@ -7,11 +7,9 @@ export function ConfirmationModal({
   onConfirm, 
   title, 
   message, 
-  confirmButtonText = "Delete",
-  simpleConfirm = false,
+  confirmButtonText = "Delete", 
   isLoading = false
 }) {
-  const [isValid, setIsValid] = useState(simpleConfirm);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
@@ -19,17 +17,16 @@ export function ConfirmationModal({
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
-      setIsValid(simpleConfirm);
     }
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, simpleConfirm]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    if (isValid && !isDeleting) {
+    if (!isDeleting) {
       setIsDeleting(true);
       onConfirm().finally(() => {
         setIsDeleting(false);
@@ -75,13 +72,9 @@ export function ConfirmationModal({
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button
               type="button"
-              className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto ${
-                isValid && !isDeleting
-                  ? 'bg-red-600 hover:bg-red-500'
-                  : 'bg-gray-400 cursor-not-allowed'
-              }`}
+              className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto bg-red-600 hover:bg-red-500"
               onClick={handleConfirm}
-              disabled={!isValid || isDeleting}
+              disabled={isDeleting}
             >
               {isDeleting ? (
                 <span className="flex items-center gap-2">

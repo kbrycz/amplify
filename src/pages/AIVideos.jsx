@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/page-header';
-import { ArrowLeft, Star } from 'lucide-react';
+import { ArrowLeft, Star, Video, Sparkles } from 'lucide-react';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { ListViewResponse } from '../components/responses/ListViewResponse';
 import { VideoModal } from '../components/responses/VideoModal';
 import { VideoEditorModal } from '../components/responses/VideoEditorModal';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
+import { EmptyState } from '../components/ui/empty-state';
 import { ErrorMessage } from '../components/ui/error-message';
 
 export default function AIVideos() {
@@ -75,7 +76,8 @@ export default function AIVideos() {
 
       <PageHeader
         title="AI Generated Videos"
-        description="View and manage AI-generated videos for this campaign"
+        description="View and manage AI-generated videos for this campaign."
+        className="mb-6"
       />
 
       {isLoading ? (
@@ -83,9 +85,16 @@ export default function AIVideos() {
       ) : error ? (
         <ErrorMessage message={error} />
       ) : aiVideos.length === 0 ? (
-        <div className="mt-8 text-center">
-          <p className="text-gray-600 dark:text-gray-400">No AI-generated videos yet.</p>
-        </div>
+        <EmptyState
+          title="No AI-generated videos yet"
+          description="Transform your video responses into polished, professional content with our AI tools."
+          icon={Sparkles}
+          primaryAction={{
+            label: 'View Responses',
+            onClick: () => navigate(`/app/campaigns/${id}/responses`),
+            icon: <Video className="h-5 w-5" />
+          }}
+        />
       ) : (
         <div className="mt-8 space-y-4">
           {aiVideos.map(video => (

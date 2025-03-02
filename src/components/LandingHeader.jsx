@@ -57,12 +57,14 @@ export default function LandingHeader() {
   return (
     <header className="absolute inset-x-0 top-0 z-50">
       <nav className="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
-        <div className="flex flex-1 items-center justify-between">
-          <div className="flex">
-            <Link to="/" className="-m-1.5 p-1.5 text-2xl font-bold tracking-tight">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 dark:from-blue-500 dark:via-blue-400 dark:to-blue-600">
-                Shout
-              </span>
+        <div className="flex flex-1 items-center justify-between gap-4">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center">
+              <img 
+                src={isDark ? '/images/logo-white.png' : '/images/logo-color.png'}
+                alt="Shout"
+                className="h-8 w-auto"
+              />
             </Link>
           </div>
           <div className="flex items-center gap-4 lg:hidden">
@@ -101,10 +103,14 @@ export default function LandingHeader() {
             <div className="flex items-center justify-between">
               <Link
                 to="/"
-                className="-m-1.5 p-1.5 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
+                className="-m-1.5 p-1.5"
                 onClick={closeMobileMenu}
               >
-                Shout
+                <img 
+                  src={isDark ? '/images/logo-white.png' : '/images/logo-color.png'}
+                  alt="Shout"
+                  className="h-8 w-auto"
+                />
               </Link>
               <button
                 type="button"
@@ -148,17 +154,17 @@ export default function LandingHeader() {
                   Contact
                 </a>
               </div>
-              <div className="border-t border-gray-200 dark:border-gray-800 py-6">
+              <div className="mt-6 flex flex-col gap-3">
                 <Link
                   to="/login"
-                  className="block rounded-lg border border-gray-900 px-3 py-2 text-center text-base font-semibold leading-7 text-gray-900 hover:bg-gray-900 hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-gray-900"
+                  className="inline-flex items-center justify-center rounded-lg border border-indigo-600 bg-white px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 dark:border-indigo-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                   onClick={closeMobileMenu}
                 >
                   Sign in
                 </Link>
                 <Link
                   to="/signup"
-                  className="mt-2 block rounded-lg bg-gray-900 px-3 py-2 text-center text-base font-semibold leading-7 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500"
                   onClick={closeMobileMenu}
                 >
                   Sign up
@@ -197,7 +203,7 @@ export default function LandingHeader() {
             </Link>
             <Link
               to="/signup"
-              className="rounded-lg border border-gray-900 px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-900 hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-gray-900"
+              className="rounded-lg border border-gray-900 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-900 hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-gray-900"
             >
               Sign up
             </Link>

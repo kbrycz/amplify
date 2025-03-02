@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/page-header';
-import { ArrowLeft, Star } from 'lucide-react';
+import { ArrowLeft, Star, Share2, Video, Sparkles } from 'lucide-react';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { ListViewResponse } from '../components/responses/ListViewResponse';
 import { VideoModal } from '../components/responses/VideoModal';
 import { ErrorMessage } from '../components/ui/error-message';
 import { TransformModal } from '../components/responses/TransformModal';
+import { EmptyState } from '../components/ui/empty-state';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { VideoEditorModal } from '../components/responses/VideoEditorModal';
 
@@ -29,6 +30,7 @@ export default function Responses() {
 
   useEffect(() => {
     fetchResponses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchResponses = async () => {
@@ -36,7 +38,7 @@ export default function Responses() {
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${SERVER_URL}/survey/videos/${id}`, {
         headers: {
-          'Authorization': `Bearer ${idToken}`
+          Authorization: `Bearer ${idToken}`
         }
       });
 
@@ -44,8 +46,10 @@ export default function Responses() {
         throw new Error('Failed to fetch responses');
       }
 
+      // Just store raw data; let ListViewResponse handle date parsing
       const data = await response.json();
-      // Initialize starred responses
+
+      // Initialize starred from the returned data
       const initialStarred = new Set(data.filter(r => r.starred).map(r => r.id));
       setStarredResponses(initialStarred);
       setResponses(data);
@@ -66,7 +70,7 @@ export default function Responses() {
       const response = await fetch(`${SERVER_URL}/videoEditor/delete/${selectedResponse.id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${idToken}`
+          Authorization: `Bearer ${idToken}`
         }
       });
 
@@ -74,12 +78,11 @@ export default function Responses() {
         throw new Error('Failed to delete video');
       }
 
-      // Remove the deleted response from the list
-      setResponses(responses.filter(r => r.id !== selectedResponse.id));
+      // Remove from local state
+      setResponses(prev => prev.filter(r => r.id !== selectedResponse.id));
       setIsDeleteModalOpen(false);
     } catch (err) {
       console.error('Error deleting video:', err);
-      // Show error message to user
     } finally {
       setIsDeleting(false);
     }
@@ -96,16 +99,16 @@ export default function Responses() {
   };
 
   const handleStarChange = (responseId, isStarred) => {
-    const newStarredResponses = new Set(starredResponses);
+    const newStarred = new Set(starredResponses);
     if (isStarred) {
-      newStarredResponses.add(responseId);
+      newStarred.add(responseId);
     } else {
-      newStarredResponses.delete(responseId);
+      newStarred.delete(responseId);
     }
-    setStarredResponses(newStarredResponses);
+    setStarredResponses(newStarred);
   };
 
-  const filteredResponses = showStarredOnly 
+  const filteredResponses = showStarredOnly
     ? responses.filter(response => starredResponses.has(response.id))
     : responses;
 
@@ -126,7 +129,8 @@ export default function Responses() {
 
       <PageHeader
         title="Campaign Responses"
-        description="View and manage video testimonials for this campaign"
+        description="View and manage video testimonials for this campaign."
+        className="mb-6"
       >
         <div
           onClick={() => setShowStarredOnly(!showStarredOnly)}
@@ -146,20 +150,28 @@ export default function Responses() {
       ) : error ? (
         <ErrorMessage message={error} />
       ) : responses.length === 0 ? (
-        <div className="mt-8 text-center">
-          <p className="text-gray-600 dark:text-gray-400">No responses yet.</p>
-        </div>
+        <EmptyState
+          title="No responses yet"
+          description="Share your campaign link to start collecting video responses from your community."
+          primaryAction={{
+            label: 'Share Campaign',
+            onClick: () => navigate(`/app/campaigns/${id}`),
+            icon: <Share2 className="h-5 w-5" />
+          }}
+        />
       ) : filteredResponses.length === 0 && showStarredOnly ? (
-        <div className="mt-8 text-center">
-          <p className="text-gray-600 dark:text-gray-400">No starred responses.</p>
-        </div>
-      ) : ( 
+        <EmptyState
+          title="No starred responses"
+          description="Star your favorite responses to find them quickly later."
+          icon={Star}
+        />
+      ) : (
         <div className="mt-8 space-y-4">
           {filteredResponses.map(response => (
             <ListViewResponse
               key={response.id}
               response={response}
-              onVideoClick={(response) => setSelectedTestimonial(response)}
+              onVideoClick={(resp) => setSelectedTestimonial(resp)}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onTransform={handleTransform}
@@ -168,7 +180,7 @@ export default function Responses() {
           ))}
         </div>
       )}
-      
+
       {/* Video modal */}
       {selectedTestimonial && (
         <VideoModal
@@ -176,6 +188,7 @@ export default function Responses() {
           onClose={() => setSelectedTestimonial(null)}
         />
       )}
+
       <TransformModal
         isOpen={isTransformModalOpen}
         onClose={() => setIsTransformModalOpen(false)}
@@ -188,7 +201,8 @@ export default function Responses() {
         onClose={() => setIsVideoEditorOpen(false)}
         video={selectedResponse}
         onSave={async () => {
-          await fetchResponses(); // Refresh responses after save
+          // Refresh the list after saving changes
+          await fetchResponses();
           setIsVideoEditorOpen(false);
         }}
       />
@@ -202,7 +216,7 @@ export default function Responses() {
         simpleConfirm={true}
         isLoading={isDeleting}
       />
-      
+
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         &copy; 2025 Shout. All rights reserved.
       </div>

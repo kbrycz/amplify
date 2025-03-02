@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Input } from './input';
-import { Textarea } from './textarea';
 import { Label } from './label';
 
 export function EditCampaignModal({ isOpen, onClose, campaign, onSave }) {
   const [formData, setFormData] = useState({
-    name: campaign?.name || '',
-    description: campaign?.description || ''
+    name: campaign?.name || ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -17,8 +15,7 @@ export function EditCampaignModal({ isOpen, onClose, campaign, onSave }) {
   useEffect(() => {
     if (isOpen) {
       setFormData({
-        name: campaign?.name || '',
-        description: campaign?.description || ''
+        name: campaign?.name || ''
       });
       setIsSubmitting(false);
       setError('');
@@ -64,7 +61,7 @@ export function EditCampaignModal({ isOpen, onClose, campaign, onSave }) {
           <div className="absolute right-4 top-4">
             <button
               onClick={handleClose}
-              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              className="rounded-lg p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
             >
               <X className="h-5 w-5" />
             </button>
@@ -75,7 +72,7 @@ export function EditCampaignModal({ isOpen, onClose, campaign, onSave }) {
               Edit Campaign
             </h3>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Update your campaign details below.
+              Update your campaign name below.
             </p>
           </div>
 
@@ -86,17 +83,6 @@ export function EditCampaignModal({ isOpen, onClose, campaign, onSave }) {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="mt-1"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 className="mt-1"
                 required
               />

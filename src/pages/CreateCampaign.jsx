@@ -1,17 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
-import { Card, CardContent } from '../components/ui/card';
-import { FileText, ChevronDown } from 'lucide-react';
+import { Card, CardContent } from '../components/ui/card'; 
+import { FileText, ChevronDown, Plus, Upload, X, Save } from 'lucide-react';
 import { SuccessModal } from '../components/ui/success-modal';
 import { AIModal } from '../components/create-campaign/AIModal';
 import { DraftsDropdown } from '../components/create-campaign/DraftsDropdown';
 import { HelpModal } from '../components/create-campaign/HelpModal';
-import { useUndoRedo } from '../hooks/useUndoRedo';
+import { useFormCache } from '../hooks/useFormCache';
 import { PhonePreview } from '../components/create-campaign/PhonePreview';
 import { StepProgress } from '../components/create-campaign/StepProgress';
+import { InternalName } from '../components/create-campaign/steps/InternalName';
 import { StepNavigation } from '../components/create-campaign/StepNavigation';
 import { BasicInfo } from '../components/create-campaign/steps/BasicInfo';
+import { DesignPage } from '../components/create-campaign/steps/DesignPage';
 import { CampaignDetails } from '../components/create-campaign/steps/CampaignDetails';
 import { BusinessInfo } from '../components/create-campaign/steps/BusinessInfo';
 
@@ -44,7 +46,9 @@ const themes = {
 };
 
 const steps = [
-  { name: 'Basic Info' },
+  { name: 'Internal Name' },
+  { name: 'Design' },
+  { name: 'Campaign Info' },
   { name: 'Campaign Details' },
   { name: 'Business Info' }
 ];
@@ -54,6 +58,7 @@ export default function CreateCampaign() {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedTheme, setSelectedTheme] = useState('sunset');
   const [isDraftsOpen, setIsDraftsOpen] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
@@ -70,6 +75,7 @@ export default function CreateCampaign() {
   const [isEditingDraft, setIsEditingDraft] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const initialFormData = {
+    internalName: '',
     name: '',
     description: '',
     category: '',
@@ -79,7 +85,7 @@ export default function CreateCampaign() {
     email: '',
     phone: ''
   };
-  const { state: formData, setState: setFormData, undo, redo, canUndo, canRedo } = useUndoRedo(initialFormData);
+  const [formData, setFormData, clearFormCache] = useFormCache(initialFormData);
   const [surveyQuestions, setSurveyQuestions] = useState([]);
   const draftsRef = useRef(null);
 
@@ -121,6 +127,7 @@ export default function CreateCampaign() {
     try {
       const idToken = await auth.currentUser.getIdToken();
       const draftData = {
+        internalName: formData.internalName,
         ...formData,
         theme: selectedTheme,
         subcategory: formData.category === 'political' ? formData.subcategory : null,
@@ -144,6 +151,7 @@ export default function CreateCampaign() {
       }
 
       await fetchDrafts();
+      clearFormCache(); // Clear the form cache on successful save
       
       setError({
         type: 'success',
@@ -179,6 +187,7 @@ export default function CreateCampaign() {
 
       const draft = await response.json();
       setFormData({
+        internalName: draft.internalName || '',
         name: draft.name || '',
         description: draft.description || '',
         category: draft.category || '',
@@ -304,12 +313,16 @@ export default function CreateCampaign() {
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
+      // Show preview starting from step 2 (Campaign Info)
+      setShowPreview(currentStep + 1 >= 2);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+      // Hide preview when going back before step 2
+      setShowPreview(currentStep - 1 >= 2);
     }
   };
 
@@ -407,8 +420,12 @@ export default function CreateCampaign() {
         throw new Error(errorData.message || 'Failed to create campaign');
       }
 
+      // Clear form cache after successful submission
+      clearFormCache();
+
       const campaign = await response.json();
       setFormData({
+        internalName: '',
         name: '',
         description: '',
         category: '',
@@ -452,7 +469,7 @@ export default function CreateCampaign() {
           </div>
         </div>
 
-        <div className="relative max-w-[800px] mt-4" ref={draftsRef}>
+        <div className={`relative ${currentStep < 2 ? 'w-full' : 'max-w-[800px]'} mt-4`} ref={draftsRef}>
           {!isLoadingDrafts && drafts.length > 0 && (
             <button
               onClick={() => setIsDraftsOpen(!isDraftsOpen)}
@@ -479,22 +496,36 @@ export default function CreateCampaign() {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[800px,auto] gap-6 items-start">
+        <div className={`grid grid-cols-1 ${showPreview ? 'lg:grid-cols-[800px,auto]' : ''} gap-6 items-start ${!showPreview ? 'w-full' : ''}`}>
           <Card className="w-full">
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-8">
                 {currentStep === 0 && (
+                  <InternalName
+                    formData={formData}
+                    handleInputChange={handleInputChange}
+                    setIsAIModalOpen={setIsAIModalOpen}
+                  />
+                )}
+
+                {currentStep === 2 && (
                   <BasicInfo
                     formData={formData}
                     handleInputChange={handleInputChange}
                     previewImage={previewImage}
                     handleImageChange={handleImageChange}
                     handleRemoveImage={handleRemoveImage}
-                    setIsAIModalOpen={setIsAIModalOpen}
                   />
                 )}
 
                 {currentStep === 1 && (
+                  <DesignPage
+                    selectedTheme={selectedTheme}
+                    setSelectedTheme={setSelectedTheme}
+                  />
+                )}
+
+                {currentStep === 3 && (
                   <CampaignDetails
                     formData={formData}
                     handleInputChange={handleInputChange}
@@ -506,7 +537,7 @@ export default function CreateCampaign() {
                   />
                 )}
 
-                {currentStep === 2 && (
+                {currentStep === 4 && (
                   <BusinessInfo
                     formData={formData}
                     handleInputChange={handleInputChange}
@@ -542,19 +573,21 @@ export default function CreateCampaign() {
                     isEditingDraft={isEditingDraft}
                     formData={formData}
                     surveyQuestions={surveyQuestions}
+                    setIsAIModalOpen={setIsAIModalOpen}
                   />
                 </div>
               </form>
             </CardContent>
           </Card>
 
-          <PhonePreview
+          {showPreview && <PhonePreview
             selectedTheme={selectedTheme}
             themes={themes}
             previewImage={previewImage}
             formData={formData}
             surveyQuestions={surveyQuestions}
-          />
+            currentStep={currentStep}
+          />}
         </div>
       </div>
 
@@ -583,6 +616,7 @@ export default function CreateCampaign() {
           setSuccessModal({ isOpen: false, campaignId: null, campaignName: '' });
           setCurrentStep(0); // Reset to first step when modal is closed
           setFormData({
+            internalName: '',
             name: '',
             description: '',
             category: '',

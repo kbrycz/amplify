@@ -4,6 +4,7 @@ import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
+import { LoadingScreen } from './components/ui/loading-screen';
 import { CookieConsent } from './components/ui/cookie-consent';
 import SignUp from './pages/SignUp';
 import About from './pages/About';
@@ -23,6 +24,8 @@ import Survey from './pages/Survey.jsx';
 import Responses from './pages/Responses';
 import AIVideos from './pages/AIVideos';
 import VideoEnhancer from './pages/VideoEnhancer';
+import CampaignSettings from './pages/CampaignSettings';
+import { LoadingScreen as AppLoadingScreen } from './components/ui/loading-screen';
 
 function ScrollToTop() {
   const location = useLocation();
@@ -36,17 +39,6 @@ function ScrollToTop() {
   }, [location.pathname, navigationType]);
 
   return null;
-}
-
-function LoadingScreen() {
-  return (
-    <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400 mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-      </div>
-    </div>
-  );
 }
 
 function RequireAuth({ children }) {
@@ -91,9 +83,8 @@ function AppLayout() {
 function AppContent() {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  // Show loading screen during initial auth check
+  if (loading) return <LoadingScreen />;
 
   if (user) {
     return <Navigate to="/app" replace />;
@@ -105,6 +96,7 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
+      <LoadingScreen />
       <BrowserRouter>
         <ScrollToTop />
         <CookieConsent />
@@ -136,6 +128,7 @@ function App() {
             <Route path="campaigns/new" element={<CreateCampaign />} />
             <Route path="campaigns/:id/ai-videos" element={<AIVideos />} />
             <Route path="campaigns/:id/responses" element={<Responses />} />
+            <Route path="campaigns/:id/settings" element={<CampaignSettings />} />
             <Route path="campaigns/:id" element={<CampaignDetails />} />
             <Route path="campaigns" element={<ManageCampaigns />} />
             <Route path="video-enhancer" element={<VideoEnhancer />} />

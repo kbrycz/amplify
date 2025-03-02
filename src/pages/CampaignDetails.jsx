@@ -4,7 +4,7 @@ import { SERVER_URL, auth } from '../lib/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { MetricCard } from '../components/ui/metric-card';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Video, Users, Clock, TrendingUp, Zap, Award, Play, Pause, Settings, Share2, ExternalLink, Sparkles } from 'lucide-react';
+import { Video, Users, Clock, TrendingUp, Zap, Award, Play, Pause, Settings, Share2, ExternalLink, Sparkles, ArrowLeft } from 'lucide-react';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { ShareModal } from '../components/ui/share-modal';
 
@@ -176,6 +176,14 @@ export default function CampaignDetails() {
 
   return (
     <div className="p-6">
+      <button
+        onClick={() => navigate('/app/campaigns')}
+        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to campaigns
+      </button>
+
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{campaign.name}</h1>
@@ -184,7 +192,7 @@ export default function CampaignDetails() {
 
         <div className="flex flex-wrap items-center gap-3">
           <button 
-            onClick={() => navigate(`/survey/${campaign.id}`)}
+            onClick={() => navigate(`/app/campaigns/${campaign.id}/settings`)}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             <Settings className="h-4 w-4" />
