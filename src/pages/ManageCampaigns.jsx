@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
-import { Plus, BarChart3, Users, Clock, Trash2, Pencil, X, Video } from 'lucide-react';
+import { Plus, Users, Clock, Trash2, Pencil, X, Video, Sparkles } from 'lucide-react';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { EditCampaignModal } from '../components/ui/edit-campaign-modal';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
@@ -70,11 +70,33 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [responseCount, setResponseCount] = useState(0);
+  const [aiVideosCount, setAiVideosCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchResponseCount();
+    fetchAiVideosCount();
   }, [campaign.id]);
+
+  const fetchAiVideosCount = async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/videoProcessor/ai-videos/campaign/${campaign.id}/count`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch AI videos count');
+      }
+
+      const data = await response.json();
+      setAiVideosCount(data.count);
+    } catch (err) {
+      console.error('Error fetching AI videos count:', err);
+    }
+  };
 
   const fetchResponseCount = async () => {
     try {
@@ -146,7 +168,7 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 w-full sm:w-auto shrink-0">
         {isEditMode && (
           <div className="flex items-center gap-2 order-first sm:order-last sm:ml-4">
             <button
@@ -170,7 +192,7 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
           </div>
         )}
 
-        <div className="block">
+        <div className="block w-32">
           <div
             className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
               !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
@@ -182,19 +204,19 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Responses</div>
         </div>
 
-        <div className="block">
+        <div className="block w-32">
           <div
             className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
               !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
             } transition-colors`}
           >
-            <BarChart3 className="h-4 w-4" />
-            <NumberTicker value={Math.floor(Math.random() * 5000) + 1000} className="font-medium" />
+            <Sparkles className="h-4 w-4" />
+            <NumberTicker value={aiVideosCount} className="font-medium" />
           </div>
-          <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Audience</div>
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">AI Videos</div>
         </div>
 
-        <div className="block">
+        <div className="block w-40">
           <div
             className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
               !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''

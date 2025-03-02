@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Video, Clock, X } from 'lucide-react';
+import { Upload, Video, Clock, X, Wand2, Sparkles, Pencil, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { SERVER_URL, auth } from '../lib/firebase';
-import { EmptyState } from '../components/ui/empty-state';
+import { EmptyState } from '../components/ui/empty-state'; 
+import { VideoEditorModal } from '../components/responses/VideoEditorModal';
+import { ConfirmationModal } from '../components/ui/confirmation-modal';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 
 export default function VideoEnhancer() {
   const [activeTab, setActiveTab] = useState('upload');
@@ -15,6 +18,10 @@ export default function VideoEnhancer() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [abortController, setAbortController] = useState(null);
+  const [isVideoEditorOpen, setIsVideoEditorOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch the enhancer videos for the current user
   const fetchVideos = async () => {
@@ -186,16 +193,54 @@ export default function VideoEnhancer() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!selectedVideo) return;
+    setIsDeleting(true);
+    setError('');
+
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/videoEnhancer/${selectedVideo.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete video');
+      }
+
+      // Remove from local state
+      setVideos(prev => prev.filter(v => v.id !== selectedVideo.id));
+      setIsDeleteModalOpen(false);
+      setSelectedVideo(null);
+    } catch (err) {
+      console.error('Error deleting video:', err);
+      setError(err.message || 'Failed to delete video');
+      setIsDeleteModalOpen(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Video Enhancer</h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Upload and enhance your videos with AI-powered tools.
-        </p>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Video must be between 10 seconds and 3 minutes.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Video Enhancer</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Transform your videos with AI-powered enhancement tools</p>
+        </div>
+
+        <button
+          onClick={() => setActiveTab('upload')}
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:hover:bg-blue-500"
+        >
+          <Upload className="h-4 w-4" />
+          Upload Video
+        </button>
       </div>
 
       {/* Tabs */}
@@ -234,7 +279,7 @@ export default function VideoEnhancer() {
       {activeTab === 'upload' && (
         <div>
           <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-            <label className="relative flex flex-col items-center justify-center w-full max-h-[300px] aspect-video overflow-hidden border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50">
+            <label className="relative flex flex-col items-center justify-center w-full h-48 overflow-hidden border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50">
               {videoFile ? (
                 <div className="relative w-full h-full p-4">
                   <video
@@ -254,21 +299,27 @@ export default function VideoEnhancer() {
                       <div className="text-center text-white">
                         <div className="mb-2">Uploading... {uploadProgress}%</div>
                         <button
-                          onClick={handleCancelUpload}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCancelUpload();
+                          }}
+                          className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700"
                         >Cancel Upload</button>
                       </div>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center p-4 text-center">
-                  <Upload className="w-10 h-10 mb-4 text-gray-500 dark:text-gray-400" />
-                  <p className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="mb-4 rounded-full p-3 bg-blue-100 dark:bg-blue-900/50">
+                    <Upload className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <p className="text-lg font-medium text-gray-900 dark:text-white">
                     Click to upload a video
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Video must be between 10 seconds and 3 minutes.
+                    Video must be between 10 seconds and 3 minutes
                   </p>
                 </div>
               )}
@@ -285,21 +336,22 @@ export default function VideoEnhancer() {
                 {error}
               </div>
             )}
+
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                disabled={!videoFile || videoDuration < 10 || videoDuration > 180 || isUploading}
+                onClick={() => {
+                  setSelectedVideo(videoFile);
+                  setIsVideoEditorOpen(true);
+                }}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Sparkles className="h-4 w-4" />
+                Enhance with AI
+              </button>
+            </div>
           </div>
-          {/* Bottom button: Only enabled if a valid video is uploaded */}
-          <div className="mt-4 flex justify-end">
-            <button
-              type="button"
-              disabled={!videoFile || videoDuration < 10 || videoDuration > 180 || isUploading}
-              onClick={handleUpload}
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
-                isUploading ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-              } text-white disabled:opacity-50`}
-            >
-              {isUploading ? `Uploading ${uploadProgress}%...` : 'Upload Video'}
-            </button>
-          </div>
-          {uploadStatus && <p className="mt-2 text-green-600">{uploadStatus}</p>}
         </div>
       )}
 
@@ -339,7 +391,7 @@ export default function VideoEnhancer() {
                   <div className="absolute inset-0 bg-black/40" />
                   <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm">
                     <Clock className="h-3 w-3" />
-                    <span>{video.duration ? video.duration : 'N/A'}</span>
+                    <span>{video.duration ? `${Math.floor(video.duration / 60)}:${String(video.duration % 60).padStart(2, '0')}` : 'N/A'}</span>
                   </div>
                 </div>
 
@@ -355,25 +407,54 @@ export default function VideoEnhancer() {
                   </div>
                 </div>
 
-                {/* Action: Process or Play Enhanced Video */}
-                <div className="flex items-center">
+                {/* Actions */}
+                <div className="flex items-center gap-2">
                   {video.processedVideoUrl ? (
-                    <a
-                      href={video.processedVideoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-                    >
-                      Play Enhanced Video
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedVideo(video);
+                          setIsVideoEditorOpen(true);
+                        }}
+                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <Pencil className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedVideo(video);
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
                   ) : (
-                    <button
-                      onClick={() => handleProcess(video.id)}
-                      disabled={processingId === video.id}
-                      className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      {processingId === video.id ? 'Processing...' : 'Enhance Video'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedVideo(video);
+                          setIsVideoEditorOpen(true);
+                        }}
+                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <Pencil className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedVideo(video);
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -381,6 +462,29 @@ export default function VideoEnhancer() {
           )}
         </div>
       )}
+
+      <VideoEditorModal
+        isOpen={isVideoEditorOpen}
+        onClose={() => setIsVideoEditorOpen(false)}
+        video={selectedVideo}
+        onSave={async () => {
+          await fetchVideos();
+          setIsVideoEditorOpen(false);
+        }}
+      />
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Video"
+        message="Are you sure you want to delete this video? This action cannot be undone."
+        isLoading={isDeleting}
+      />
+
+      <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
+        &copy; 2025 Shout. All rights reserved.
+      </div>
     </div>
   );
 }

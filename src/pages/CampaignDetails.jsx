@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../co
 import { MetricCard } from '../components/ui/metric-card';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Video, Users, Clock, TrendingUp, Zap, Award, Play, Pause, Settings, Share2, ExternalLink, Sparkles, ArrowLeft } from 'lucide-react';
-import { LoadingSpinner } from '../components/ui/loading-spinner';
+import { CampaignDetailsSkeleton } from '../components/ui/skeleton';
 import { ShareModal } from '../components/ui/share-modal';
 
 // Mock data for charts
@@ -141,7 +141,7 @@ export default function CampaignDetails() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading campaign details..." />;
+    return <CampaignDetailsSkeleton />;
   }
 
   if (error) {
@@ -209,7 +209,7 @@ export default function CampaignDetails() {
       </div>
 
       {/* Key Metrics */}
-      <div className="mt-8 grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"> 
         <MetricCard
           title="Total Responses"
           value={metrics.responses}
