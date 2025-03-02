@@ -42,7 +42,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [metrics, setMetrics] = useState({
-    recentCampaign: null,
     campaigns: 0,
     drafts: 0,
     videos: 0,
@@ -51,11 +50,12 @@ export default function Dashboard() {
     collected: 0,
     waiting: 0
   });
+  const [recentCampaign, setRecentCampaign] = useState(null);
 
   const fetchRecentCampaign = async () => {
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/campaign/campaigns`, { 
+      const response = await fetch(`${SERVER_URL}/campaign/campaigns/recent`, { 
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${idToken}`
@@ -70,18 +70,8 @@ export default function Dashboard() {
         throw new Error(`Failed to fetch campaigns: ${response.status}`);
       }
       
-      const data = await response.json();
-      
-      // Get the most recent campaign
-      const sortedCampaigns = data.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
-      const recentCampaign = sortedCampaigns[0];
-      
-      if (recentCampaign) {
-        setMetrics(prev => ({
-          ...prev,
-          recentCampaign
-        }));
-      }
+      const recentCampaign = await response.json();
+      setRecentCampaign(recentCampaign);
     } catch (err) {
       // Only log unexpected errors
       if (!err.message.includes('404')) {
@@ -233,18 +223,18 @@ export default function Dashboard() {
       {/* Most Recent Campaign */}
       <div className="mt-10">
         <Card>
-          {metrics.recentCampaign ? (
+          {recentCampaign ? (
             <>
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                      <CardTitle className="text-2xl">{metrics.recentCampaign.name}</CardTitle>
+                      <CardTitle className="text-2xl">{recentCampaign.name}</CardTitle>
                       <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
                         Recent Campaign
                       </span>
                     </div>
-                    <CardDescription className="mt-2">{metrics.recentCampaign.description || 'No description provided'}</CardDescription>
+                    <CardDescription className="mt-2">{recentCampaign.description || 'No description provided'}</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -275,7 +265,7 @@ export default function Dashboard() {
 
                 <div className="mt-8">
                   <Link
-                    to={`/app/campaigns/${metrics.recentCampaign.id}`}
+                    to={`/app/campaigns/${recentCampaign.id}`}
                     className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     View campaign details

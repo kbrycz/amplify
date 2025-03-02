@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, SERVER_URL } from '../lib/firebase';
+import { LoadingScreen } from '../components/ui/loading-screen';
 import { 
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
@@ -20,6 +21,7 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
 
   const createUserProfile = async (firebaseUser, firstName, lastName) => {
@@ -98,12 +100,15 @@ export function AuthProvider({ children }) {
   }, [isSigningUp]);
 
   const signIn = async (email, password) => {
+    setIsAuthenticating(true);
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     await fetchUserProfile(userCredential.user);
+    setIsAuthenticating(false);
     return userCredential.user;
   };
 
   const signUp = async (email, password, firstName, lastName) => {
+    setIsAuthenticating(true);
     if (!firstName.trim() || !lastName.trim()) {
       throw new Error('First name and last name are required');
     }
@@ -119,6 +124,7 @@ export function AuthProvider({ children }) {
       setIsSigningUp(false); // Allow onAuthStateChanged to proceed normally
       return firebaseUser;
     } catch (error) {
+      setIsAuthenticating(false);
       setIsSigningUp(false); // Reset flag on error
       throw error;
     }
@@ -187,6 +193,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     loading,
+    isAuthenticating,
     updateUserProfile,
     signIn,
     signUp,
@@ -196,7 +203,14 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading ? (
+        <LoadingScreen message="Loading..." />
+      ) : (
+        <>
+          {isAuthenticating && <LoadingScreen message="Please wait..." />}
+          {children}
+        </>
+      )}
     </AuthContext.Provider>
   );
 }
