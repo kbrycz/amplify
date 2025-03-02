@@ -18,13 +18,18 @@ function AlertsDropdown() {
       try {
         setLoading(true);
         const idToken = await auth.currentUser.getIdToken();
-        const response = await fetch(`${SERVER_URL}/alerts`, {
+        const response = await fetch(`${SERVER_URL}/api/alerts`, {
           headers: {
             'Authorization': `Bearer ${idToken}`
-          },
+          }
         });
         
-        if (!response.ok) {
+        if (response.status === 404) {
+          // No alerts yet - this is normal
+          setAlerts([]);
+          setUnreadCount(0);
+          return;
+        } else if (!response.ok) {
           throw new Error('Failed to fetch alerts');
         }
         
@@ -44,7 +49,10 @@ function AlertsDropdown() {
         setUnreadCount(unread);
       } catch (err) {
         console.error('Error fetching alerts:', err);
-        setError('Failed to load alerts.');
+        // Only set error for unexpected failures
+        if (!err.message.includes('404')) {
+          setError('Failed to load alerts.');
+        }
       } finally {
         setLoading(false);
       }
@@ -55,20 +63,23 @@ function AlertsDropdown() {
   const markAllAsRead = async () => {
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/alerts/mark-read`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json'
+      // Only make the request if there are unread alerts
+      if (unreadCount > 0) {
+        const response = await fetch(`${SERVER_URL}/api/alerts/mark-read`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to mark alerts as read');
         }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to mark alerts as read');
+        
+        setAlerts(prevAlerts => prevAlerts.map(alert => ({ ...alert, read: true })));
+        setUnreadCount(0);
       }
-      
-      setAlerts(prevAlerts => prevAlerts.map(alert => ({ ...alert, read: true })));
-      setUnreadCount(0);
     } catch (err) {
       console.error("Failed to mark alerts as read", err);
     }

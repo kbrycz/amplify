@@ -7,6 +7,7 @@ import { SuccessModal } from '../components/ui/success-modal';
 import { AIModal } from '../components/create-campaign/AIModal';
 import { DraftsDropdown } from '../components/create-campaign/DraftsDropdown';
 import { HelpModal } from '../components/create-campaign/HelpModal';
+import { LoadingModal } from '../components/ui/loading-modal';
 import { useFormCache } from '../hooks/useFormCache';
 import { PhonePreview } from '../components/create-campaign/PhonePreview';
 import { StepProgress } from '../components/create-campaign/StepProgress';
@@ -67,13 +68,13 @@ export default function CreateCampaign() {
   const [previewImage, setPreviewImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [successModal, setSuccessModal] = useState({ isOpen: false, campaignId: null, campaignName: '' });
   const [drafts, setDrafts] = useState([]);
   const [isLoadingDrafts, setIsLoadingDrafts] = useState(true);
   const [selectedDraftId, setSelectedDraftId] = useState(null);
   const [isDeletingDraft, setIsDeletingDraft] = useState(false);
   const [isEditingDraft, setIsEditingDraft] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [loadingModal, setLoadingModal] = useState({ isOpen: false, status: 'loading', error: null, campaignId: null, campaignName: '' });
   const initialFormData = {
     internalName: '',
     name: '',
@@ -380,9 +381,7 @@ export default function CreateCampaign() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-    setCurrentStep(0); // Reset to first step before submitting
+    setLoadingModal({ isOpen: true, status: 'loading', error: null });
 
     // Updated required check including business info fields
     if (
@@ -393,9 +392,7 @@ export default function CreateCampaign() {
       !formData.businessName.trim() ||
       !formData.email.trim()
     ) {
-      setError('Please fill in all required fields and add at least one question');
-      setIsSubmitting(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setLoadingModal({ isOpen: true, status: 'error', error: 'Please fill in all required fields and add at least one question' });
       return;
     }
 
@@ -417,19 +414,27 @@ export default function CreateCampaign() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create campaign');
+        throw new Error(errorData.message || 'Failed to create campaign. Please try again.');
       }
 
       // Clear form cache after successful submission
       clearFormCache();
 
       const campaign = await response.json();
+      setLoadingModal({ 
+        isOpen: true, 
+        status: 'success', 
+        error: null,
+        campaignId: campaign.id,
+        campaignName: formData.name
+      });
+      
+      // Reset form state
       setFormData({
         internalName: '',
         name: '',
         description: '',
         category: '',
-        theme: selectedTheme,
         subcategory: '',
         businessName: '',
         website: '',
@@ -438,16 +443,10 @@ export default function CreateCampaign() {
       });
       setSurveyQuestions([]);
       setPreviewImage(null);
-
-      setSuccessModal({
-        isOpen: true,
-        campaignId: campaign.id,
-        campaignName: formData.name
-      });
+      setCurrentStep(0);
     } catch (err) {
       console.error('Error creating campaign:', err);
-      setError(err.message);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setLoadingModal({ isOpen: true, status: 'error', error: err.message });
     } finally {
       setIsSubmitting(false);
     }
@@ -615,6 +614,15 @@ export default function CreateCampaign() {
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         © 2025 Shout. All rights reserved.
       </div>
+      
+      <LoadingModal
+        isOpen={loadingModal.isOpen}
+        onClose={() => setLoadingModal({ isOpen: false, status: 'loading', error: null })}
+        status={loadingModal.status}
+        error={loadingModal.error}
+        campaignId={loadingModal.campaignId}
+        campaignName={loadingModal.campaignName}
+      />
 
       <AIModal
         isOpen={isAIModalOpen}
@@ -629,29 +637,6 @@ export default function CreateCampaign() {
       <HelpModal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
-      />
-
-      <SuccessModal
-        isOpen={successModal.isOpen}
-        onClose={() => {
-          setSuccessModal({ isOpen: false, campaignId: null, campaignName: '' });
-          setCurrentStep(0); // Reset to first step when modal is closed
-          setFormData({
-            internalName: '',
-            name: '',
-            description: '',
-            category: '',
-            subcategory: '',
-            businessName: '',
-            website: '',
-            email: '',
-            phone: ''
-          });
-          setSurveyQuestions([]);
-          setPreviewImage(null);
-        }}
-        campaignId={successModal.campaignId}
-        campaignName={successModal.campaignName}
       />
     </div>
   );
