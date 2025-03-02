@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, ChevronDown, Trash2, Check } from 'lucide-react';
+import { FileText, ChevronDown, Trash2, Check, X } from 'lucide-react';
 
 export function DraftsDropdown({ 
   isOpen, 
@@ -27,7 +27,7 @@ export function DraftsDropdown({
   return (
     <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-white rounded-lg border border-gray-200 shadow-lg z-10 dark:bg-gray-900 dark:border-gray-800">
       <div className="space-y-1">
-        {drafts.slice().reverse().map((draft) => (
+        {drafts.slice().reverse().map((draft, index) => (
           <div
             key={draft.id}
             className="flex items-center gap-2 relative"

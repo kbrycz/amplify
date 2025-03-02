@@ -470,7 +470,18 @@ export default function CreateCampaign() {
         </div>
 
         <div className={`relative ${currentStep < 2 ? 'w-full' : 'max-w-[800px]'} mt-4`} ref={draftsRef}>
-          {!isLoadingDrafts && drafts.length > 0 && (
+          {isLoadingDrafts ? (
+            <div className="w-full flex items-center gap-2 p-3 text-sm text-gray-600 bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
+              <div className="animate-pulse flex items-center gap-2 w-full">
+                <div className="h-4 w-4 bg-gray-300 rounded dark:bg-gray-700" />
+                <div className="h-4 w-24 bg-gray-300 rounded dark:bg-gray-700" />
+                <div className="ml-auto flex items-center gap-2">
+                  <div className="h-4 w-16 bg-gray-300 rounded dark:bg-gray-700" />
+                  <div className="h-4 w-4 bg-gray-300 rounded dark:bg-gray-700" />
+                </div>
+              </div>
+            </div>
+          ) : drafts.length > 0 ? (
             <button
               onClick={() => setIsDraftsOpen(!isDraftsOpen)}
               className="w-full flex items-center gap-2 p-3 text-sm text-gray-600 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
@@ -482,8 +493,18 @@ export default function CreateCampaign() {
                 <ChevronDown className={`w-4 h-4 transition-transform ${isDraftsOpen ? 'rotate-180' : ''}`} />
               </span>
             </button>
+          ) : (
+            <div className="w-full flex items-center gap-2 p-3 text-sm text-gray-600 bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
+              <FileText className="w-4 h-4" />
+              <span className="font-medium">No drafts yet</span>
+              <span className="ml-auto flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
+                <span>Save a draft to see it here</span>
+                <X className="w-4 h-4" />
+              </span>
+            </div>
           )}
 
+          {/* Drafts Dropdown */}
           <DraftsDropdown
             isOpen={isDraftsOpen}
             drafts={drafts}

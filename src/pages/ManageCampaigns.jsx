@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
-import { Plus, Users, Clock, Trash2, Pencil, X, Video, Sparkles } from 'lucide-react';
+import { Plus, Users, Clock, Trash2, Pencil, X, Video, Sparkles, BarChart3 } from 'lucide-react';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { EditCampaignModal } from '../components/ui/edit-campaign-modal';
 import { LoadingSpinner } from '../components/ui/loading-spinner';

@@ -58,16 +58,16 @@ export function FeaturesSection() {
   return (
     <section
       id="features"
-      aria-label="Features"
+      aria-label="Features for running your books"
       className="relative overflow-hidden bg-white dark:bg-gray-900 pt-20 pb-28 sm:py-32 scroll-mt-16"
     >
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         <div className="max-w-2xl md:mx-auto md:text-center xl:max-w-none">
           <h2 className="text-base font-semibold leading-7 text-indigo-600 dark:text-indigo-400 text-center">Features</h2>
-          <p className="mt-2 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl mx-auto max-w-4xl">
-            Take Your Mission to the Next Level
+          <p className="mt-2 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl mx-auto max-w-4xl text-center">
+            Transform Stories into Impact
           </p>
-          <p className="mt-6 text-lg text-gray-600 dark:text-gray-400 mx-auto max-w-2xl">
+          <p className="mt-6 mb-16 text-lg text-gray-600 dark:text-gray-400 mx-auto max-w-2xl text-center">
             Powerful tools to collect, enhance, and share authentic stories from your community.
           </p>
         </div>
@@ -134,7 +134,7 @@ export function FeaturesSection() {
                     <div className="mt-10 w-[45rem] overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-xl sm:w-auto lg:mt-0 lg:w-[67.8125rem]">
                       <img
                         className="w-full"
-                        src={feature.image}
+                        src={feature.image} 
                         alt=""
                         priority="true"
                         sizes="(min-width: 1024px) 67.8125rem, (min-width: 640px) 100vw, 45rem"

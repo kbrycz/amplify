@@ -21,7 +21,7 @@ export function HeroSection() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h1 className="text-balance text-5xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-7xl mb-8">
-              Share Stories That Matter
+              Let Your Community <span className="bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-500 bg-clip-text text-transparent">Shout</span>
             </h1>
             <p className="text-pretty text-lg font-medium text-gray-600 dark:text-gray-400 sm:text-xl/8">
               Turn community feedback into powerful video stories. Whether it's political support, social causes, or community initiatives - let every voice be heard.

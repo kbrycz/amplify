@@ -23,13 +23,14 @@ export function MobileFeatures({ features }) {
         <div className="absolute bottom-4 left-4 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur-sm">
             {React.createElement(features[selectedFeature].icon, {
-              className: `h-5 w-5 ${features[selectedFeature].color}`
+              className: `h-5 w-5 ${features[selectedFeature].color}`,
+              'aria-hidden': 'true'
             })}
           </div>
           <div>
-            <p className="text-sm font-medium text-white">
+            <p className="text-sm font-medium text-white text-center">
               {features[selectedFeature].title}
-              <span className="block mt-1 text-xs text-gray-300">
+              <span className="block mt-1 text-xs text-gray-300 text-center">
                 {features[selectedFeature].description}
               </span>
             </p>
@@ -47,16 +48,17 @@ export function MobileFeatures({ features }) {
               selectedFeature === index
                 ? 'border-indigo-600 bg-indigo-50 text-indigo-600 dark:border-indigo-400 dark:bg-indigo-900/20 dark:text-indigo-400'
                 : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800',
-              'flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-colors'
+              'flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-colors w-full'
             )}
           >
             {React.createElement(feature.icon, {
               className: classNames(
                 selectedFeature === index ? feature.color : 'text-gray-400 dark:text-gray-600',
-                'h-6 w-6'
+                'h-6 w-6',
+                'mx-auto'
               )
             })}
-            <span className="text-xs font-medium">{feature.title}</span>
+            <span className="text-xs font-medium text-center w-full">{feature.title}</span>
           </button>
         ))}
       </div>

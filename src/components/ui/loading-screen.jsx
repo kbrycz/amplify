@@ -1,19 +1,30 @@
 import React from 'react';
 
 export function LoadingScreen() {
-  const [isVisible, setIsVisible] = React.useState(true);
+  const [isVisible, setIsVisible] = React.useState(false);
   const [isDark, setIsDark] = React.useState(() => {
     if (typeof window === 'undefined') return false;
     return document.documentElement.classList.contains('dark');
   });
+  const [showLogo, setShowLogo] = React.useState(false);
 
   React.useEffect(() => {
-    // Ensure loading screen stays visible for at least 1 second
-    const timer = setTimeout(() => {
+    setIsVisible(true);
+    
+    // Show logo after theme is identified
+    const logoTimer = setTimeout(() => {
+      setShowLogo(true);
+    }, 100);
+    
+    // Hide loading screen after animation
+    const hideTimer = setTimeout(() => {
       setIsVisible(false);
-    }, 1000);
+    }, 2000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(logoTimer);
+      clearTimeout(hideTimer);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -36,13 +47,22 @@ export function LoadingScreen() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white dark:bg-gray-900 transition-opacity duration-300">
+    <div 
+      className={`fixed inset-0 z-[100] flex items-center justify-center bg-white dark:bg-gray-900 transition-all duration-500 ${
+        !showLogo ? 'opacity-100' : isVisible ? 'opacity-100' : 'opacity-0'
+      }`}
+    >
       <div className="flex flex-col items-center gap-4">
-        <img 
-          src={isDark ? '/images/logo-white.png' : '/images/logo-color.png'}
-          alt="Shout"
-          className="h-12 w-auto animate-pulse"
-        />
+        {showLogo && (
+          <img 
+            src={isDark ? '/images/logo-white.png' : '/images/logo-color.png'}
+            alt="Shout"
+            className="h-12 w-auto opacity-0 animate-[scaleIn_500ms_ease-out_forwards]"
+            style={{
+              animationDelay: '100ms'
+            }}
+          />
+        )}
       </div>
     </div>
   );

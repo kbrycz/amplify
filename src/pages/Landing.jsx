@@ -6,7 +6,8 @@ import { Tab } from '@headlessui/react';
 import { HeroSection } from '../components/landing/HeroSection';
 import { FeaturesSection } from '../components/landing/FeaturesSection';
 import { PricingSection } from '../components/landing/PricingSection';
-import { ContactSection } from '../components/landing/ContactSection';
+import { ContactSection } from '../components/landing/ContactSection'; 
+import { Footer } from '../components/landing/Footer';
 
 export default function Landing() {
   return (
@@ -15,7 +16,8 @@ export default function Landing() {
       <HeroSection />
       <FeaturesSection />
       <PricingSection />
-      <ContactSection />
+      <ContactSection /> 
+      <Footer />
     </div>
   );
 }
