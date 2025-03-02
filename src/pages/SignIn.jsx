@@ -5,11 +5,39 @@ import { auth } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { useAuth } from '../context/AuthContext';
 
+// Hook to detect dark mode
+function useDarkMode() {
+  const [isDark, setIsDark] = React.useState(() => {
+    if (typeof window === 'undefined') return false;
+    return document.documentElement.classList.contains('dark');
+  });
+
+  React.useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          setIsDark(document.documentElement.classList.contains('dark'));
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
+}
+
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const isDark = useDarkMode();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,11 +91,13 @@ export default function SignIn() {
       </button>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <img
-          alt="Your Company"
-          src="https://tailwindui.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-          className="mx-auto h-10 w-auto"
-        />
+        <div className="flex justify-center">
+          <img
+            src={isDark ? '/images/logo-white.png' : '/images/logo-color.png'}
+            alt="Shout"
+            className="h-12 w-auto"
+          />
+        </div>
         <h2 className="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
           Sign in to your account
         </h2>
