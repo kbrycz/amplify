@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { Card, CardContent } from '../components/ui/card'; 
-import { FileText, ChevronDown, Plus, Upload, X, Save } from 'lucide-react';
+import { FileText, ChevronDown, Plus, Upload, X, Save, Sparkles } from 'lucide-react';
 import { SuccessModal } from '../components/ui/success-modal';
 import { AIModal } from '../components/create-campaign/AIModal';
 import { DraftsDropdown } from '../components/create-campaign/DraftsDropdown';
@@ -89,6 +89,9 @@ export default function CreateCampaign() {
   const [formData, setFormData, clearFormCache] = useFormCache(initialFormData);
   const [surveyQuestions, setSurveyQuestions] = useState([]);
   const draftsRef = useRef(null);
+  
+  // Track which fields were AI-generated
+  const [aiGeneratedFields, setAiGeneratedFields] = useState({});
 
   useEffect(() => {
     fetchDrafts();
@@ -117,7 +120,7 @@ export default function CreateCampaign() {
   };
 
   const handleSaveDraft = async () => {
-    if (!formData.name.trim()) {
+    if (!formData.internalName.trim()) {
       setError('Please enter a campaign name to save as draft');
       setTimeout(() => setError(null), 3000);
       return;
@@ -204,6 +207,9 @@ export default function CreateCampaign() {
         question
       })));
       setIsDraftsOpen(false);
+      
+      // Clear AI indicators when loading a draft
+      setAiGeneratedFields({});
     } catch (err) {
       console.error('Error loading draft:', err);
       setError(err.message);
@@ -254,6 +260,15 @@ export default function CreateCampaign() {
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
+    
+    // When user edits a field, remove it from AI generated fields
+    if (aiGeneratedFields[id]) {
+      setAiGeneratedFields(prev => ({
+        ...prev,
+        [id]: false
+      }));
+    }
+    
     setFormData(prev => ({
       ...prev,
       [id]: value
@@ -272,6 +287,18 @@ export default function CreateCampaign() {
   };
 
   const handleQuestionChange = (id, value) => {
+    // Check if this question was AI generated
+    const questionIndex = surveyQuestions.findIndex(q => q.id === id);
+    const fieldName = `question_${questionIndex}`;
+    
+    // When user edits a question, remove it from AI generated fields
+    if (aiGeneratedFields[fieldName]) {
+      setAiGeneratedFields(prev => ({
+        ...prev,
+        [fieldName]: false
+      }));
+    }
+    
     setSurveyQuestions(
       surveyQuestions.map(q => q.id === id ? { ...q, question: value } : q)
     );
@@ -295,17 +322,21 @@ export default function CreateCampaign() {
   // Updated validation for each step
   const isStepValid = () => {
     switch (currentStep) {
-      case 0:
-        return Boolean(formData.name.trim() && formData.description.trim());
-      case 1:
+      case 0: // Internal Name: always valid since we want to allow saving drafts
+        return Boolean(formData.internalName?.trim());
+      case 1: // Design: always valid since theme has a default value
+        return true; // Theme selection is always valid since it has a default value
+      case 2: // Basic Info: require name and description
+        return Boolean(formData.name?.trim() && formData.description?.trim());
+      case 3: // Campaign Details: require category (and subcategory if political) and at least one non-empty survey question
         return Boolean(
           formData.category &&
           (formData.category === 'political' ? formData.subcategory?.trim() : true) &&
-          surveyQuestions.length > 0 &&
+          surveyQuestions?.length > 0 &&
           surveyQuestions.every(q => q.question.trim())
         );
-      case 2:
-        return Boolean(formData.businessName.trim() && formData.email.trim());
+      case 4: // Business Info: require Business Name and Business Email
+        return Boolean(formData.businessName?.trim() && formData.email?.trim());
       default:
         return false;
     }
@@ -351,7 +382,9 @@ export default function CreateCampaign() {
         return;
       }
 
+      // Update form data with AI generated content
       setFormData({
+        ...formData,
         name: data.campaignData.name,
         description: data.campaignData.description,
         category: data.campaignData.category,
@@ -362,15 +395,40 @@ export default function CreateCampaign() {
         phone: data.campaignData.phone,
       });
 
-      setSurveyQuestions(
-        data.campaignData.surveyQuestions.map((question, index) => ({
-          id: index + 1,
-          question,
-        }))
-      );
+      // Set which fields were AI generated - only mark fields that actually have values
+      const newAiGeneratedFields = {};
+      
+      // Only mark fields as AI-generated if they actually contain content
+      if (data.campaignData.name) newAiGeneratedFields.name = true;
+      if (data.campaignData.description) newAiGeneratedFields.description = true;
+      if (data.campaignData.category) newAiGeneratedFields.category = true;
+      if (data.campaignData.subcategory) newAiGeneratedFields.subcategory = true;
+      
+      // For business fields, only mark as AI-generated if they contain content
+      if (data.campaignData.businessName) newAiGeneratedFields.businessName = true;
+      if (data.campaignData.website) newAiGeneratedFields.website = true;
+      if (data.campaignData.email) newAiGeneratedFields.email = true;
+      if (data.campaignData.phone) newAiGeneratedFields.phone = true;
 
+      // Update survey questions from AI
+      const newQuestions = data.campaignData.surveyQuestions.map((question, index) => ({
+        id: index + 1,
+        question,
+      }));
+      
+      setSurveyQuestions(newQuestions);
+      
+      // Mark questions as AI generated
+      data.campaignData.surveyQuestions.forEach((question, index) => {
+        if (question.trim()) newAiGeneratedFields[`question_${index}`] = true;
+      });
+      
+      setAiGeneratedFields(newAiGeneratedFields);
       setIsAIModalOpen(false);
       setAiPrompt('');
+      
+      // Move to the next step (Design) after AI generation
+      setCurrentStep(1);
     } catch (error) {
       console.error('Fetch error:', error);
       setAiError('Failed to connect to server. Please try again.');
@@ -444,6 +502,7 @@ export default function CreateCampaign() {
       setSurveyQuestions([]);
       setPreviewImage(null);
       setCurrentStep(0);
+      setAiGeneratedFields({});
     } catch (err) {
       console.error('Error creating campaign:', err);
       setLoadingModal({ isOpen: true, status: 'error', error: err.message });
@@ -497,8 +556,7 @@ export default function CreateCampaign() {
               <FileText className="w-4 h-4" />
               <span className="font-medium">No drafts yet</span>
               <span className="ml-auto flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
-                <span>Save a draft to see it here</span>
-                <X className="w-4 h-4" />
+                Save a draft to see it here
               </span>
             </div>
           )}
@@ -524,7 +582,7 @@ export default function CreateCampaign() {
                   <InternalName
                     formData={formData}
                     handleInputChange={handleInputChange}
-                    setIsAIModalOpen={setIsAIModalOpen}
+                    aiGeneratedFields={aiGeneratedFields}
                   />
                 )}
 
@@ -535,6 +593,7 @@ export default function CreateCampaign() {
                     previewImage={previewImage}
                     handleImageChange={handleImageChange}
                     handleRemoveImage={handleRemoveImage}
+                    aiGeneratedFields={aiGeneratedFields}
                   />
                 )}
 
@@ -554,6 +613,7 @@ export default function CreateCampaign() {
                     handleRemoveQuestion={handleRemoveQuestion}
                     handleQuestionChange={handleQuestionChange}
                     setIsHelpOpen={setIsHelpOpen}
+                    aiGeneratedFields={aiGeneratedFields}
                   />
                 )}
 
@@ -561,6 +621,7 @@ export default function CreateCampaign() {
                   <BusinessInfo
                     formData={formData}
                     handleInputChange={handleInputChange}
+                    aiGeneratedFields={aiGeneratedFields}
                   />
                 )}
 

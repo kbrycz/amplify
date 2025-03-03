@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Sparkles } from 'lucide-react';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 
@@ -8,7 +8,8 @@ export function SurveyQuestions({
   handleAddQuestion,
   handleRemoveQuestion,
   handleQuestionChange,
-  setIsHelpOpen
+  setIsHelpOpen,
+  aiGeneratedFields
 }) {
   return (
     <div className="space-y-4">
@@ -40,25 +41,37 @@ export function SurveyQuestions({
         </button>
       </div>
       <div className="space-y-4">
-        {surveyQuestions.map((q) => (
-          <div key={q.id} className="flex gap-3">
-            <Input
-              value={q.question}
-              onChange={(e) => handleQuestionChange(q.id, e.target.value)}
-              placeholder="Enter your survey question"
-              className="flex-1"
-            />
-            {surveyQuestions.length > 1 && (
-              <button
-                type="button"
-                onClick={() => handleRemoveQuestion(q.id)}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-200 p-2 text-gray-500 hover:bg-gray-100 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        ))}
+        {surveyQuestions.map((q, index) => {
+          const isAiGenerated = aiGeneratedFields?.[`question_${index}`];
+          
+          return (
+            <div key={q.id} className="flex gap-3">
+              <div className="relative flex-1">
+                <Input
+                  value={q.question}
+                  onChange={(e) => handleQuestionChange(q.id, e.target.value)}
+                  placeholder="Enter your survey question"
+                  className={isAiGenerated ? "border-purple-300 dark:border-purple-500" : ""}
+                />
+                {isAiGenerated && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                    <Sparkles className="h-4 w-4" />
+                    <span className="text-xs font-medium">AI</span>
+                  </div>
+                )}
+              </div>
+              {surveyQuestions.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveQuestion(q.id)}
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-200 p-2 text-gray-500 hover:bg-gray-100 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

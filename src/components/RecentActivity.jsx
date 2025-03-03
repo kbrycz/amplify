@@ -2,14 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
-import { ScaleIn } from './ui/scale-in';
-import { Star } from 'lucide-react'; 
+import { Star, ChevronDown, ChevronUp } from 'lucide-react'; 
 import { RecentActivitySkeleton } from './ui/skeleton';
 
 export default function RecentActivity() {
   const [activities, setActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const INITIAL_ITEMS = 5;
 
   useEffect(() => {
     async function fetchActivities() {
@@ -73,9 +74,8 @@ export default function RecentActivity() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {activities.map((activity, index) => (
-              <ScaleIn key={activity.id} delay={index * 100}>
+          <div className="space-y-4 relative">
+            {(isExpanded ? activities : activities.slice(0, INITIAL_ITEMS)).map((activity, index) => (
               <div key={activity.id} className="flex items-start gap-4">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
                   <Star className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -91,8 +91,28 @@ export default function RecentActivity() {
                   </p>
                 </div>
               </div>
-              </ScaleIn>
             ))}
+            
+            {activities.length > INITIAL_ITEMS && (
+              <div className={`${!isExpanded ? 'mt-4' : ''}`}>
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  {isExpanded ? (
+                    <>
+                      Show less
+                      <ChevronUp className="h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      View {activities.length - INITIAL_ITEMS} more
+                      <ChevronDown className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

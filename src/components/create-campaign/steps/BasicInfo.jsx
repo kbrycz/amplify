@@ -2,7 +2,7 @@ import React from 'react';
 import { Label } from '../../ui/label';
 import { Input } from '../../ui/input';
 import { Textarea } from '../../ui/textarea';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Sparkles } from 'lucide-react';
 
 export function BasicInfo({ 
   formData, 
@@ -10,32 +10,50 @@ export function BasicInfo({
   previewImage, 
   handleImageChange, 
   handleRemoveImage,
+  aiGeneratedFields
 }) {
   return (
     <div className="space-y-8">
       <div>
         <Label htmlFor="name">Campaign Title *</Label>
-        <Input
-          id="name"
-          name="campaign-title"
-          placeholder="Enter campaign name"
-          value={formData.name}
-          onChange={handleInputChange}
-          autoComplete="off"
-          data-form-type="other"
-          required
-        />
+        <div className="relative mt-2">
+          <Input
+            id="name"
+            placeholder="Enter campaign name"
+            value={formData.name}
+            onChange={handleInputChange}
+            autoComplete="off"
+            data-form-type="other"
+            required
+            className={aiGeneratedFields?.name ? "border-purple-300 dark:border-purple-500" : ""}
+          />
+          {aiGeneratedFields?.name && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-xs font-medium">AI</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
         <Label htmlFor="description">Campaign Description *</Label>
-        <Textarea
-          id="description"
-          placeholder="Describe your campaign's purpose and goals"
-          value={formData.description}
-          onChange={handleInputChange}
-          required
-        />
+        <div className="relative mt-2">
+          <Textarea
+            id="description"
+            placeholder="Describe your campaign's purpose and goals"
+            value={formData.description}
+            onChange={handleInputChange}
+            required
+            className={aiGeneratedFields?.description ? "border-purple-300 dark:border-purple-500" : ""}
+          />
+          {aiGeneratedFields?.description && (
+            <div className="absolute right-3 top-3 text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-xs font-medium">AI</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div>

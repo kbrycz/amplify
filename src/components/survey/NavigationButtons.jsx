@@ -12,18 +12,25 @@ export function NavigationButtons({
   themes,
   formData,
   videoFile,
+  videoDuration,
   repsLoaded
 }) {
   if (currentStep === 'intro' || currentStep === 'success') return null;
 
   const isStepValid = () => {
+    // For response step, check if video is valid (exists and within duration limits)
+    if (currentStep === 'response') {
+      if (!videoFile) return false;
+      if (videoDuration > 120) return false; // Over 2 minutes
+      if (videoDuration < 10) return false; // Under 10 seconds
+      return true;
+    }
+
     switch (currentStep) {
       case 'contact':
         return Boolean(formData.firstName?.trim() && formData.lastName?.trim() && formData.email?.trim());
       case 'location':
         return Boolean(formData.zipCode?.match(/^\d{5}$/));
-      case 'response':
-        return !!videoFile;
       default:
         return true;
     }
@@ -48,12 +55,12 @@ export function NavigationButtons({
       {currentStep === 'response' ? (
         <button
           onClick={handleSubmit}
-          disabled={isUploading}
+          disabled={isUploading || !isValid}
           className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
             theme 
               ? `${themes[theme].border} border-2 ${themes[theme].text} hover:bg-white/10` 
               : 'bg-indigo-600 text-white hover:bg-indigo-700'
-          } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          } ${(isUploading || !isValid) ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isUploading ? (
             <span className="flex items-center gap-2">

@@ -221,27 +221,27 @@ export default function Survey() {
       } lg:px-8`}>
         {error && (
           <div className={`mb-6 rounded-lg border ${
-            theme 
-              ? `${themes[theme].border} bg-black/20` 
+            campaign.theme 
+              ? `${themes[campaign.theme].border} bg-black/20` 
               : 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-900/50'
           } p-4`}>
             <div className="flex items-start">
               <div className={`mr-3 flex-shrink-0 ${
-                theme 
-                  ? themes[theme].text 
+                campaign.theme 
+                  ? themes[campaign.theme].text 
                   : 'text-red-600 dark:text-red-400'
               }`}>
                 <X className="h-5 w-5" />
               </div>
               <div>
                 <h3 className={`text-sm font-medium ${
-                  theme 
-                    ? themes[theme].text 
+                  campaign.theme 
+                    ? themes[campaign.theme].text 
                     : 'text-red-800 dark:text-red-200'
                 }`}>Error</h3>
                 <div className={`mt-2 text-sm ${
-                  theme 
-                    ? themes[theme].subtext 
+                  campaign.theme 
+                    ? themes[campaign.theme].subtext 
                     : 'text-red-700 dark:text-red-300'
                 }`}>
                   {error}
@@ -313,6 +313,7 @@ export default function Survey() {
           themes={themes}
           formData={formData}
           videoFile={formData.videoFile}
+          videoDuration={videoDuration}
           repsLoaded={repsLoaded} 
         />
       </div>

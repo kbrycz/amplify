@@ -3,7 +3,7 @@ import { Label } from '../../ui/label';
 import { Input } from '../../ui/input';
 import { Sparkles } from 'lucide-react';
 
-export function InternalName({ formData, handleInputChange }) {
+export function InternalName({ formData, handleInputChange, aiGeneratedFields }) {
   return (
     <div className="space-y-6">
       <div>

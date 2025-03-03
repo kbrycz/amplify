@@ -21,7 +21,7 @@ function parseFirestoreTimestamp(ts) {
 }
 
 /**
- * Helper: Format a Date into a “time ago” string.
+ * Helper: Format a Date into a "time ago" string.
  */
 function timeAgo(date) {
   if (!date) return 'Unknown';
@@ -202,9 +202,9 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
       )}
 
       {/* Expandable Content */}
-      <div className={`overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-24' : 'max-h-0'}`}>
-        <div className="border-t border-gray-200 dark:border-gray-800 p-4 space-x-2">
-          <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
+      <div className={`overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-[280px] sm:max-h-24' : 'max-h-0'}`}>
+        <div className="border-t border-gray-200 dark:border-gray-800 p-4">
+          <div className="flex flex-col sm:flex-row gap-2">
             {onTransform && (
               <button
                 className="action-button inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 hover:scale-105 transition-transform w-full sm:w-auto justify-center"
