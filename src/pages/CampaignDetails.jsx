@@ -184,28 +184,49 @@ export default function CampaignDetails() {
         Back to campaigns
       </button>
 
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-6">
+        {/* Campaign header with name and action buttons */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{campaign.name}</h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{campaign.description}</p>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            <button 
+              onClick={() => navigate(`/app/campaigns/${campaign.id}/settings`)}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </button>
+            <button 
+              onClick={() => setIsShareModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              <Share2 className="h-4 w-4" />
+              Share
+            </button>
+          </div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <button 
-            onClick={() => navigate(`/app/campaigns/${campaign.id}/settings`)}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-          >
-            <Settings className="h-4 w-4" />
-            Settings
-          </button>
-          <button 
-            onClick={() => setIsShareModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            <Share2 className="h-4 w-4" />
-            Share
-          </button>
-        </div>
+        
+        {/* Campaign title and description card */}
+        {(campaign.title || campaign.description) && (
+          <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex flex-col md:flex-row md:gap-8">
+              {campaign.title && (
+                <div className="flex-1">
+                  <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">Campaign Title</h2>
+                  <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">{campaign.title}</p>
+                </div>
+              )}
+              
+              {campaign.description && (
+                <div className="flex-1 mt-3 md:mt-0">
+                  <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">Campaign Description</h2>
+                  <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{campaign.description}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Key Metrics */}

@@ -6,21 +6,29 @@ import { Check, Palette, ChevronDown } from 'lucide-react';
 
 export function DesignPage({ 
   selectedTheme,
-  setSelectedTheme
+  setSelectedTheme,
+  gradientColors,
+  setGradientColors,
+  gradientDirection,
+  setGradientDirection,
+  hexText,
+  setHexText
 }) {
-  const [showCustomColors, setShowCustomColors] = useState(false);
-  const [gradientColors, setGradientColors] = useState({
-    from: '#1a365d',
-    via: '#3182ce',
-    to: '#2c5282'
-  });
-  const [gradientDirection, setGradientDirection] = useState('br'); // br = bottom-right
-  const [hexText, setHexText] = useState('#ffffff');
+  const [showCustomColors, setShowCustomColors] = useState(selectedTheme === 'custom');
   const [activeColorPicker, setActiveColorPicker] = useState(null);
   const [showTextPicker, setShowTextPicker] = useState(false);
 
+  // Update showCustomColors when selectedTheme changes
+  React.useEffect(() => {
+    setShowCustomColors(selectedTheme === 'custom');
+  }, [selectedTheme]);
+
   const handleThemeSelect = (key) => {
     setSelectedTheme(key);
+    // If selecting a custom theme, set it to 'custom'
+    if (key === 'custom') {
+      setSelectedTheme('custom');
+    }
   };
 
   const handleClickOutside = (e) => {
@@ -178,7 +186,13 @@ export function DesignPage({
             <div className="mt-8 flex justify-center">
               <button
                 type="button"
-                onClick={() => setShowCustomColors(false)}
+                onClick={() => {
+                  setShowCustomColors(false);
+                  // If the theme is 'custom', set it back to a default theme
+                  if (selectedTheme === 'custom') {
+                    setSelectedTheme('sunset');
+                  }
+                }}
                 className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 <Palette className="h-4 w-4" />
@@ -236,7 +250,10 @@ export function DesignPage({
           <div className="mt-8 flex justify-center">
             <button
               type="button"
-              onClick={() => setShowCustomColors(true)}
+              onClick={() => {
+                setShowCustomColors(true);
+                setSelectedTheme('custom');
+              }}
               className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               <Palette className="h-4 w-4" />

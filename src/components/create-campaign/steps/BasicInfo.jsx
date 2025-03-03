@@ -15,19 +15,19 @@ export function BasicInfo({
   return (
     <div className="space-y-8">
       <div>
-        <Label htmlFor="name">Campaign Title *</Label>
+        <Label htmlFor="title">Campaign Title *</Label>
         <div className="relative mt-2">
           <Input
-            id="name"
-            placeholder="Enter campaign name"
-            value={formData.name}
+            id="title"
+            placeholder="Enter campaign title"
+            value={formData.title}
             onChange={handleInputChange}
             autoComplete="off"
             data-form-type="other"
             required
-            className={aiGeneratedFields?.name ? "border-purple-300 dark:border-purple-500" : ""}
+            className={aiGeneratedFields?.title ? "border-purple-300 dark:border-purple-500" : ""}
           />
-          {aiGeneratedFields?.name && (
+          {aiGeneratedFields?.title && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
               <Sparkles className="h-4 w-4" />
               <span className="text-xs font-medium">AI</span>

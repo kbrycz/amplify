@@ -5,11 +5,11 @@ import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 const isStepValid = (currentStep, formData) => {
   switch (currentStep) {
     case 0: // Internal Name: always valid since we want to allow saving drafts
-      return Boolean(formData.internalName?.trim());
+      return Boolean(formData.name?.trim());
     case 1: // Design: always valid since theme has a default value
       return true; // Theme selection is always valid since it has a default value
     case 2: // Basic Info: require name and description
-      return Boolean(formData.name?.trim() && formData.description?.trim());
+      return Boolean(formData.title?.trim() && formData.description?.trim());
     case 3: // Campaign Details: require category (and subcategory if political) and at least one non-empty survey question
       return Boolean(
         formData.category &&
@@ -61,9 +61,9 @@ export function StepNavigation({
         {currentStep > 0 && (
           <button
             type="button"
-            disabled={!formData.internalName?.trim() || isSubmitting || isSavingDraft}
+            disabled={!formData.name?.trim() || isSubmitting || isSavingDraft}
             className={`w-full sm:w-auto inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium ${
-              !formData.internalName?.trim()
+              !formData.name?.trim()
                 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
                 : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
             } dark:border-gray-800 dark:bg-gray-900`}
@@ -99,9 +99,9 @@ export function StepNavigation({
           <button
             type="button"
             onClick={() => setIsAIModalOpen(true)}
-            disabled={!formData.internalName?.trim()}
+            disabled={!formData.name?.trim()}
             className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium ${
-              !formData.internalName?.trim()
+              !formData.name?.trim()
                 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
                 : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
             } dark:border-gray-800 dark:bg-gray-900`}
@@ -114,7 +114,7 @@ export function StepNavigation({
         {currentStep < totalSteps - 1 ? (
           <button
             type="button"
-            onClick={onNext}
+            onClick={(e) => onNext(e)}
             disabled={!canProceed || isSubmitting}
             className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white ${
               canProceed ? 'hover:bg-blue-700' : 'opacity-50 cursor-not-allowed'

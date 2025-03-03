@@ -43,6 +43,14 @@ const themes = {
     border: 'border-white/20',
     input: 'bg-white/20',
     name: 'Nature Fresh'
+  },
+  custom: {
+    background: '', // Will be set dynamically
+    text: 'text-white',
+    subtext: 'text-white/80',
+    border: 'border-white/20',
+    input: 'bg-white/20',
+    name: 'Custom Theme'
   }
 };
 
@@ -75,9 +83,18 @@ export default function CreateCampaign() {
   const [isEditingDraft, setIsEditingDraft] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [loadingModal, setLoadingModal] = useState({ isOpen: false, status: 'loading', error: null, campaignId: null, campaignName: '' });
+  // Custom colors state
+  const [gradientColors, setGradientColors] = useState({
+    from: '#1a365d',
+    via: '#3182ce',
+    to: '#2c5282'
+  });
+  const [gradientDirection, setGradientDirection] = useState('br'); // br = bottom-right
+  const [hexText, setHexText] = useState('#ffffff');
+  
   const initialFormData = {
-    internalName: '',
     name: '',
+    title: '',
     description: '',
     category: '',
     subcategory: '',
@@ -120,7 +137,7 @@ export default function CreateCampaign() {
   };
 
   const handleSaveDraft = async () => {
-    if (!formData.internalName.trim()) {
+    if (!formData.name.trim()) {
       setError('Please enter a campaign name to save as draft');
       setTimeout(() => setError(null), 3000);
       return;
@@ -130,10 +147,26 @@ export default function CreateCampaign() {
 
     try {
       const idToken = await auth.currentUser.getIdToken();
+      
+      // Get custom colors if the theme is 'custom'
+      const customColors = selectedTheme === 'custom' ? {
+        gradientColors,
+        gradientDirection,
+        textColor: hexText
+      } : null;
+      
       const draftData = {
-        internalName: formData.internalName,
-        ...formData,
+        name: formData.name,
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        businessName: formData.businessName,
+        website: formData.website,
+        email: formData.email,
+        phone: formData.phone,
         theme: selectedTheme,
+        customColors: customColors,
+        campaignImage: previewImage,
         subcategory: formData.category === 'political' ? formData.subcategory : null,
         surveyQuestions: surveyQuestions.map(q => q.question)
       };
@@ -191,8 +224,8 @@ export default function CreateCampaign() {
 
       const draft = await response.json();
       setFormData({
-        internalName: draft.internalName || '',
         name: draft.name || '',
+        title: draft.title || '',
         description: draft.description || '',
         category: draft.category || '',
         subcategory: draft.subcategory || '',
@@ -202,6 +235,23 @@ export default function CreateCampaign() {
         phone: draft.phone || ''
       });
       setSelectedTheme(draft.theme || 'sunset');
+      
+      // Load custom colors if available
+      if (draft.customColors) {
+        setGradientColors(draft.customColors.gradientColors || {
+          from: '#1a365d',
+          via: '#3182ce',
+          to: '#2c5282'
+        });
+        setGradientDirection(draft.customColors.gradientDirection || 'br');
+        setHexText(draft.customColors.textColor || '#ffffff');
+      }
+      
+      // Load campaign image if available
+      if (draft.campaignImage) {
+        setPreviewImage(draft.campaignImage);
+      }
+      
       setSurveyQuestions(draft.surveyQuestions.map((question, index) => ({
         id: index + 1,
         question
@@ -307,6 +357,16 @@ export default function CreateCampaign() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError({
+          type: 'error',
+          message: 'Image size should be less than 5MB'
+        });
+        setTimeout(() => setError(null), 3000);
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result);
@@ -323,11 +383,11 @@ export default function CreateCampaign() {
   const isStepValid = () => {
     switch (currentStep) {
       case 0: // Internal Name: always valid since we want to allow saving drafts
-        return Boolean(formData.internalName?.trim());
+        return Boolean(formData.name?.trim());
       case 1: // Design: always valid since theme has a default value
         return true; // Theme selection is always valid since it has a default value
-      case 2: // Basic Info: require name and description
-        return Boolean(formData.name?.trim() && formData.description?.trim());
+      case 2: // Basic Info: require title and description
+        return Boolean(formData.title?.trim() && formData.description?.trim());
       case 3: // Campaign Details: require category (and subcategory if political) and at least one non-empty survey question
         return Boolean(
           formData.category &&
@@ -342,7 +402,12 @@ export default function CreateCampaign() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = (e) => {
+    // Prevent form submission if an event is passed
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
       // Show preview starting from step 2 (Campaign Info)
@@ -385,7 +450,7 @@ export default function CreateCampaign() {
       // Update form data with AI generated content
       setFormData({
         ...formData,
-        name: data.campaignData.name,
+        title: data.campaignData.title || data.campaignData.name,
         description: data.campaignData.description,
         category: data.campaignData.category,
         subcategory: data.campaignData.subcategory,
@@ -399,7 +464,7 @@ export default function CreateCampaign() {
       const newAiGeneratedFields = {};
       
       // Only mark fields as AI-generated if they actually contain content
-      if (data.campaignData.name) newAiGeneratedFields.name = true;
+      if (data.campaignData.title || data.campaignData.name) newAiGeneratedFields.title = true;
       if (data.campaignData.description) newAiGeneratedFields.description = true;
       if (data.campaignData.category) newAiGeneratedFields.category = true;
       if (data.campaignData.subcategory) newAiGeneratedFields.subcategory = true;
@@ -439,23 +504,77 @@ export default function CreateCampaign() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Only allow form submission from the last step (Business Info)
+    if (currentStep !== steps.length - 1) {
+      console.log("Form submission prevented: Not on the last step");
+      return;
+    }
+    
     setLoadingModal({ isOpen: true, status: 'loading', error: null });
 
-    // Updated required check including business info fields
-    if (
-      !formData.name.trim() ||
-      !formData.description.trim() ||
-      !formData.category ||
-      surveyQuestions.length === 0 ||
-      !formData.businessName.trim() ||
-      !formData.email.trim()
-    ) {
-      setLoadingModal({ isOpen: true, status: 'error', error: 'Please fill in all required fields and add at least one question' });
+    // Validate required fields
+    const requiredFields = {
+      'Campaign Name': formData.name,
+      'Campaign Title': formData.title,
+      'Campaign Description': formData.description,
+      'Campaign Category': formData.category,
+      'Business Name': formData.businessName,
+      'Business Email': formData.email
+    };
+    
+    // Add subcategory validation if category is political
+    if (formData.category === 'political') {
+      requiredFields['Representative Level'] = formData.subcategory;
+    }
+    
+    // Check for empty required fields
+    const emptyFields = Object.entries(requiredFields)
+      .filter(([_, value]) => !value || !value.trim())
+      .map(([field]) => field);
+    
+    // Validate survey questions
+    const hasValidQuestions = surveyQuestions.length > 0 && 
+      surveyQuestions.every(q => q.question && q.question.trim());
+    
+    if (emptyFields.length > 0 || !hasValidQuestions) {
+      let errorMessage = 'Please fill in the following required fields: ';
+      
+      if (emptyFields.length > 0) {
+        errorMessage += emptyFields.join(', ');
+      }
+      
+      if (!hasValidQuestions) {
+        errorMessage += emptyFields.length > 0 ? ', and add at least one valid survey question' : 'Add at least one valid survey question';
+      }
+      
+      setLoadingModal({ isOpen: true, status: 'error', error: errorMessage });
+      return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setLoadingModal({ isOpen: true, status: 'error', error: 'Please enter a valid email address' });
+      return;
+    }
+    
+    // Validate website format if provided
+    if (formData.website && !formData.website.startsWith('http')) {
+      setLoadingModal({ isOpen: true, status: 'error', error: 'Website URL must start with http:// or https://' });
       return;
     }
 
     try {
       const idToken = await auth.currentUser.getIdToken();
+      
+      // Get custom colors if the theme is 'custom'
+      const customColors = selectedTheme === 'custom' ? {
+        gradientColors,
+        gradientDirection,
+        textColor: hexText
+      } : null;
+      
       const response = await fetch(`${SERVER_URL}/campaign/campaigns`, {
         method: 'POST',
         headers: {
@@ -463,8 +582,17 @@ export default function CreateCampaign() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ...formData,
+          name: formData.name,
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          businessName: formData.businessName,
+          website: formData.website,
+          email: formData.email,
+          phone: formData.phone,
           theme: selectedTheme,
+          customColors: customColors,
+          campaignImage: previewImage,
           subcategory: formData.category === 'political' ? formData.subcategory : null,
           surveyQuestions: surveyQuestions.map(q => q.question)
         })
@@ -484,13 +612,13 @@ export default function CreateCampaign() {
         status: 'success', 
         error: null,
         campaignId: campaign.id,
-        campaignName: formData.name
+        campaignName: formData.title
       });
       
       // Reset form state
       setFormData({
-        internalName: '',
         name: '',
+        title: '',
         description: '',
         category: '',
         subcategory: '',
@@ -577,7 +705,14 @@ export default function CreateCampaign() {
         <div className={`grid grid-cols-1 ${showPreview ? 'lg:grid-cols-[800px,auto]' : ''} gap-6 items-start ${!showPreview ? 'w-full' : ''}`}>
           <Card className="w-full">
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-8">
+              <form onSubmit={(e) => {
+                // Only allow form submission from the last step (Business Info)
+                if (currentStep !== steps.length - 1) {
+                  e.preventDefault();
+                  return;
+                }
+                handleSubmit(e);
+              }} className="space-y-8">
                 {currentStep === 0 && (
                   <InternalName
                     formData={formData}
@@ -601,6 +736,12 @@ export default function CreateCampaign() {
                   <DesignPage
                     selectedTheme={selectedTheme}
                     setSelectedTheme={setSelectedTheme}
+                    gradientColors={gradientColors}
+                    setGradientColors={setGradientColors}
+                    gradientDirection={gradientDirection}
+                    setGradientDirection={setGradientDirection}
+                    hexText={hexText}
+                    setHexText={setHexText}
                   />
                 )}
 
@@ -668,6 +809,9 @@ export default function CreateCampaign() {
             formData={formData}
             surveyQuestions={surveyQuestions}
             currentStep={currentStep}
+            gradientColors={gradientColors}
+            gradientDirection={gradientDirection}
+            hexText={hexText}
           />}
         </div>
       </div>

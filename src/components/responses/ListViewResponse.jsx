@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Clock, Circle, ChevronDown, Pencil, Trash2, Wand2, Star } from 'lucide-react';
+import { Play, Clock, Circle, ChevronDown, Pencil, Trash2, Wand2, Star, Video } from 'lucide-react';
 import { SERVER_URL, auth } from '../../lib/firebase';
 
 /**
@@ -54,6 +54,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState(null);
   const errorTimeoutRef = useRef(null);
+  const [thumbnailError, setThumbnailError] = useState(false);
 
   // Parse the createdAt timestamp and compute the "time ago" string.
   const createdAtDate = parseFirestoreTimestamp(response.createdAt);
@@ -118,7 +119,11 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
     ? response.thumbnailUrl
     : response.videoUrl
       ? `${SERVER_URL}/thumbnailEndpoint?videoUrl=${encodeURIComponent(response.videoUrl)}`
-      : 'https://images.unsplash.com/photo-1590856029826-c7a73142bbf1?q=80&w=2073';
+      : null;
+
+  const handleThumbnailError = () => {
+    setThumbnailError(true);
+  };
 
   return (
     <div
@@ -142,17 +147,25 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
               <span>New</span>
             </div>
           )}
-          <img
-            src={thumbnailSrc}
-            alt={response.name || 'Video response'}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-black/40 transition-opacity group-hover:bg-black/50" />
-          {/* "Time ago" overlay in bottom-right */}
-          <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm">
-            <Clock className="h-3 w-3" />
-            <span>{timeAgoString}</span>
-          </div>
+          
+          {thumbnailSrc && !thumbnailError ? (
+            <>
+              <img
+                src={thumbnailSrc}
+                alt={response.firstName && response.lastName 
+                  ? `${response.firstName} ${response.lastName}'s video`
+                  : 'Video response'}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                onError={handleThumbnailError}
+              />
+              <div className="absolute inset-0 bg-black/40 transition-opacity group-hover:bg-black/50" />
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-900 dark:to-black flex items-center justify-center">
+              <Video className="h-12 w-12 text-gray-400 dark:text-gray-600 opacity-50" />
+            </div>
+          )}
+          
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="rounded-full bg-white/10 p-3 backdrop-blur-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-white/20">
               <Play className="h-6 w-6 text-white" />
@@ -164,14 +177,29 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 lg:p-0 flex-1">
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-gray-900 dark:text-white truncate">
-              {response.name || 'Anonymous'}
+              {response.firstName && response.lastName 
+                ? `${response.firstName} ${response.lastName}`
+                : response.name || 'Anonymous'}
             </h3>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {response.email || 'No email provided'}
             </p>
-            <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <span>{response.zipCode || 'No zip code'}</span>
-              <span>{timeAgoString}</span>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+              {response.zipCode ? (
+                <div className="flex items-center gap-2">
+                  <span className="shrink-0 font-medium text-gray-500 dark:text-gray-500 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">
+                    Zip Code
+                  </span>
+                  <span className="text-gray-600 dark:text-gray-400">{response.zipCode}</span>
+                </div>
+              ) : null}
+              
+              <div className="flex items-center gap-2">
+                <span className="shrink-0 font-medium text-gray-500 dark:text-gray-500 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">
+                  Uploaded
+                </span>
+                <span className="text-gray-600 dark:text-gray-400">{timeAgoString}</span>
+              </div>
             </div>
           </div>
 

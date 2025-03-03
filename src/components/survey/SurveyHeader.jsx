@@ -14,7 +14,7 @@ export function SurveyHeader({ campaign, theme, themes, goToNextStep, previewIma
         </div>
       )}
       <h1 className={`mt-4 text-3xl font-bold tracking-tight ${theme ? themes[theme].text : 'text-gray-900 dark:text-white'} sm:text-4xl`}>
-        {campaign.name}
+        {campaign.title}
       </h1>
       <p className={`mt-4 text-base ${theme ? themes[theme].subtext : 'text-gray-600 dark:text-gray-400'}`}>
         {campaign.description}

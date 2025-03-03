@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { Label } from '../components/ui/label';
@@ -11,6 +11,7 @@ import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { SurveyQuestions } from '../components/create-campaign/SurveyQuestions';
 import { DesignPage } from '../components/create-campaign/steps/DesignPage';
 import { PhonePreview } from '../components/create-campaign/PhonePreview';
+import { ConfirmationModal } from '../components/ui/confirmation-modal';
 
 export default function CampaignSettings() {
   const { id } = useParams();
@@ -18,12 +19,14 @@ export default function CampaignSettings() {
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedTheme, setSelectedTheme] = useState('sunset');
   const [surveyQuestions, setSurveyQuestions] = useState([]);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     fetchCampaign();
@@ -74,6 +77,30 @@ export default function CampaignSettings() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     alert('TODO: Save changes');
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const idToken = await auth.currentUser.getIdToken();
+      
+      // Immediately navigate away - don't wait for the response
+      navigate('/app/campaigns');
+      
+      // Continue with the delete operation in the background
+      await fetch(`${SERVER_URL}/campaign/campaigns/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      // No need to handle success or set messages since we've already navigated away
+    } catch (err) {
+      console.error('Error deleting campaign:', err);
+      // We've already navigated away, so no need to set error state
+    }
   };
 
   if (isLoading) {
@@ -293,7 +320,29 @@ export default function CampaignSettings() {
             </div>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <button
+              type="button"
+              onClick={() => setIsDeleteModalOpen(true)}
+              disabled={isDeleting}
+              className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {isDeleting ? (
+                <>
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Delete Campaign
+                </>
+              )}
+            </button>
+            
             <button
               type="submit"
               disabled={isSaving}
@@ -325,6 +374,15 @@ export default function CampaignSettings() {
           currentStep={3}
         />
       </div>
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Campaign"
+        message={`Are you sure you want to delete "${campaign?.name}"? This action cannot be undone and will permanently remove all associated data.`}
+        confirmButtonText="Delete Campaign"
+      />
 
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         &copy; 2025 Shout. All rights reserved.

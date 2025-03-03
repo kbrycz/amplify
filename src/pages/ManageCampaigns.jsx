@@ -163,12 +163,19 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
             {campaign.status}
           </span>
         </div>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-          {campaign.description || 'No description provided'}
-        </p>
+        {campaign.title && (
+          <div className="mt-1 flex items-center gap-2 max-w-md">
+            <span className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-500 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Title</span>
+            <span className="text-xs text-gray-600 dark:text-gray-400 truncate">{campaign.title}</span>
+          </div>
+        )}
+        <div className="mt-1.5 flex items-start gap-2">
+          <span className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-500 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Description</span>
+          <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{campaign.description || 'No description provided'}</span>
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 w-full sm:w-auto shrink-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 w-full sm:w-auto shrink-0 sm:self-center">
         {isEditMode && (
           <div className="flex items-center gap-2 order-first sm:order-last sm:ml-4">
             <button

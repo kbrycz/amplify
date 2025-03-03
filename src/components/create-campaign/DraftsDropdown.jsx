@@ -24,6 +24,20 @@ export function DraftsDropdown({
     }
   };
 
+  // Format date to a readable format
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '';
+    
+    const date = new Date(timestamp._seconds * 1000);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-white rounded-lg border border-gray-200 shadow-lg z-10 dark:bg-gray-900 dark:border-gray-800">
       <div className="space-y-1">
@@ -33,19 +47,33 @@ export function DraftsDropdown({
             className="flex items-center gap-2 relative"
           >
             <button
-              className={`flex-1 flex items-center gap-3 p-2 text-sm text-left rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+              className={`flex-1 flex items-start gap-3 p-2 text-sm text-left rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
                 selectedDraftId === draft.id && !isDeletingDraft
                   ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                   : 'text-gray-700 dark:text-gray-300'
               }`}
               onClick={() => handleDraftClick(draft.id)}
             >
-              {selectedDraftId === draft.id && !isDeletingDraft ? (
-                <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              ) : (
-                <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              )}
-              {draft.name}
+              <div className="mt-0.5">
+                {selectedDraftId === draft.id && !isDeletingDraft ? (
+                  <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                ) : (
+                  <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="font-medium">{draft.name || 'Untitled Draft'}</div>
+                {draft.title && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Title: {draft.title}
+                  </div>
+                )}
+                {draft.dateModified && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Last modified: {formatDate(draft.dateModified)}
+                  </div>
+                )}
+              </div>
             </button>
             <button
               onClick={() => {

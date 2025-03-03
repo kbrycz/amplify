@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Play } from 'lucide-react';
+import { Play, X } from 'lucide-react';
 
 export function HeroSection() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
     <div className="relative isolate pt-14">
       <div
@@ -47,7 +52,10 @@ export function HeroSection() {
             </div>
           </div>
           <div className="mt-16 sm:mt-24 video-preview-section">
-            <div className="group relative aspect-video w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-2xl transition-all hover:shadow-xl dark:border-gray-800 dark:bg-gray-800/50 dark:hover:border-gray-700 cursor-pointer">
+            <div 
+              className="group relative aspect-video w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-2xl transition-all hover:shadow-xl dark:border-gray-800 dark:bg-gray-800/50 dark:hover:border-gray-700 cursor-pointer"
+              onClick={openModal}
+            >
               <img
                 src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=2070"
                 alt="App screenshot"
@@ -82,6 +90,35 @@ export function HeroSection() {
           </div>
         </div>
       </div>
+
+      {/* Video Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+          <div className="relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-lg shadow-xl overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b dark:border-gray-800">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Demo of Shout Video</h3>
+              <button 
+                onClick={closeModal}
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <X className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+            <div className="aspect-video w-full">
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+                title="Demo Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+            <div className="p-4 bg-gray-50 dark:bg-gray-800">
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

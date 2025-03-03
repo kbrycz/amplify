@@ -6,6 +6,7 @@ import { EmptyState } from '../components/ui/empty-state';
 import { VideoEditorModal } from '../components/responses/VideoEditorModal';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
+import { TransformModal } from '../components/responses/TransformModal';
 
 export default function VideoEnhancer() {
   const [activeTab, setActiveTab] = useState('upload');
@@ -22,6 +23,7 @@ export default function VideoEnhancer() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isTransformModalOpen, setIsTransformModalOpen] = useState(false);
 
   // Fetch the enhancer videos for the current user
   const fetchVideos = async () => {
@@ -233,14 +235,6 @@ export default function VideoEnhancer() {
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Video Enhancer</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Transform your videos with AI-powered enhancement tools</p>
         </div>
-
-        <button
-          onClick={() => setActiveTab('upload')}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:hover:bg-blue-500"
-        >
-          <Upload className="h-4 w-4" />
-          Upload Video
-        </button>
       </div>
 
       {/* Tabs */}
@@ -342,8 +336,7 @@ export default function VideoEnhancer() {
                 type="button"
                 disabled={!videoFile || videoDuration < 10 || videoDuration > 180 || isUploading}
                 onClick={() => {
-                  setSelectedVideo(videoFile);
-                  setIsVideoEditorOpen(true);
+                  setIsTransformModalOpen(true);
                 }}
                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -471,6 +464,13 @@ export default function VideoEnhancer() {
           await fetchVideos();
           setIsVideoEditorOpen(false);
         }}
+      />
+
+      <TransformModal
+        isOpen={isTransformModalOpen}
+        onClose={() => setIsTransformModalOpen(false)}
+        video={selectedVideo}
+        endpoint="/video-enhancer/upload"
       />
 
       <ConfirmationModal

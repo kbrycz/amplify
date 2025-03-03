@@ -7,15 +7,15 @@ export function InternalName({ formData, handleInputChange, aiGeneratedFields })
   return (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="internalName">Campaign Name *</Label>
+        <Label htmlFor="name">Campaign Name *</Label>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Give your campaign a name to help you identify and organize it. This name is for your reference only and won't be shown to users.
         </p>
         <div className="mt-2 flex gap-2">
           <Input
-            id="internalName"
+            id="name"
             placeholder="Enter campaign name"
-            value={formData.internalName}
+            value={formData.name}
             onChange={handleInputChange}
             autoComplete="off"
             required

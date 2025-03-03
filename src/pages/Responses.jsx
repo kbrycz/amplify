@@ -193,6 +193,7 @@ export default function Responses() {
         isOpen={isTransformModalOpen}
         onClose={() => setIsTransformModalOpen(false)}
         video={selectedResponse}
+        endpoint="/videoProcessor/process-video"
       />
 
       {/* Video Editor Modal */}
