@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Moon, Sun, Bell } from 'lucide-react';
+import { Moon, Sun, Bell, Play } from 'lucide-react';
 import { useSidebar } from '../context/SidebarContext';
 import UserDropdown from './UserDropdown';
 import AlertsDropdown from './AlertsDropdown';
+import { VideoModal } from './ui/VideoModal';
 
 function Header() {
   const [isDark, setIsDark] = useState(() => {
@@ -14,6 +15,7 @@ function Header() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   useEffect(() => {
     if (isDark) {
@@ -37,50 +39,74 @@ function Header() {
     setIsDark((prev) => !prev);
   };
 
+  const openVideoModal = () => {
+    setIsVideoModalOpen(true);
+  };
+
+  const closeVideoModal = () => {
+    setIsVideoModalOpen(false);
+  };
+
   return (
-    <header className="flex w-full bg-white border-gray-200 z-40 dark:border-gray-800 dark:bg-gray-900 border-b">
-      <div className="flex items-center justify-between w-full px-4 py-4">
-        <div>
-          <button
-            className="flex items-center justify-center w-10 h-10 text-gray-500 hover:bg-gray-100 rounded-lg dark:text-gray-400 dark:hover:bg-gray-800"
-            onClick={handleToggle}
-            aria-label={isMobileOpen ? "Close menu" : "Open menu"}
-            aria-expanded={isMobileOpen}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="flex-shrink-0"
+    <>
+      <header className="flex w-full bg-white border-gray-200 z-50 dark:border-gray-800 dark:bg-gray-900 border-b">
+        <div className="flex items-center justify-between w-full px-4 py-4">
+          <div>
+            <button
+              className="flex items-center justify-center w-10 h-10 text-gray-500 hover:bg-gray-100 rounded-lg dark:text-gray-400 dark:hover:bg-gray-800"
+              onClick={handleToggle}
+              aria-label={isMobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMobileOpen}
             >
-              <path
-                d="M4 6H20M4 12H20M4 18H20"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="flex-shrink-0"
+              >
+                <path
+                  d="M4 6H20M4 12H20M4 18H20"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={openVideoModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/20 transition-colors"
+            >
+              <Play className="w-4 h-4" />
+              View Demo
+            </button>
+            
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
+            {/* Alerts Dropdown now handles read/unread functionality */}
+            <AlertsDropdown />
+
+            <UserDropdown />
+          </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleTheme}
-            className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-          >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-
-          {/* Alerts Dropdown now handles read/unread functionality */}
-          <AlertsDropdown />
-
-          <UserDropdown />
-        </div>
-      </div>
-    </header>
+      </header>
+      
+      <VideoModal 
+        isOpen={isVideoModalOpen} 
+        onClose={closeVideoModal} 
+        title="Demo of Shout Video"
+      />
+    </>
   );
 }
 

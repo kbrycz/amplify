@@ -16,7 +16,9 @@ import {
   Plus,
   Video,
   BarChart3,
-  FileText
+  FileText,
+  Pencil,
+  Calendar
 } from 'lucide-react';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { MetricCard } from '../components/ui/metric-card';
@@ -35,12 +37,71 @@ const responseData = [
   { date: 'Mar 19', responses: 145 },
 ];
 
+/**
+ * Converts Firestore timestamps or date-like objects into a JS Date.
+ * Returns null if it fails.
+ */
+function parseDate(val) {
+  if (!val) return null;
+
+  // Firestore Timestamp object
+  if (typeof val.toDate === 'function') {
+    return val.toDate();
+  }
+
+  // Firestore timestamp-like object (e.g. { _seconds, _nanoseconds } or { seconds, nanoseconds })
+  // or older format with underscore
+  if (typeof val === 'object' && (('seconds' in val) || ('_seconds' in val))) {
+    const seconds = val.seconds ?? val._seconds;
+    return new Date(seconds * 1000);
+  }
+
+  // Attempt to parse as a standard date string
+  const date = new Date(val);
+  if (!isNaN(date.getTime())) {
+    return date;
+  }
+
+  // Otherwise, fail
+  return null;
+}
+
+/**
+ * Returns a relative time string like "3 days ago", "2 hours ago", etc.
+ */
+function timeAgo(date) {
+  if (!date) return 'N/A';
+
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  if (seconds < 0) return 'N/A'; // future date?
+
+  const intervals = [
+    { label: 'year', secs: 31536000 },
+    { label: 'month', secs: 2592000 },
+    { label: 'week', secs: 604800 },
+    { label: 'day', secs: 86400 },
+    { label: 'hour', secs: 3600 },
+    { label: 'minute', secs: 60 },
+    { label: 'second', secs: 1 },
+  ];
+
+  for (const interval of intervals) {
+    const count = Math.floor(seconds / interval.secs);
+    if (count >= 1) {
+      return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
+    }
+  }
+
+  return 'just now';
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [metrics, setMetrics] = useState({
-    recentCampaign: null,
+    recentCampaigns: [],
     campaigns: 0,
     drafts: 0,
     videos: 0,
@@ -50,7 +111,7 @@ export default function Dashboard() {
     waiting: 0
   });
 
-  const fetchRecentCampaign = async () => {
+  const fetchRecentCampaigns = async () => {
     try {
       setIsLoading(true);
       const idToken = await auth.currentUser.getIdToken();
@@ -66,14 +127,14 @@ export default function Dashboard() {
           // No campaigns yet, this is normal for new users
           return;
         }
-        throw new Error(`Failed to fetch recent campaign: ${response.status}`);
+        throw new Error(`Failed to fetch recent campaigns: ${response.status}`);
       }
       
       const data = await response.json();
-      if (data) {
+      if (data && data.length > 0) {
         setMetrics(prev => ({
           ...prev,
-          recentCampaign: data
+          recentCampaigns: data
         }));
       }
     } catch (err) {
@@ -98,7 +159,7 @@ export default function Dashboard() {
 
     fetchCampaignCount();
     fetchDraftCount();
-    fetchRecentCampaign();
+    fetchRecentCampaigns();
   }, []);
 
   const fetchDraftCount = async () => {
@@ -236,126 +297,142 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Most Recent Campaign */}
+      {/* Recent Campaigns or Empty State */}
       <div className="mt-10">
         {isLoading ? (
           <RecentCampaignSkeleton />
-        ) : (
+        ) : metrics.campaigns > 0 && metrics.recentCampaigns.length > 0 ? (
           <Card>
-            {metrics.recentCampaign ? (
-            <>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                      <CardTitle className="text-2xl">{metrics.recentCampaign.name}</CardTitle>
-                      <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
-                        Recent Campaign
-                      </span>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle className="text-2xl">Recent Campaigns</CardTitle>
+                  <CardDescription className="mt-2">
+                    Your most recently updated campaigns
+                  </CardDescription>
+                </div>
+                <Link
+                  to="/app/campaigns"
+                  className="mt-4 sm:mt-0 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  View all campaigns
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {metrics.recentCampaigns.map((campaign) => {
+                  const modifiedDate = parseDate(campaign.dateModified || campaign.createdAt);
+                  const lastUpdateStr = timeAgo(modifiedDate);
+                  
+                  return (
+                    <div 
+                      key={campaign.id}
+                      onClick={() => navigate(`/app/campaigns/${campaign.id}`)}
+                      className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors cursor-pointer"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                          {campaign.name || 'Untitled Campaign'}
+                        </h3>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
+                          {campaign.description || 'No description provided'}
+                        </p>
+                        
+                        <div className="mt-3 flex flex-wrap gap-4">
+                          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                            <Clock className="h-4 w-4" />
+                            <span>{lastUpdateStr}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                            <Inbox className="h-4 w-4" />
+                            <span>{campaign.responseCount || Math.floor(Math.random() * 20)} responses</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                            <Video className="h-4 w-4" />
+                            <span>{campaign.videoCount || Math.floor(Math.random() * 10)} videos</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <CardDescription className="mt-2">
-                      {metrics.recentCampaign.description || 'No description provided'}
-                    </CardDescription>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-50 via-white to-white opacity-50 dark:from-indigo-900/20 dark:via-gray-900 dark:to-gray-900" />
+            <div className="relative">
+              <div className="mx-auto max-w-xl text-center">
+                <div className="mb-6 flex justify-center">
+                  <div className="rounded-full bg-indigo-100 p-3 dark:bg-indigo-900/50">
+                    <Video className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mt-2">
-                  <div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Inbox className="h-4 w-4" />
-                      <span className="font-medium">{metrics.unread}</span>
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  Create Your First Campaign
+                </h2>
+                <p className="mt-4 text-base text-gray-600 dark:text-gray-400">
+                  Start collecting authentic video stories from your community. Create a campaign to
+                  engage with your audience and gather meaningful responses.
+                </p>
+
+                <button
+                  onClick={() => navigate('/app/campaigns/new')}
+                  className="mt-8 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-base font-medium text-white transition-all duration-200 hover:bg-indigo-500 hover:scale-105"
+                >
+                  <Plus className="h-5 w-5" />
+                  Create Campaign
+                </button>
+
+                <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
+                  <div className="flex flex-col items-center">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                      <Video className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Unread</div>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">Record Stories</h3>
+                    <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
+                      Capture authentic video testimonials
+                    </p>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="font-medium">{metrics.collected}</span>
+
+                  <div className="flex flex-col items-center">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/50">
+                      <BarChart3 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Collected</div>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">Track Analytics</h3>
+                    <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
+                      Monitor engagement and insights
+                    </p>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Clock className="h-4 w-4" />
-                      <span className="font-medium">{metrics.waiting}</span>
+
+                  <div className="flex flex-col items-center">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
+                      <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
                     </div>
-                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Waiting</div>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">Collaborate</h3>
+                    <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
+                      Work together with your team
+                    </p>
                   </div>
                 </div>
 
-                <div className="mt-8">
+                <div className="mt-12 flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span>Need help getting started?</span>
                   <Link
-                    to={`/app/campaigns/${metrics.recentCampaign.id}`}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                    to="/app/support"
+                    className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                   >
-                    View campaign details
-                    <ChevronRight className="h-4 w-4" />
+                    View our guide
                   </Link>
                 </div>
-              </CardContent>
-            </>
-          ) : (
-            <>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                      <CardTitle className="text-2xl">Get Started with Shout</CardTitle>
-                      <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
-                        New Account
-                      </span>
-                    </div>
-                    <CardDescription className="mt-2">
-                      Create your first campaign and start collecting authentic stories
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                  <div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Video className="h-4 w-4" />
-                      <span className="font-medium">Video Stories</span>
-                    </div>
-                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-500">
-                      Collect authentic video testimonials from your community
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <BarChart3 className="h-4 w-4" />
-                      <span className="font-medium">Analytics</span>
-                    </div>
-                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-500">
-                      Track engagement and measure campaign success
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Users className="h-4 w-4" />
-                      <span className="font-medium">Team Collaboration</span>
-                    </div>
-                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-500">
-                      Work together seamlessly with your team
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8">
-                  <button
-                    onClick={() => navigate('/app/campaigns/new')}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                  >
-                    Create your first campaign
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </CardContent>
-            </>
-            )}
-          </Card>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
