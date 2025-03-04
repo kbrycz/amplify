@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet, useNavigationType } from 'react-router-dom';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './components/ui/toast-notification';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
 import { LoadingScreen } from './components/ui/loading-screen';
@@ -96,51 +97,53 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <LoadingScreen />
-      <BrowserRouter>
-        <ScrollToTop />
-        <CookieConsent />
-        <Routes>
-          {/* Public routes */}
-          <Route path="/survey/:id" element={<Survey />} />
-          <Route path="/" element={<AppContent />} />
-          <Route path="/about" element={<About />} />
-          <Route
-            path="/login"
-            element={
-              <RequireUnauth>
-                <SignIn />
-              </RequireUnauth>
-            }
-          />
-          <Route
-            path="/signup"
-            element={
-              <RequireUnauth>
-                <SignUp />
-              </RequireUnauth>
-            }
-          />
-          
-          {/* Protected routes */}
-          <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
-            <Route index element={<Dashboard />} />
-            <Route path="campaigns/new" element={<CreateCampaign />} />
-            <Route path="campaigns/:id/ai-videos" element={<AIVideos />} />
-            <Route path="campaigns/:id/responses" element={<Responses />} />
-            <Route path="campaigns/:id/settings" element={<CampaignSettings />} />
-            <Route path="campaigns/:id" element={<CampaignDetails />} />
-            <Route path="campaigns" element={<ManageCampaigns />} />
-            <Route path="video-enhancer" element={<VideoEnhancer />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="profile" element={<EditProfile />} />
-            <Route path="account" element={<Account />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="support" element={<Support />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <ToastProvider>
+        <LoadingScreen />
+        <BrowserRouter>
+          <ScrollToTop />
+          <CookieConsent />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/survey/:id" element={<Survey />} />
+            <Route path="/" element={<AppContent />} />
+            <Route path="/about" element={<About />} />
+            <Route
+              path="/login"
+              element={
+                <RequireUnauth>
+                  <SignIn />
+                </RequireUnauth>
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <RequireUnauth>
+                  <SignUp />
+                </RequireUnauth>
+              }
+            />
+            
+            {/* Protected routes */}
+            <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
+              <Route index element={<Dashboard />} />
+              <Route path="campaigns/new" element={<CreateCampaign />} />
+              <Route path="campaigns/:id/ai-videos" element={<AIVideos />} />
+              <Route path="campaigns/:id/responses" element={<Responses />} />
+              <Route path="campaigns/:id/settings" element={<CampaignSettings />} />
+              <Route path="campaigns/:id" element={<CampaignDetails />} />
+              <Route path="campaigns" element={<ManageCampaigns />} />
+              <Route path="video-enhancer" element={<VideoEnhancer />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="profile" element={<EditProfile />} />
+              <Route path="account" element={<Account />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="support" element={<Support />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   );
 }

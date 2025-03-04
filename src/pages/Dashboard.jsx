@@ -132,35 +132,12 @@ export default function Dashboard() {
       
       const data = await response.json();
       if (data && data.length > 0) {
-        // Fetch response counts and AI video counts for each campaign
-        const campaignsWithCounts = await Promise.all(
-          data.map(async (campaign) => {
-            try {
-              // Fetch response count
-              const responseCountResponse = await fetch(`${SERVER_URL}/survey/videos/${campaign.id}/count`, {
-                headers: {
-                  'Authorization': `Bearer ${idToken}`
-                }
-              }).then(res => res.ok ? res.json() : { count: 0 });
-              
-              // Fetch AI videos count
-              const aiVideosCountResponse = await fetch(`${SERVER_URL}/videoProcessor/ai-videos/campaign/${campaign.id}/count`, {
-                headers: {
-                  'Authorization': `Bearer ${idToken}`
-                }
-              }).then(res => res.ok ? res.json() : { count: 0 });
-              
-              return {
-                ...campaign,
-                responseCount: responseCountResponse.count || 0,
-                aiVideosCount: aiVideosCountResponse.count || 0
-              };
-            } catch (error) {
-              console.warn(`Error fetching counts for campaign ${campaign.id}:`, error);
-              return campaign;
-            }
-          })
-        );
+        // Counts are now included in the campaign data from the API
+        const campaignsWithCounts = data.map(campaign => ({
+          ...campaign,
+          responseCount: campaign.responsesCount || 0,
+          aiVideosCount: campaign.aiVideoCount || 0
+        }));
         
         setMetrics(prev => ({
           ...prev,

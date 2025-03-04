@@ -1,102 +1,177 @@
 import React, { useState, useEffect } from 'react';
-import { X, Wand2, Sparkles, Video, ArrowRight, CheckCircle } from 'lucide-react';
+import { X, Wand2, Sparkles, Video, ArrowRight, CheckCircle, Loader2, CreditCard } from 'lucide-react';
 import { SERVER_URL, auth } from '../../lib/firebase';
+import { useToast } from '../ui/toast-notification';
 
-export function TransformModal({ isOpen, onClose, video, endpoint }) {
+// Keep track of which videos are currently being processed
+const processingVideos = new Set();
+
+// Function to check if a video is being processed
+export function isVideoProcessing(videoId) {
+  return processingVideos.has(videoId);
+}
+
+// Function to mark a video as no longer processing
+export function markVideoProcessingComplete(videoId) {
+  processingVideos.delete(videoId);
+}
+
+export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingStart }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-
-  // State for parameters
-  const [videoLengthMinutes, setVideoLengthMinutes] = useState(0);
-  const [videoLengthSeconds, setVideoLengthSeconds] = useState(30);
-  const [transitionEffect, setTransitionEffect] = useState('fade'); // Changed default to 'fade'
+  const [totalLengthSeconds, setTotalLengthSeconds] = useState(60);
+  const [transitionEffect, setTransitionEffect] = useState('fade');
   const [captionText, setCaptionText] = useState('');
   const [backgroundMusic, setBackgroundMusic] = useState('https://shotstack-assets.s3.ap-southeast-2.amazonaws.com/music/freepd/effects.mp3');
   const [outputResolution, setOutputResolution] = useState('1080x1920');
+  const { addToast } = useToast();
 
-  // Reset state when modal is opened
+  // Check if this video is already being processed
+  const videoIsAlreadyProcessing = video && video.id && processingVideos.has(video.id);
+
   useEffect(() => {
     if (isOpen) {
-      setSuccess(false);
+      // If the video is already being processed, show a message and close the modal
+      if (videoIsAlreadyProcessing) {
+        addToast("This video is already being processed. Please wait for it to complete.", "info");
+        onClose();
+        return;
+      }
+      
+      // Reset state when modal opens
+      setIsProcessing(false);
       setError(null);
-      setVideoLengthMinutes(0);
-      setVideoLengthSeconds(30);
+      setSuccess(false);
+      setTotalLengthSeconds(60);
       setTransitionEffect('fade');
       setCaptionText('');
       setBackgroundMusic('https://shotstack-assets.s3.ap-southeast-2.amazonaws.com/music/freepd/effects.mp3');
       setOutputResolution('1080x1920');
     }
-  }, [isOpen]);
+  }, [isOpen, videoIsAlreadyProcessing, addToast, onClose]);
 
   const handleTransform = async () => {
     if (!video) {
       setError("No video selected");
+      addToast("No video selected", "error");
       return;
     }
 
-    // Immediately show success screen
-    setSuccess(true);
+    // Set processing state to disable the button
+    setIsProcessing(true);
+    setError(null);
+    
+    // Add this video to the processing set
+    if (video.id) {
+      processingVideos.add(video.id);
+    }
+    
+    // Call onProcessingStart if provided
+    if (onProcessingStart && video.id) {
+      onProcessingStart(video.id);
+    }
+    
+    // Show toast notification that processing has started
+    addToast(
+      <div>
+        <p>Video enhancement started!</p>
+        <p className="text-sm mt-1">Your video will be ready in about 30 seconds.</p>
+      </div>,
+      "info"
+    );
+    
+    // Close the modal immediately
+    onClose();
 
-    // Continue with the API call in the background
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const totalLengthSeconds = parseInt(videoLengthMinutes) * 60 + parseInt(videoLengthSeconds);
+      const lengthInSeconds = parseInt(totalLengthSeconds);
       
       if (endpoint === '/video-enhancer/upload') {
         // Handle new video uploads
         if (!video.file) {
           console.error('Video file is required for upload');
+          addToast("Video file is required for upload", "error");
+          setIsProcessing(false);
           return;
         }
         const formData = new FormData();
         formData.append('video', video.file);
-        formData.append('desiredLength', totalLengthSeconds.toString());
+        formData.append('desiredLength', lengthInSeconds.toString());
         formData.append('transitionEffect', transitionEffect);
         formData.append('captionText', captionText);
         formData.append('backgroundMusic', backgroundMusic);
         formData.append('outputResolution', outputResolution);
 
-        // Fire and forget - don't wait for response
-        fetch(`${SERVER_URL}${endpoint}`, {
+        // Wait for the initial response from the server
+        const response = await fetch(`${SERVER_URL}${endpoint}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${idToken}`,
           },
           body: formData
-        }).catch(err => {
-          console.error('Error processing video in background:', err);
         });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to process video');
+        }
+
+        // Show success screen after we get a successful response
+        setSuccess(true);
+        addToast("Video upload successful! Processing will continue in the background.", "success");
       } else {
         // Handle processing existing videos (e.g., /video-enhancer/process or /process-video)
         if (!video.id) {
           console.error('Video ID is required for processing');
+          setIsProcessing(false);
           return;
         }
+        
+        // Get campaign ID if available
+        const campaignId = video.campaignId;
+        
         const payload = {
           videoId: video.id,
-          desiredLength: totalLengthSeconds,
+          desiredLength: lengthInSeconds,
           transitionEffect,
           captionText,
           backgroundMusic,
           outputResolution,
         };
 
-        // Fire and forget - don't wait for response
-        fetch(`${SERVER_URL}${endpoint}`, {
+        // Wait for the initial response from the server
+        const response = await fetch(`${SERVER_URL}${endpoint}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${idToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
-        }).catch(err => {
-          console.error('Error processing video in background:', err);
         });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to process video');
+        }
+
+        // Close the modal after successful submission
+        if (campaignId) {
+          addToast(
+            "Video enhancement started! Check the AI Videos page in your campaign later to see your processed video.",
+            "success", 
+            8000
+          );
+        } else {
+          addToast("Video enhancement started! Check the AI Videos page later to see your processed video.", "success", 8000);
+        }
       }
     } catch (err) {
-      console.error('Error initiating video processing:', err);
-      // Don't set error or change success state since we've already shown success screen
+      console.error('Error processing video:', err);
+      setError(err.message || 'Failed to process video');
+      addToast(err.message || 'Failed to process video', "error");
+      setIsProcessing(false);
     }
   };
 
@@ -170,8 +245,8 @@ export function TransformModal({ isOpen, onClose, video, endpoint }) {
                   <input
                     type="number"
                     min="0"
-                    value={videoLengthMinutes}
-                    onChange={(e) => setVideoLengthMinutes(e.target.value)}
+                    value={Math.floor(totalLengthSeconds / 60)}
+                    onChange={(e) => setTotalLengthSeconds(Math.floor(e.target.value) * 60 + (totalLengthSeconds % 60))}
                     className="mt-2 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/10"
                   />
                </div>
@@ -183,8 +258,8 @@ export function TransformModal({ isOpen, onClose, video, endpoint }) {
                     type="number"
                     min="0"
                     max="59"
-                    value={videoLengthSeconds}
-                    onChange={(e) => setVideoLengthSeconds(e.target.value)}
+                    value={totalLengthSeconds % 60}
+                    onChange={(e) => setTotalLengthSeconds(Math.floor(totalLengthSeconds / 60) * 60 + parseInt(e.target.value))}
                     className="mt-2 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/10"
                   />
                </div>
@@ -252,8 +327,8 @@ export function TransformModal({ isOpen, onClose, video, endpoint }) {
                 </div>
 
                 {error && (
-                  <div className="col-span-2 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
-                    {error}
+                  <div className="mt-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
+                    <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                   </div>
                 )}
               </div>
@@ -267,10 +342,22 @@ export function TransformModal({ isOpen, onClose, video, endpoint }) {
                 </button>
                 <button
                   onClick={handleTransform}
-                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  disabled={isProcessing}
+                  className={`inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white ${
+                    isProcessing ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'
+                  }`}
                 >
-                  <Wand2 className="h-4 w-4" />
-                  Start Processing
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4" />
+                      Use 1 Credit to Enhance Video
+                    </>
+                  )}
                 </button>
               </div>
             </div>

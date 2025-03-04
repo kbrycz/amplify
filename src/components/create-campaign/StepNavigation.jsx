@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Copy } from 'lucide-react';
 
 // Updated validation for each step
 const isStepValid = (currentStep, formData) => {
@@ -36,112 +36,131 @@ export function StepNavigation({
   isEditingDraft,
   formData,
   surveyQuestions,
-  setIsAIModalOpen
+  setIsAIModalOpen,
+  onUseTemplate
 }) {
   const canProceed = isStepValid(currentStep, { ...formData, surveyQuestions });
+  const isFirstStep = currentStep === 0;
 
   return (
     <div className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-8 w-full ${className}`}>
-      {/* Left side - Previous button (hidden on mobile) */}
-      {currentStep > 0 ? (
-        <button
-          type="button"
-          onClick={onPrevious}
-          className="hidden sm:inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Previous
-        </button>
-      ) : (
-        <div className="hidden sm:block" />
-      )}
-
-      {/* Right side - Save Draft and Next buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-3 w-full sm:w-auto sm:justify-end">
-        {currentStep > 0 && (
+      {/* Left side - Previous button or Template button (desktop only) */}
+      <div className="order-2 sm:order-1 hidden sm:block">
+        {isFirstStep ? (
+          // Show "Use Previous Campaign as Template" button on first step (desktop only)
           <button
             type="button"
-            disabled={!formData.name?.trim() || isSubmitting || isSavingDraft}
-            className={`w-full sm:w-auto inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium ${
-              !formData.name?.trim()
-                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
-            } dark:border-gray-800 dark:bg-gray-900`}
-            onClick={handleSaveDraft}
+            onClick={onUseTemplate}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-indigo-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-indigo-400 dark:hover:bg-gray-800"
           >
-            {isSavingDraft ? (
-              <span className="flex items-center gap-2">
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                {isEditingDraft ? 'Updating...' : 'Saving...'}
-              </span>
-            ) : (
-              isEditingDraft ? 'Update Draft' : 'Save as Draft'
-            )}
+            <Copy className="h-4 w-4 flex-shrink-0" />
+            <span className="whitespace-normal text-left">Use Previous Campaign as Template</span>
           </button>
-        )}
-
-        {/* Previous button (visible only on mobile) */}
-        {currentStep > 0 && (
+        ) : (
+          // Show Previous button on other steps
           <button
             type="button"
             onClick={onPrevious}
-            className="sm:hidden w-full inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             <ChevronLeft className="h-4 w-4" />
             Previous
           </button>
         )}
-        
-        {currentStep === 0 && (
-          <button
-            type="button"
-            onClick={() => setIsAIModalOpen(true)}
-            disabled={!formData.name?.trim()}
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium ${
-              !formData.name?.trim()
-                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
-            } dark:border-gray-800 dark:bg-gray-900`}
-          >
-            <Sparkles className="h-4 w-4" />
-            Generate Campaign info with AI
-          </button>
+      </div>
+
+      {/* Right side - Next/Save/Submit buttons */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 order-1 sm:order-2 w-full sm:w-auto">
+        {/* Mobile layout for first step */}
+        {isFirstStep && (
+          <>
+            {/* Template button on mobile - no margin bottom */}
+            <div className="sm:hidden w-full">
+              <button
+                type="button"
+                onClick={onUseTemplate}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-indigo-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-indigo-400 dark:hover:bg-gray-800"
+              >
+                <Copy className="h-4 w-4 flex-shrink-0" />
+                <span className="whitespace-normal text-left">Use Previous Campaign as Template</span>
+              </button>
+            </div>
+
+            {/* AI Generate button */}
+            <button
+              type="button"
+              onClick={() => setIsAIModalOpen(true)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50"
+            >
+              <Sparkles className="h-4 w-4 flex-shrink-0" />
+              <span className="whitespace-normal text-left">Generate with AI</span>
+            </button>
+          </>
         )}
 
-        {currentStep < totalSteps - 1 ? (
-          <button
-            type="button"
-            onClick={(e) => onNext(e)}
-            disabled={!canProceed || isSubmitting}
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white ${
-              canProceed ? 'hover:bg-blue-700' : 'opacity-50 cursor-not-allowed'
-            }`}
-          >
-            Next
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        ) : (
-          <button
-            type="submit"
-            disabled={!canProceed || isSubmitting}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? (
-              <span className="flex items-center gap-2">
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Creating...
-              </span>
-            ) : (
-              'Create Campaign'
-            )}
-          </button>
+        {/* Mobile layout for other steps - reordered buttons */}
+        {!isFirstStep && (
+          <>
+            {/* Save Draft button - first on mobile for other steps */}
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isSavingDraft || !formData.name?.trim()}
+              className={`inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 ${
+                (isSavingDraft || !formData.name?.trim()) ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {isSavingDraft ? (
+                <>
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  {isEditingDraft ? 'Update Draft' : 'Save Draft'}
+                </>
+              )}
+            </button>
+
+            {/* Previous button (visible on mobile for steps > 0) */}
+            <button
+              type="button"
+              onClick={onPrevious}
+              className="sm:hidden inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </button>
+          </>
         )}
+
+        {/* Next/Submit button - always last */}
+        <button
+          type={currentStep === totalSteps - 1 ? 'submit' : 'button'}
+          onClick={currentStep < totalSteps - 1 ? onNext : undefined}
+          disabled={isSubmitting || !canProceed}
+          className={`inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600 ${
+            (isSubmitting || !canProceed) ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          {isSubmitting ? (
+            <>
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              {currentStep === totalSteps - 1 ? 'Creating...' : 'Next...'}
+            </>
+          ) : (
+            <>
+              {currentStep === totalSteps - 1 ? 'Create Campaign' : 'Next'}
+              {currentStep < totalSteps - 1 && <ChevronRight className="h-4 w-4" />}
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

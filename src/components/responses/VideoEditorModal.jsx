@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Play, Pause, Scissors, RotateCcw, Clock, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SERVER_URL, auth } from '../../lib/firebase';
+import { useToast } from '../ui/toast-notification';
 
 export function VideoEditorModal({ isOpen, onClose, video, onSave }) {
   // Video playback state
@@ -24,6 +25,7 @@ export function VideoEditorModal({ isOpen, onClose, video, onSave }) {
   const [previewMode, setPreviewMode] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [thumbnails, setThumbnails] = useState([]);
+  const { addToast } = useToast();
   
   // Refs
   const videoRef = useRef(null);
@@ -284,6 +286,9 @@ export function VideoEditorModal({ isOpen, onClose, video, onSave }) {
     setError('');
     setSuccess('');
 
+    // Show toast notification that trimming has started
+    addToast("Trimming video...", "info");
+
     try {
       const idToken = await auth.currentUser.getIdToken();
       
@@ -307,6 +312,7 @@ export function VideoEditorModal({ isOpen, onClose, video, onSave }) {
       }
 
       setSuccess('Video trimmed successfully!');
+      addToast("Video trimmed successfully!", "success");
       setTimeout(() => {
         onSave();
         onClose();
@@ -314,6 +320,7 @@ export function VideoEditorModal({ isOpen, onClose, video, onSave }) {
     } catch (err) {
       console.error('Error updating video:', err);
       setError(err.message || 'Failed to update video. Please try again.');
+      addToast(err.message || 'Failed to update video. Please try again.', "error");
       setIsSaving(false);
     }
   };

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, Video, Clock, X, Wand2, Sparkles, Pencil, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Upload, Video, Clock, X, Wand2, Sparkles, Pencil, Trash2, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { EmptyState } from '../components/ui/empty-state'; 
@@ -7,6 +7,7 @@ import { VideoEditorModal } from '../components/responses/VideoEditorModal';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { TransformModal } from '../components/responses/TransformModal';
+import { useToast } from '../components/ui/toast-notification';
 
 export default function VideoEnhancer() {
   const [activeTab, setActiveTab] = useState('upload');
@@ -15,7 +16,7 @@ export default function VideoEnhancer() {
   const [error, setError] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
   const [videos, setVideos] = useState([]);
-  const [processingId, setProcessingId] = useState(null);
+  const [processingIds, setProcessingIds] = useState(new Set());
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [abortController, setAbortController] = useState(null);
@@ -24,6 +25,7 @@ export default function VideoEnhancer() {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isTransformModalOpen, setIsTransformModalOpen] = useState(false);
+  const { addToast } = useToast();
 
   // Fetch the enhancer videos for the current user
   const fetchVideos = async () => {
@@ -111,6 +113,9 @@ export default function VideoEnhancer() {
       const formData = new FormData();
       formData.append('video', videoFile.file);
 
+      // Show toast notification for upload start
+      addToast('Video upload started. This may take a while...', 'info');
+
       const response = await fetch(`${SERVER_URL}/videoEnhancer/upload`, {
         method: 'POST',
         headers: {
@@ -119,6 +124,11 @@ export default function VideoEnhancer() {
         body: formData,
         signal: controller.signal,
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
 
       // Create a reader to read the response stream
       const reader = response.body.getReader();
@@ -138,6 +148,8 @@ export default function VideoEnhancer() {
       }
 
       setUploadStatus('Upload successful!');
+      // Show toast notification for successful upload
+      addToast('Video uploaded successfully! Processing will continue in the background.', 'success');
       setVideoFile(null);
       setVideoDuration(null);
       setUploadProgress(0);
@@ -146,9 +158,11 @@ export default function VideoEnhancer() {
     } catch (err) {
       if (err.name === 'AbortError') {
         setError('Upload cancelled');
+        addToast('Video upload cancelled', 'info');
       } else {
         console.error('Upload error:', err);
         setError(err.message);
+        addToast(`Upload failed: ${err.message}`, 'error');
       }
     } finally {
       setIsUploading(false);
@@ -160,13 +174,16 @@ export default function VideoEnhancer() {
   const handleCancelUpload = () => {
     if (abortController) {
       abortController.abort();
+      addToast('Upload cancelled', 'info');
     }
   };
 
   // Trigger processing (i.e. enhance) the video via the server which calls Shotstack
   const handleProcess = async (videoId) => {
-    setProcessingId(videoId);
+    // Add this video ID to the set of processing videos
+    setProcessingIds(prev => new Set([...prev, videoId]));
     setError('');
+    
     try {
       const idToken = await auth.currentUser.getIdToken();
       const payload = {
@@ -177,12 +194,20 @@ export default function VideoEnhancer() {
         backgroundMusic: '',       // leave empty to use server default
         outputResolution: '1080x1920'
       };
+      
+      // Show toast notification that processing has started
+      addToast("Video enhancement started. You'll be notified when it's complete.", "info");
+      
       const response = await axios.post(`${SERVER_URL}/videoEnhancer/process`, payload, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json'
         }
       });
+      
+      // Show success toast
+      addToast("Video processing started successfully! It will continue in the background.", "success");
+      
       // Update the video with the processed video URL
       setVideos(prevVideos =>
         prevVideos.map(v => v.id === videoId ? { ...v, processedVideoUrl: response.data.processedVideoUrl } : v)
@@ -190,39 +215,41 @@ export default function VideoEnhancer() {
     } catch (err) {
       console.error('Processing error:', err);
       setError(err.response?.data?.error || err.message);
+      addToast(err.response?.data?.error || err.message || "Failed to process video", "error");
     } finally {
-      setProcessingId(null);
+      // Remove this video ID from the set of processing videos
+      setProcessingIds(prev => {
+        const newSet = new Set([...prev]);
+        newSet.delete(videoId);
+        return newSet;
+      });
     }
   };
 
   const handleDelete = async () => {
     if (!selectedVideo) return;
+    
     setIsDeleting(true);
-    setError('');
-
     try {
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${SERVER_URL}/videoEnhancer/${selectedVideo.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json'
-        }
+        },
       });
-
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete video');
+        throw new Error('Failed to delete video');
       }
-
-      // Remove from local state
-      setVideos(prev => prev.filter(v => v.id !== selectedVideo.id));
+      
+      addToast('Video deleted successfully', 'success');
       setIsDeleteModalOpen(false);
       setSelectedVideo(null);
-    } catch (err) {
-      console.error('Error deleting video:', err);
-      setError(err.message || 'Failed to delete video');
-      setIsDeleteModalOpen(false);
+      fetchVideos();
+    } catch (error) {
+      console.error('Delete error:', error);
+      addToast(`Failed to delete video: ${error.message}`, 'error');
     } finally {
       setIsDeleting(false);
     }
@@ -430,12 +457,18 @@ export default function VideoEnhancer() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedVideo(video);
-                          setIsVideoEditorOpen(true);
+                          handleProcess(video.id);
                         }}
-                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+                        disabled={processingIds.has(video.id)}
+                        className={`rounded-lg p-2 text-blue-500 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors ${
+                          processingIds.has(video.id) ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       >
-                        <Pencil className="h-5 w-5" />
+                        {processingIds.has(video.id) ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <Wand2 className="h-5 w-5" />
+                        )}
                       </button>
                       <button
                         onClick={(e) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Clock, Circle, ChevronDown, Pencil, Trash2, Wand2, Star, Video } from 'lucide-react';
+import { Play, Clock, Circle, ChevronDown, Pencil, Trash2, Wand2, Star, Video, Loader2 } from 'lucide-react';
 import { SERVER_URL, auth } from '../../lib/firebase';
+import { isVideoProcessing } from './TransformModal';
 
 /**
  * Helper: Convert Firestore-like timestamp objects to a JS Date.
@@ -47,15 +48,18 @@ function timeAgo(date) {
   return 'Just now';
 }
 
-export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onTransform, onStarChange }) {
+export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onTransform, onStarChange, processingVideoIds = new Set() }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isStarred, setIsStarred] = useState(response.starred || false);
+  const [isStarred, setIsStarred] = useState(response.isStarred || false);
   const [isStarring, setIsStarring] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [error, setError] = useState(null);
   const errorTimeoutRef = useRef(null);
   const [thumbnailError, setThumbnailError] = useState(false);
 
+  // Check if this video is currently being processed
+  const isProcessing = isVideoProcessing(response.id);
+  
   // Parse the createdAt timestamp and compute the "time ago" string.
   const createdAtDate = parseFirestoreTimestamp(response.createdAt);
   const timeAgoString = createdAtDate ? timeAgo(createdAtDate) : 'Unknown';
@@ -235,14 +239,28 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
           <div className="flex flex-col sm:flex-row gap-2">
             {onTransform && (
               <button
-                className="action-button inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 hover:scale-105 transition-transform w-full sm:w-auto justify-center"
+                className={`action-button inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 hover:scale-105 transition-transform w-full sm:w-auto justify-center ${
+                  isProcessing ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onTransform(response);
+                  if (!isProcessing) {
+                    onTransform(response);
+                  }
                 }}
+                disabled={isProcessing}
               >
-                <Wand2 className="w-4 h-4" />
-                Transform into Polished Short
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-4 h-4" />
+                    Transform into Polished Short
+                  </>
+                )}
               </button>
             )}
             <button

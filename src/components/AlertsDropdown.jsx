@@ -18,7 +18,7 @@ function AlertsDropdown() {
       try {
         setLoading(true);
         const idToken = await auth.currentUser.getIdToken();
-        const response = await fetch(`${SERVER_URL}/api/alerts`, {
+        const response = await fetch(`${SERVER_URL}/alerts`, {
           headers: {
             'Authorization': `Bearer ${idToken}`
           }
@@ -65,7 +65,7 @@ function AlertsDropdown() {
       const idToken = await auth.currentUser.getIdToken();
       // Only make the request if there are unread alerts
       if (unreadCount > 0) {
-        const response = await fetch(`${SERVER_URL}/api/alerts/mark-read`, {
+        const response = await fetch(`${SERVER_URL}/alerts/mark-read`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${idToken}`,

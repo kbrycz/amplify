@@ -17,6 +17,7 @@ import { BasicInfo } from '../components/create-campaign/steps/BasicInfo';
 import { DesignPage } from '../components/create-campaign/steps/DesignPage';
 import { CampaignDetails } from '../components/create-campaign/steps/CampaignDetails';
 import { BusinessInfo } from '../components/create-campaign/steps/BusinessInfo';
+import { CampaignTemplateModal } from '../components/create-campaign/CampaignTemplateModal';
 
 // Theme configuration
 const themes = {
@@ -76,6 +77,7 @@ export default function CreateCampaign() {
   const [previewImage, setPreviewImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [deleteMessage, setDeleteMessage] = useState(null);
   const [drafts, setDrafts] = useState([]);
   const [isLoadingDrafts, setIsLoadingDrafts] = useState(true);
   const [selectedDraftId, setSelectedDraftId] = useState(null);
@@ -109,6 +111,7 @@ export default function CreateCampaign() {
   
   // Track which fields were AI-generated
   const [aiGeneratedFields, setAiGeneratedFields] = useState({});
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
   useEffect(() => {
     fetchDrafts();
@@ -271,7 +274,7 @@ export default function CreateCampaign() {
     if (!draftId) return;
     
     setIsDeletingDraft(true);
-    setError('');
+    setDeleteMessage(null);
 
     try {
       const idToken = await auth.currentUser.getIdToken();
@@ -290,19 +293,17 @@ export default function CreateCampaign() {
       setIsDraftsOpen(false);
       setSelectedDraftId(null);
       
-      setError('Draft deleted successfully!');
-      const alert = document.querySelector('[role="alert"]');
-      if (alert) {
-        alert.classList.add('bg-green-50', 'text-green-700', 'dark:bg-green-900/30', 'dark:text-green-400');
-        const svg = alert.querySelector('svg');
-        if (svg) {
-          svg.classList.add('text-green-600', 'dark:text-green-400');
-        }
-      }
-      setTimeout(() => setError(null), 3000);
+      setDeleteMessage({
+        type: 'success',
+        message: 'Draft deleted successfully!'
+      });
+      setTimeout(() => setDeleteMessage(null), 3000);
     } catch (err) {
       console.error('Error deleting draft:', err);
-      setError(err.message);
+      setDeleteMessage({
+        type: 'error',
+        message: err.message || 'Error deleting draft'
+      });
     } finally {
       setIsDeletingDraft(false);
     }
@@ -639,6 +640,65 @@ export default function CreateCampaign() {
     }
   };
 
+  // New function to handle using a campaign as template
+  const handleUseTemplate = () => {
+    setIsTemplateModalOpen(true);
+  };
+
+  // New function to handle template selection
+  const handleSelectTemplate = (campaignData) => {
+    // Keep the current name (or empty string) but copy everything else
+    const currentName = formData.name;
+    
+    setFormData({
+      name: currentName, // Keep the current name
+      title: campaignData.title || '',
+      description: campaignData.description || '',
+      category: campaignData.category || '',
+      subcategory: campaignData.subcategory || '',
+      businessName: campaignData.businessName || '',
+      website: campaignData.website || '',
+      email: campaignData.email || '',
+      phone: campaignData.phone || ''
+    });
+    
+    // Set theme if available
+    if (campaignData.theme) {
+      setSelectedTheme(campaignData.theme);
+    }
+    
+    // Set custom colors if available
+    if (campaignData.customColors) {
+      setGradientColors(campaignData.customColors.gradientColors || {
+        from: '#1a365d',
+        via: '#3182ce',
+        to: '#2c5282'
+      });
+      setGradientDirection(campaignData.customColors.gradientDirection || 'br');
+      setHexText(campaignData.customColors.textColor || '#ffffff');
+    }
+    
+    // Set campaign image if available
+    if (campaignData.campaignImage) {
+      setPreviewImage(campaignData.campaignImage);
+    }
+    
+    // Set survey questions if available
+    if (campaignData.surveyQuestions && Array.isArray(campaignData.surveyQuestions)) {
+      setSurveyQuestions(campaignData.surveyQuestions.map((question, index) => ({
+        id: index + 1,
+        question
+      })));
+    }
+    
+    // Show success message
+    setError({
+      type: 'success',
+      message: 'Campaign template applied successfully! Please enter a new name for this campaign.'
+    });
+    setTimeout(() => setError(null), 3000);
+  };
+
   return (
     <div className="p-6">
       <div className="space-y-4">
@@ -700,6 +760,24 @@ export default function CreateCampaign() {
             setIsEditingDraft={setIsEditingDraft}
             isDeletingDraft={isDeletingDraft}
           />
+
+          {/* Delete message display */}
+          {deleteMessage && (
+            <div role="alert" className={`mt-2 flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+              deleteMessage.type === 'success'
+                ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-red-50 text-red-700 dark:bg-red-900/50 dark:text-red-400'
+            }`}>
+              {deleteMessage.type === 'success' ? (
+                <svg className="h-4 w-4 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : (
+                <X className="h-4 w-4" />
+              )}
+              {deleteMessage.message}
+            </div>
+          )}
         </div>
 
         <div className={`grid grid-cols-1 ${showPreview ? 'lg:grid-cols-[800px,auto]' : ''} gap-6 items-start ${!showPreview ? 'w-full' : ''}`}>
@@ -796,6 +874,7 @@ export default function CreateCampaign() {
                     formData={formData}
                     surveyQuestions={surveyQuestions}
                     setIsAIModalOpen={setIsAIModalOpen}
+                    onUseTemplate={handleUseTemplate}
                   />
                 </div>
               </form>
@@ -822,11 +901,11 @@ export default function CreateCampaign() {
       
       <LoadingModal
         isOpen={loadingModal.isOpen}
-        onClose={() => setLoadingModal({ isOpen: false, status: 'loading', error: null })}
         status={loadingModal.status}
         error={loadingModal.error}
         campaignId={loadingModal.campaignId}
         campaignName={loadingModal.campaignName}
+        onClose={() => setLoadingModal({ ...loadingModal, isOpen: false })}
       />
 
       <AIModal
@@ -842,6 +921,12 @@ export default function CreateCampaign() {
       <HelpModal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
+      />
+
+      <CampaignTemplateModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onSelectTemplate={handleSelectTemplate}
       />
     </div>
   );

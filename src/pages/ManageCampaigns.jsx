@@ -69,54 +69,11 @@ function timeAgo(date) {
 function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [responseCount, setResponseCount] = useState(0);
-  const [aiVideosCount, setAiVideosCount] = useState(0);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchResponseCount();
-    fetchAiVideosCount();
-  }, [campaign.id]);
-
-  const fetchAiVideosCount = async () => {
-    try {
-      const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/videoProcessor/ai-videos/campaign/${campaign.id}/count`, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch AI videos count');
-      }
-
-      const data = await response.json();
-      setAiVideosCount(data.count);
-    } catch (err) {
-      console.error('Error fetching AI videos count:', err);
-    }
-  };
-
-  const fetchResponseCount = async () => {
-    try {
-      const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/survey/videos/${campaign.id}/count`, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch response count');
-      }
-
-      const data = await response.json();
-      setResponseCount(data.count);
-    } catch (err) {
-      console.error('Error fetching response count:', err);
-    }
-  };
+  // No need to fetch counts separately as they're now included in the campaign object
+  const responseCount = campaign.responsesCount || 0;
+  const aiVideosCount = campaign.aiVideoCount || 0;
 
   const statusColors = {
     Active: "bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20",
@@ -154,7 +111,7 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
         ${!isEditMode ? 'cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50' : ''}
         dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-800/50`}
     >
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 mb-4 sm:mb-0">
         <div className="flex items-center gap-3">
           <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">
             {campaign.name}
@@ -175,7 +132,7 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 w-full sm:w-auto shrink-0 sm:self-center">
+      <div className="flex flex-wrap items-start gap-4 sm:gap-5 md:gap-6 sm:shrink-0 sm:self-center">
         {isEditMode && (
           <div className="flex items-center gap-2 order-first sm:order-last sm:ml-4">
             <button
@@ -199,38 +156,38 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
           </div>
         )}
 
-        <div className="block w-32">
+        <div className="block w-24 sm:w-28">
           <div
             className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
               !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
             } transition-colors`}
           >
-            <Users className="h-4 w-4" />
+            <Users className="h-4 w-4 shrink-0" />
             <NumberTicker value={responseCount} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Responses</div>
         </div>
 
-        <div className="block w-32">
+        <div className="block w-24 sm:w-28">
           <div
             className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
               !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
             } transition-colors`}
           >
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-4 w-4 shrink-0" />
             <NumberTicker value={aiVideosCount} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">AI Videos</div>
         </div>
 
-        <div className="block w-40">
+        <div className="block w-auto">
           <div
             className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
               !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
             } transition-colors`}
           >
-            <Clock className="h-4 w-4" />
-            <span className="tabular-nums font-medium">{lastUpdateStr}</span>
+            <Clock className="h-4 w-4 shrink-0" />
+            <span className="tabular-nums font-medium whitespace-nowrap">{lastUpdateStr}</span>
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Last Update</div>
         </div>

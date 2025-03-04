@@ -60,62 +60,13 @@ export default function CampaignDetails() {
   const [metrics, setMetrics] = useState({
     responses: 0,
     videos: 0,
-    audience: Math.floor(Math.random() * 5000) + 1000,
-    completionRate: Math.floor(Math.random() * 20) + 80,
-    avgResponseTime: Math.floor(Math.random() * 60) + 30
+    audience: 0,
+    avgResponseTime: 0
   });
 
   useEffect(() => {
     fetchCampaignData();
-    fetchVideoCount();
-    fetchAIVideoCount();
   }, [id]);
-
-  const fetchAIVideoCount = async () => {
-    try {
-      const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/videoProcessor/ai-videos/campaign/${id}/count`, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch AI video count');
-      }
-
-      const data = await response.json();
-      setMetrics(prev => ({
-        ...prev,
-        videos: data.count // Set videos count from the count endpoint
-      }));
-    } catch (err) {
-      console.error('Error fetching AI video count:', err);
-    }
-  };
-
-  const fetchVideoCount = async () => {
-    try {
-      const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/survey/videos/${id}/count`, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch video count');
-      }
-
-      const data = await response.json();
-      setMetrics(prev => ({
-        ...prev,
-        responses: data.count // Update responses count with actual video count
-      }));
-    } catch (err) {
-      console.error('Error fetching video count:', err);
-    }
-  };
 
   const fetchCampaignData = async () => {
     try {
@@ -132,6 +83,14 @@ export default function CampaignDetails() {
 
       const data = await response.json();
       setCampaign(data);
+      
+      // Set metrics using the counts included in the campaign data
+      setMetrics({
+        videos: data.aiVideoCount || 0,
+        responses: data.responsesCount || 0,
+        audience: data.audience || Math.floor(Math.random() * 5000) + 1000,
+        avgResponseTime: data.avgResponseTime || Math.floor(Math.random() * 60) + 30
+      });
 
     } catch (err) {
       setError(err.message);

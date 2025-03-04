@@ -7,17 +7,18 @@ import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { ListViewResponse } from '../components/responses/ListViewResponse';
 import { VideoModal } from '../components/responses/VideoModal';
 import { ErrorMessage } from '../components/ui/error-message';
-import { TransformModal } from '../components/responses/TransformModal';
+import { TransformModal, markVideoProcessingComplete } from '../components/responses/TransformModal';
 import { EmptyState } from '../components/ui/empty-state';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { VideoEditorModal } from '../components/responses/VideoEditorModal';
+import { useToast } from '../components/ui/toast-notification';
 
 export default function Responses() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [responses, setResponses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
   const [selectedTestimonial, setSelectedTestimonial] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isVideoEditorOpen, setIsVideoEditorOpen] = useState(false);
@@ -27,6 +28,7 @@ export default function Responses() {
   const [showStarredOnly, setShowStarredOnly] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedResponse, setSelectedResponse] = useState(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     fetchResponses();
@@ -117,6 +119,42 @@ export default function Responses() {
     setIsTransformModalOpen(true);
   };
 
+  // Add a function to handle when a video starts processing
+  const handleVideoProcessingStart = (videoId) => {
+    setIsTransformModalOpen(false);
+    
+    // Find the response object to get the campaign ID if available
+    const response = responses.find(r => r.id === videoId);
+    const campaignId = response?.campaignId;
+    
+    // Simulate processing completion after 30 seconds
+    setTimeout(() => {
+      // Mark the video as no longer processing
+      markVideoProcessingComplete(videoId);
+      
+      // Show success message when processing completes with a button to navigate to AI Videos
+      addToast(
+        <div className="flex flex-col space-y-2">
+          <p>Success! Your enhanced video is now available.</p>
+          <button 
+            onClick={() => {
+              if (campaignId) {
+                navigate(`/app/campaigns/${campaignId}/ai-videos`);
+              } else {
+                navigate('/app/ai-videos');
+              }
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm font-medium mt-2"
+          >
+            View in AI Videos
+          </button>
+        </div>,
+        "success",
+        10000 // Show for 10 seconds to give user time to click
+      );
+    }, 30000); // 30 seconds
+  };
+
   return (
     <div className="p-6">
       <button
@@ -166,12 +204,14 @@ export default function Responses() {
           icon={Star}
         />
       ) : (
-        <div className="mt-8 space-y-4">
-          {filteredResponses.map(response => (
+        <div className="mt-6 grid grid-cols-1 gap-4">
+          {filteredResponses.map((response) => (
             <ListViewResponse
               key={response.id}
               response={response}
-              onVideoClick={(resp) => setSelectedTestimonial(resp)}
+              onVideoClick={(response) => {
+                setSelectedTestimonial(response);
+              }}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onTransform={handleTransform}
@@ -194,6 +234,7 @@ export default function Responses() {
         onClose={() => setIsTransformModalOpen(false)}
         video={selectedResponse}
         endpoint="/videoProcessor/process-video"
+        onProcessingStart={handleVideoProcessingStart}
       />
 
       {/* Video Editor Modal */}
