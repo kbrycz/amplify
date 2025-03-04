@@ -132,9 +132,39 @@ export default function Dashboard() {
       
       const data = await response.json();
       if (data && data.length > 0) {
+        // Fetch response counts and AI video counts for each campaign
+        const campaignsWithCounts = await Promise.all(
+          data.map(async (campaign) => {
+            try {
+              // Fetch response count
+              const responseCountResponse = await fetch(`${SERVER_URL}/survey/videos/${campaign.id}/count`, {
+                headers: {
+                  'Authorization': `Bearer ${idToken}`
+                }
+              }).then(res => res.ok ? res.json() : { count: 0 });
+              
+              // Fetch AI videos count
+              const aiVideosCountResponse = await fetch(`${SERVER_URL}/videoProcessor/ai-videos/campaign/${campaign.id}/count`, {
+                headers: {
+                  'Authorization': `Bearer ${idToken}`
+                }
+              }).then(res => res.ok ? res.json() : { count: 0 });
+              
+              return {
+                ...campaign,
+                responseCount: responseCountResponse.count || 0,
+                aiVideosCount: aiVideosCountResponse.count || 0
+              };
+            } catch (error) {
+              console.warn(`Error fetching counts for campaign ${campaign.id}:`, error);
+              return campaign;
+            }
+          })
+        );
+        
         setMetrics(prev => ({
           ...prev,
-          recentCampaigns: data
+          recentCampaigns: campaignsWithCounts
         }));
       }
     } catch (err) {
@@ -330,30 +360,41 @@ export default function Dashboard() {
                     <div 
                       key={campaign.id}
                       onClick={() => navigate(`/app/campaigns/${campaign.id}`)}
-                      className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors cursor-pointer"
+                      className="group flex flex-col sm:flex-row sm:items-start justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01]"
                     >
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                          {campaign.name || 'Untitled Campaign'}
-                        </h3>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
-                          {campaign.description || 'No description provided'}
-                        </p>
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                            {campaign.name || 'Untitled Campaign'}
+                          </h3>
+                        </div>
+                        
+                        {campaign.title && (
+                          <div className="mt-1.5 flex items-center gap-2 max-w-md">
+                            <span className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-500 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Title</span>
+                            <span className="text-xs text-gray-600 dark:text-gray-400 truncate">{campaign.title}</span>
+                          </div>
+                        )}
+                        
+                        <div className="mt-1.5 flex items-start gap-2">
+                          <span className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-500 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Description</span>
+                          <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{campaign.description || 'No description provided'}</span>
+                        </div>
                         
                         <div className="mt-3 flex flex-wrap gap-4">
-                          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                             <Clock className="h-4 w-4" />
                             <span>{lastUpdateStr}</span>
                           </div>
                           
-                          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                             <Inbox className="h-4 w-4" />
-                            <span>{campaign.responseCount || Math.floor(Math.random() * 20)} responses</span>
+                            <span>{campaign.responseCount || 0} responses</span>
                           </div>
                           
-                          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                             <Video className="h-4 w-4" />
-                            <span>{campaign.videoCount || Math.floor(Math.random() * 10)} videos</span>
+                            <span>{campaign.aiVideosCount || 0} AI videos</span>
                           </div>
                         </div>
                       </div>
