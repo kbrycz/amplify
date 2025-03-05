@@ -120,8 +120,8 @@ export default function CheckoutSuccess() {
           <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
         </div>
 
-        {/* Plan Badge */}
-        {!isLoading && planDetails && (
+        {/* Plan Badge - Only show if verification succeeded */}
+        {!isLoading && planDetails && !error && (
           <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
             ${isPremium 
               ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
@@ -132,16 +132,21 @@ export default function CheckoutSuccess() {
         )}
 
         <h1 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-          Welcome to the Next Level!
+          {error ? 'Payment Received!' : 'Welcome to the Next Level!'}
         </h1>
 
         <p className="mt-3 text-xl text-gray-600 dark:text-gray-300">
-          Thank you for upgrading your Shout subscription.
+          {error 
+            ? "We're processing your subscription upgrade." 
+            : 'Thank you for upgrading your Shout subscription.'}
         </p>
 
         {error && (
-          <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/50 rounded-md">
-            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+          <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-md">
+            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              We've received your payment, but we're still verifying your subscription details. 
+              Your account will be upgraded shortly. You can continue to the dashboard in the meantime.
+            </p>
           </div>
         )}
 
@@ -156,30 +161,43 @@ export default function CheckoutSuccess() {
           </div>
         ) : (
           <div className="mt-8">
-            <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-6 mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                Your New Capabilities
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                {planDetails?.features.map((feature, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 mt-1">{feature.icon}</div>
-                    <p className="text-gray-700 dark:text-gray-300">{feature.text}</p>
+            {/* Only show features section if verification succeeded */}
+            {!error && planDetails && (
+              <>
+                <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-6 mb-8">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    Your New Capabilities
+                  </h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                    {planDetails.features.map((feature, index) => (
+                      <div key={index} className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 mt-1">{feature.icon}</div>
+                        <p className="text-gray-700 dark:text-gray-300">{feature.text}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            <p className="text-gray-600 dark:text-gray-400 mb-8">
-              Your account has been upgraded successfully. You now have access to all the enhanced features 
-              and increased limits of your {isPremium ? 'Premium' : 'Pro'} plan. We're excited to see what you'll create!
-            </p>
+                <p className="text-gray-600 dark:text-gray-400 mb-8">
+                  Your account has been upgraded successfully. You now have access to all the enhanced features 
+                  and increased limits of your {isPremium ? 'Premium' : 'Pro'} plan. We're excited to see what you'll create!
+                </p>
+              </>
+            )}
+
+            {/* Different message for error state */}
+            {error && (
+              <p className="text-gray-600 dark:text-gray-400 mb-8">
+                Your payment has been processed. Our system is currently finalizing your subscription details. 
+                Your account will be updated with all the new features very soon.
+              </p>
+            )}
 
             <button
               onClick={handleContinue}
               className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white 
-                ${isPremium 
+                ${isPremium && !error
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' 
                   : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700'} 
                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 transition-all duration-200`}
