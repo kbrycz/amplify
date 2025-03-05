@@ -121,9 +121,7 @@ export default function Responses() {
   };
 
   // Add a function to handle when a video starts processing
-  const handleVideoProcessingStart = (videoId) => {
-    setIsTransformModalOpen(false);
-    
+  const handleVideoProcessingStart = (videoId, initialToastId = null, aiVideoId = null) => {
     // Add the video ID to the processing set
     setProcessingVideoIds(prev => {
       const newSet = new Set(prev);
@@ -135,30 +133,56 @@ export default function Responses() {
     const response = responses.find(r => r.id === videoId);
     const campaignId = response?.campaignId;
     
-    // Start polling for video processing status
+    // Use the toast ID passed from the TransformModal if available
+    let toastId = initialToastId;
+    
+    // If we don't have an aiVideoId, we can't poll for status
+    if (!aiVideoId) {
+      console.error('No aiVideoId provided for status polling');
+      addToast(
+        "Unable to track video processing status. Please check AI Videos page later.",
+        "warning",
+        10000,
+        toastId
+      );
+      return;
+    }
+    
+    // Set up polling interval
     const pollInterval = 5000; // 5 seconds
     const maxAttempts = 60; // 5 minutes max (60 * 5 seconds)
     let attempts = 0;
-    
-    // Show initial processing toast
-    const toastId = addToast(
-      <div className="flex flex-col space-y-2">
-        <p>Video enhancement in progress...</p>
-        <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-          <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '0%' }}></div>
-        </div>
-      </div>,
-      "info",
-      0 // Don't auto-dismiss
-    );
+    let intervalId = null;
     
     const pollStatus = async () => {
       try {
         attempts++;
         
-        // Call the actual status endpoint to check processing status
+        if (attempts > maxAttempts) {
+          // If we've exceeded the maximum number of attempts, show an error
+          addToast(
+            "Video processing is taking longer than expected. Please check back later.",
+            "info",
+            10000,
+            toastId
+          );
+          
+          // Remove from processing set after max attempts
+          markVideoProcessingComplete(videoId);
+          setProcessingVideoIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(videoId);
+            return newSet;
+          });
+          
+          // Clear the interval
+          if (intervalId) clearInterval(intervalId);
+          return;
+        }
+        
+        // Call the status endpoint with the aiVideoId
         const idToken = await auth.currentUser.getIdToken();
-        const response = await fetch(`${SERVER_URL}/videoProcessor/status/${videoId}`, {
+        const response = await fetch(`${SERVER_URL}/videoProcessor/status/job/${aiVideoId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${idToken}`,
@@ -173,28 +197,11 @@ export default function Responses() {
         const result = await response.json();
         console.log('Video processing status:', result);
         
-        // Update progress toast if we have progress information
-        if (result.status === 'processing' && result.progress) {
-          const progressPercent = Math.min(Math.round(result.progress * 100), 99);
-          
-          // Update the toast with progress
-          addToast(
-            <div className="flex flex-col space-y-2">
-              <p>Video enhancement in progress: {progressPercent}%</p>
-              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${progressPercent}%` }}></div>
-              </div>
-            </div>,
-            "info",
-            0, // Don't auto-dismiss
-            toastId // Replace the existing toast
-          );
-          
-          // Continue polling if still processing
-          setTimeout(pollStatus, pollInterval);
-        }
         // If processing is complete
-        else if (result.status === 'completed') {
+        if (result.status === 'completed') {
+          // Clear the interval
+          if (intervalId) clearInterval(intervalId);
+          
           // Mark the video as no longer processing
           markVideoProcessingComplete(videoId);
           setProcessingVideoIds(prev => {
@@ -224,9 +231,15 @@ export default function Responses() {
             15000, // Show for 15 seconds to give user time to click
             toastId // Replace the existing toast
           );
+          
+          // Refresh the responses list to show updated data
+          fetchResponses();
         } 
         // If processing failed
         else if (result.status === 'failed') {
+          // Clear the interval
+          if (intervalId) clearInterval(intervalId);
+          
           // Mark the video as no longer processing
           markVideoProcessingComplete(videoId);
           setProcessingVideoIds(prev => {
@@ -237,43 +250,21 @@ export default function Responses() {
           
           // Show error message
           addToast(
-            `Video enhancement failed: ${result.error || 'Unknown error'}`, 
+            `Video enhancement failed: ${result.error || 'Unknown error'}`,
             "error",
             10000,
             toastId // Replace the existing toast
           );
         }
-        // If status is unknown or any other status
-        else {
-          // If we've reached max attempts but the video is still not complete
-          if (attempts >= maxAttempts) {
-            // Mark the video as no longer processing in our UI, but don't stop the actual processing
-            markVideoProcessingComplete(videoId);
-            setProcessingVideoIds(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(videoId);
-              return newSet;
-            });
-            
-            // Show a message indicating that processing is taking longer than expected
-            addToast(
-              "Video processing is taking longer than expected. Please check the AI Videos page later.", 
-              "info",
-              10000,
-              toastId // Replace the existing toast
-            );
-          } else {
-            // Continue polling
-            setTimeout(pollStatus, pollInterval);
-          }
-        }
+        // If still processing, just continue polling
       } catch (error) {
-        console.error('Error checking video processing status:', error);
+        console.error('Error polling video status:', error);
         
-        // Continue polling despite error
-        if (attempts < maxAttempts) {
-          setTimeout(pollStatus, pollInterval);
-        } else {
+        // Show error toast but continue polling if we haven't reached max attempts
+        if (attempts >= maxAttempts) {
+          // Clear the interval
+          if (intervalId) clearInterval(intervalId);
+          
           // Mark the video as no longer processing after max attempts
           markVideoProcessingComplete(videoId);
           setProcessingVideoIds(prev => {
@@ -284,17 +275,23 @@ export default function Responses() {
           
           // Show error message
           addToast(
-            "Unable to determine video processing status. Please check the AI Videos page later.", 
-            "warning",
+            `Error checking video status: ${error.message}`,
+            "error",
             10000,
-            toastId // Replace the existing toast
+            toastId
           );
         }
       }
     };
     
-    // Start polling immediately
+    // Start polling immediately and then at regular intervals
     pollStatus();
+    intervalId = setInterval(pollStatus, pollInterval);
+    
+    // Clean up interval on component unmount
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   };
 
   return (

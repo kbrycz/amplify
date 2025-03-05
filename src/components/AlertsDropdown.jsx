@@ -1,8 +1,9 @@
 // AlertsDropdown.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, CheckCircle } from 'lucide-react';
+import { Bell, CheckCircle, ChevronDown } from 'lucide-react';
 import { Dropdown } from './ui/Dropdown';
-import { get, post } from '../lib/api';
+import { get } from '../lib/api';
+import { SERVER_URL, auth } from '../lib/firebase';
 
 function AlertsDropdown() {
   const [alerts, setAlerts] = useState([]);
@@ -11,6 +12,8 @@ function AlertsDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const notificationButtonRef = useRef(null);
+  const [isMarkingRead, setIsMarkingRead] = useState(false);
+  const [showAllAlerts, setShowAllAlerts] = useState(false);
 
   useEffect(() => {
     async function fetchAlerts() {
@@ -49,9 +52,41 @@ function AlertsDropdown() {
     fetchAlerts();
   }, []);
 
+  // Reset showAllAlerts when dropdown is closed
+  useEffect(() => {
+    if (!isOpen) {
+      setShowAllAlerts(false);
+    }
+  }, [isOpen]);
+
+  // Mark all alerts as read when dropdown is opened
+  useEffect(() => {
+    if (isOpen && unreadCount > 0 && !isMarkingRead) {
+      markAllAsRead();
+    }
+  }, [isOpen, unreadCount]);
+
   const markAllAsRead = async () => {
+    if (isMarkingRead || unreadCount === 0) return;
+    
+    setIsMarkingRead(true);
     try {
-      await post('/alerts/mark-all-read', {});
+      // Get the authentication token
+      const idToken = await auth.currentUser.getIdToken();
+      
+      // Make the direct fetch call with PATCH method instead of POST
+      const response = await fetch(`${SERVER_URL}/alerts/mark-read`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to mark alerts as read: ${response.status}`);
+      }
       
       // Update local state
       const updatedAlerts = alerts.map(alert => ({
@@ -63,6 +98,8 @@ function AlertsDropdown() {
       setUnreadCount(0);
     } catch (err) {
       console.error('Error marking alerts as read:', err);
+    } finally {
+      setIsMarkingRead(false);
     }
   };
 
@@ -74,6 +111,14 @@ function AlertsDropdown() {
   const toggleOpen = () => {
     setIsOpen(prev => !prev);
   };
+
+  const toggleShowAllAlerts = () => {
+    setShowAllAlerts(prev => !prev);
+  };
+
+  // Determine which alerts to display
+  const displayedAlerts = showAllAlerts ? alerts : alerts.slice(0, 5);
+  const hasMoreAlerts = alerts.length > 5;
 
   return (
     <div className="relative">
@@ -101,17 +146,9 @@ function AlertsDropdown() {
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
           <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              Mark all as read
-            </button>
-          )}
         </div>
 
-        <div className="divide-y divide-gray-200 dark:divide-gray-800">
+        <div className="divide-y divide-gray-200 dark:divide-gray-800 max-h-[60vh] overflow-y-auto">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-6 text-center">
               <div className="rounded-full bg-gray-100 p-3 dark:bg-gray-800">
@@ -137,28 +174,49 @@ function AlertsDropdown() {
               </p>
             </div>
           ) : alerts.length > 0 ? (
-            alerts.map((alert) => (
-              <button
-                key={alert.id}
-                onClick={() => handleAlertClick(alert)}
-                className="flex items-start gap-4 w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-              >
-                <div className={`rounded-full p-2 ${alert.color || 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50'}`}>
-                  <CheckCircle className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {alert.title}
-                  </p>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                    {alert.message}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                    {alert.time || 'Just now'}
-                  </p>
-                </div>
-              </button>
-            ))
+            <>
+              {displayedAlerts.map((alert) => (
+                <button
+                  key={alert.id}
+                  onClick={() => handleAlertClick(alert)}
+                  className="flex items-start gap-4 w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                >
+                  <div className={`rounded-full p-2 ${alert.color || 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50'}`}>
+                    <CheckCircle className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {alert.title}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                      {alert.message}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                      {alert.time || 'Just now'}
+                    </p>
+                  </div>
+                </button>
+              ))}
+              
+              {hasMoreAlerts && (
+                <button
+                  onClick={toggleShowAllAlerts}
+                  className="flex items-center justify-center w-full p-3 text-sm font-medium text-blue-600 hover:bg-gray-50 dark:text-blue-400 dark:hover:bg-gray-800/50 transition-colors"
+                >
+                  {showAllAlerts ? (
+                    <>
+                      Show less
+                      <ChevronDown className="w-4 h-4 ml-1 transform rotate-180" />
+                    </>
+                  ) : (
+                    <>
+                      View {alerts.length - 5} more
+                      <ChevronDown className="w-4 h-4 ml-1" />
+                    </>
+                  )}
+                </button>
+              )}
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center p-8 text-center">
               <div className="rounded-full bg-gray-100 p-3 dark:bg-gray-800">

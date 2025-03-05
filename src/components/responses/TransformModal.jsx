@@ -102,13 +102,15 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
       processingVideos.add(video.id);
     }
     
-    // Call onProcessingStart if provided
-    if (onProcessingStart && video.id) {
-      onProcessingStart(video.id);
-    }
-    
     // Close the modal immediately
     onClose();
+    
+    // Show a simple loading toast without progress bar
+    const toastId = addToast(
+      "Video enhancement in progress. This may take a few minutes...",
+      "info",
+      0 // Don't auto-dismiss
+    );
 
     try {
       const idToken = await auth.currentUser.getIdToken();
@@ -118,7 +120,7 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
         // Handle new video uploads
         if (!video.file) {
           console.error('Video file is required for upload');
-          addToast("Video file is required for upload", "error");
+          addToast("Video file is required for upload", "error", 10000, toastId);
           setIsProcessing(false);
           return;
         }
@@ -140,16 +142,24 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || 'Failed to process video');
         }
 
-        // Don't show success message here - let the polling mechanism handle it
+        // Get the aiVideoId from the response
+        const responseData = await response.json().catch(() => ({}));
+        const aiVideoId = responseData.aiVideoId;
+        
+        // Call onProcessingStart if provided, passing the aiVideoId and toastId
+        if (onProcessingStart && aiVideoId) {
+          onProcessingStart(video.id, toastId, aiVideoId);
+        }
       } else {
-        // Handle processing existing videos (e.g., /video-enhancer/process or /process-video)
+        // Handle processing existing videos
         if (!video.id) {
           console.error('Video ID is required for processing');
           setIsProcessing(false);
+          addToast("Video ID is required for processing", "error", 10000, toastId);
           return;
         }
         
@@ -162,8 +172,11 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
           outputResolution,
         };
 
+        // Ensure we're using the correct endpoint
+        const apiEndpoint = endpoint || '/videoProcessor/process-video';
+
         // Wait for the initial response from the server
-        const response = await fetch(`${SERVER_URL}${endpoint}`, {
+        const response = await fetch(`${SERVER_URL}${apiEndpoint}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${idToken}`,
@@ -173,16 +186,30 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || 'Failed to process video');
         }
 
-        // Don't show success message here - let the polling mechanism handle it
+        // Get the aiVideoId from the response
+        const responseData = await response.json().catch(() => ({}));
+        console.log('Video processing initiated:', responseData);
+        const aiVideoId = responseData.aiVideoId;
+        
+        // Call onProcessingStart if provided, passing the aiVideoId and toastId
+        if (onProcessingStart && video.id) {
+          onProcessingStart(video.id, toastId, aiVideoId);
+        }
       }
     } catch (err) {
       console.error('Error processing video:', err);
       setError(err.message || 'Failed to process video');
-      addToast(err.message || 'Failed to process video', "error");
+      addToast(err.message || 'Failed to process video', "error", 10000, toastId);
+      
+      // Remove from processing set if there's an error
+      if (video.id) {
+        processingVideos.delete(video.id);
+      }
+      
       setIsProcessing(false);
     }
   };

@@ -10,6 +10,7 @@ import { VideoEditorModal } from '../components/responses/VideoEditorModal';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { EmptyState } from '../components/ui/empty-state';
 import { ErrorMessage } from '../components/ui/error-message';
+import { useToast } from '../components/ui/toast-notification';
 
 export default function AIVideos() {
   const { id } = useParams();
@@ -21,6 +22,8 @@ export default function AIVideos() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedForAction, setSelectedForAction] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { addToast } = useToast();
 
   useEffect(() => {
     fetchAIVideos();
@@ -62,6 +65,43 @@ export default function AIVideos() {
   const handleDelete = (video) => {
     setSelectedForAction(video);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedForAction) return;
+    
+    setIsDeleting(true);
+    
+    // Close the modal immediately
+    setIsDeleteModalOpen(false);
+    
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(`${SERVER_URL}/videoProcessor/ai-videos/${selectedForAction.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete AI video');
+      }
+
+      // Remove the deleted video from the state
+      setAiVideos(prev => prev.filter(video => video.id !== selectedForAction.id));
+      
+      // Show success toast
+      addToast("AI video deleted successfully", "success", 3000);
+    } catch (err) {
+      console.error('Error deleting AI video:', err);
+      
+      // Show error toast
+      addToast(`Failed to delete AI video: ${err.message}`, "error", 5000);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -128,12 +168,11 @@ export default function AIVideos() {
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={async () => {
-          // TODO: Implement delete functionality
-          setIsDeleteModalOpen(false);
-        }}
+        onConfirm={handleDeleteConfirm}
         title="Delete AI Video"
         message="Are you sure you want to delete this AI-generated video? This action cannot be undone."
+        isLoading={isDeleting}
+        simpleConfirm={true}
       />
 
       {/* Edit Modal */}

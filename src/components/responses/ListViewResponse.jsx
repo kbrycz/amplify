@@ -239,8 +239,10 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
           <div className="flex flex-col sm:flex-row gap-2">
             {onTransform && (
               <button
-                className={`action-button inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 hover:scale-105 transition-transform w-full sm:w-auto justify-center ${
-                  isProcessing ? 'opacity-50 cursor-not-allowed' : ''
+                className={`action-button inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium w-full sm:w-auto justify-center transition-all ${
+                  isProcessing 
+                    ? 'bg-gray-400 text-white cursor-not-allowed opacity-80' 
+                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105'
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -249,11 +251,12 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
                   }
                 }}
                 disabled={isProcessing}
+                title={isProcessing ? "This video is currently being processed. Please wait for it to complete." : "Transform this video into a polished short with AI"}
               >
                 {isProcessing ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Processing...
+                    Processing Video...
                   </>
                 ) : (
                   <>
