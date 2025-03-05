@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
-import { Plus, Users, Clock, Trash2, Pencil, X, Video, Sparkles, BarChart3 } from 'lucide-react';
+import { Plus, Users, Clock, Trash2, Pencil, X, Video, Sparkles, BarChart3, ChevronRight } from 'lucide-react';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { EditCampaignModal } from '../components/ui/edit-campaign-modal';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
@@ -107,108 +107,171 @@ function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
   return (
     <div 
       onClick={() => !isEditMode && navigate(`/app/campaigns/${campaign.id}`)}
-      className={`group relative flex flex-col sm:flex-row items-start gap-4 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-300 ease-in-out
+      className={`group relative rounded-lg border border-gray-200 bg-white transition-all duration-300 ease-in-out
         ${!isEditMode ? 'cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50' : ''}
         dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-800/50`}
     >
-      <div className="flex-1 min-w-0 mb-4 sm:mb-0">
-        <div className="flex items-center gap-3">
-          <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">
-            {campaign.name}
-          </h3>
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[campaign.status]}`}>
-            {campaign.status}
-          </span>
-        </div>
-        {campaign.title && (
-          <div className="mt-1 flex items-center gap-2 max-w-md">
-            <span className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-500 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Title</span>
-            <span className="text-xs text-gray-600 dark:text-gray-400 truncate">{campaign.title}</span>
+      {/* Table-like layout with consistent columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr,1fr,1fr,auto] gap-4 p-4 pb-3 lg:pb-4">
+        {/* Campaign info - always full width on mobile, 2fr on desktop */}
+        <div className="self-center">
+          <div className="flex items-center flex-wrap gap-2">
+            <h3 className="text-base font-medium text-gray-900 dark:text-white truncate max-w-[250px]">
+              {campaign.name}
+            </h3>
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[campaign.status]}`}>
+              {campaign.status}
+            </span>
           </div>
-        )}
-        <div className="mt-1.5 flex items-start gap-2">
-          <span className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-500 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Description</span>
-          <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{campaign.description || 'No description provided'}</span>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-start gap-4 sm:gap-5 md:gap-6 sm:shrink-0 sm:self-center">
-        {isEditMode && (
-          <div className="flex items-center gap-2 order-first sm:order-last sm:ml-4">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditModalOpen(true);
-              }}
-              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600"
-            >
-              <Pencil className="h-5 w-5" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDeleteModalOpen(true);
-              }}
-              className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 dark:focus:ring-red-600"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+          
+          {campaign.title && (
+            <div className="mt-1.5 flex items-center gap-2 max-w-md">
+              <span className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-500 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Title</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400 truncate">{campaign.title}</span>
+            </div>
+          )}
+          
+          <div className="mt-1.5 mb-1 flex items-start gap-2">
+            <span className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-500 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Description</span>
+            <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{campaign.description || 'No description provided'}</span>
           </div>
-        )}
+        </div>
 
-        <div className="block w-24 sm:w-28">
-          <div
-            className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
-              !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
-            } transition-colors`}
-          >
+        {/* Stats section - hidden on mobile, shown as columns on desktop */}
+        <div className="hidden lg:flex flex-col justify-center">
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
+            !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
+          } transition-colors`}>
             <Users className="h-4 w-4 shrink-0" />
             <NumberTicker value={responseCount} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Responses</div>
         </div>
 
-        <div className="block w-24 sm:w-28">
-          <div
-            className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
-              !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
-            } transition-colors`}
-          >
+        <div className="hidden lg:flex flex-col justify-center">
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
+            !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
+          } transition-colors`}>
             <Sparkles className="h-4 w-4 shrink-0" />
             <NumberTicker value={aiVideosCount} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">AI Videos</div>
         </div>
 
-        <div className="block w-auto">
-          <div
-            className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
-              !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
-            } transition-colors`}
-          >
+        <div className="hidden lg:flex flex-col justify-center">
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
+            !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
+          } transition-colors`}>
             <Clock className="h-4 w-4 shrink-0" />
-            <span className="tabular-nums font-medium whitespace-nowrap">{lastUpdateStr}</span>
+            <span className="tabular-nums font-medium">{lastUpdateStr}</span>
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Last Update</div>
         </div>
 
-        <ConfirmationModal
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={handleDelete}
-          title="Delete Campaign"
-          message={`Are you sure you want to delete "${campaign.name}"? This action cannot be undone and will permanently remove all associated data.`}
-          confirmText="delete campaign"
-          confirmButtonText="Delete Campaign"
-        />
-
-        <EditCampaignModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          campaign={campaign}
-          onSave={handleSave}
-        />
+        {/* Actions column - right aligned, only visible on desktop */}
+        <div className="hidden lg:flex items-center justify-end self-center">
+          {isEditMode ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditModalOpen(true);
+                }}
+                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600"
+              >
+                <Pencil className="h-5 w-5" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleteModalOpen(true);
+                }}
+                className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 dark:focus:ring-red-600"
+              >
+                <Trash2 className="h-5 w-5" />
+              </button>
+            </div>
+          ) : (
+            <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 dark:text-gray-600 dark:group-hover:text-indigo-400" />
+          )}
+        </div>
       </div>
+
+      {/* Mobile stats section - only visible on mobile/tablet */}
+      <div className="lg:hidden grid grid-cols-3 gap-4 px-4 pb-4 border-t border-gray-100 dark:border-gray-800 pt-3">
+        {/* Edit/Delete buttons for mobile - only in edit mode */}
+        {isEditMode && (
+          <div className="col-span-3 flex justify-end mb-1">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditModalOpen(true);
+                }}
+                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600"
+              >
+                <Pencil className="h-5 w-5" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleteModalOpen(true);
+                }}
+                className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 dark:focus:ring-red-600"
+              >
+                <Trash2 className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-col items-center">
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
+            !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
+          } transition-colors`}>
+            <Users className="h-4 w-4 shrink-0" />
+            <NumberTicker value={responseCount} className="font-medium" />
+          </div>
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Responses</div>
+        </div>
+
+        <div className="flex flex-col items-center">
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
+            !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
+          } transition-colors`}>
+            <Sparkles className="h-4 w-4 shrink-0" />
+            <NumberTicker value={aiVideosCount} className="font-medium" />
+          </div>
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">AI Videos</div>
+        </div>
+
+        <div className="flex flex-col items-center">
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${
+            !isEditMode ? 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400' : ''
+          } transition-colors`}>
+            <Clock className="h-4 w-4 shrink-0" />
+            <span className="tabular-nums font-medium">{lastUpdateStr}</span>
+          </div>
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Last Update</div>
+        </div>
+      </div>
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Campaign"
+        message={`Are you sure you want to delete "${campaign.name}"? This action cannot be undone and will permanently remove all associated data.`}
+        confirmText="delete campaign"
+        confirmButtonText="Delete Campaign"
+      />
+
+      <EditCampaignModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        campaign={campaign}
+        onSave={handleSave}
+      />
     </div>
   );
 }

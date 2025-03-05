@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { auth } from '../lib/firebase';
 import { ScaleIn } from '../components/ui/scale-in';
 import {
   Inbox,
@@ -20,11 +21,11 @@ import {
   Pencil,
   Calendar
 } from 'lucide-react';
-import { SERVER_URL, auth } from '../lib/firebase';
 import { MetricCard } from '../components/ui/metric-card';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { RecentCampaignSkeleton, MetricCardSkeleton } from '../components/ui/skeleton';
 import RecentActivity from '../components/RecentActivity';
+import { get } from '../lib/api';
 
 // Mock data for charts (if needed)
 const responseData = [
@@ -98,7 +99,7 @@ function timeAgo(date) {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, fetchUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [metrics, setMetrics] = useState({
     recentCampaigns: [],
@@ -111,26 +112,23 @@ export default function Dashboard() {
     waiting: 0
   });
 
+  // Add a function to refresh user data
+  const refreshUserData = async () => {
+    try {
+      if (auth.currentUser) {
+        await fetchUserProfile(auth.currentUser);
+        console.log('User profile refreshed on dashboard mount');
+      }
+    } catch (err) {
+      console.error('Error refreshing user profile:', err);
+    }
+  };
+
   const fetchRecentCampaigns = async () => {
     try {
       setIsLoading(true);
-      const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/campaign/campaigns/recent`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
+      const data = await get('/campaign/campaigns/recent');
       
-      if (!response.ok) {
-        if (response.status === 404) {
-          // No campaigns yet, this is normal for new users
-          return;
-        }
-        throw new Error(`Failed to fetch recent campaigns: ${response.status}`);
-      }
-      
-      const data = await response.json();
       if (data && data.length > 0) {
         // Counts are now included in the campaign data from the API
         const campaignsWithCounts = data.map(campaign => ({
@@ -145,15 +143,16 @@ export default function Dashboard() {
         }));
       }
     } catch (err) {
-      if (!err.message.includes('404')) {
-        console.warn('Campaign fetch warning:', err.message);
-      }
+      console.warn('Campaign fetch warning:', err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    // Refresh user data when component mounts
+    refreshUserData();
+    
     // Simulate loading metrics with random values
     setMetrics(prev => ({
       ...prev,
@@ -171,18 +170,7 @@ export default function Dashboard() {
 
   const fetchDraftCount = async () => {
     try {
-      const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts/count`, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch draft count');
-      }
-      
-      const data = await response.json();
+      const data = await get('/draftCampaign/drafts/count');
       setMetrics(prev => ({
         ...prev,
         drafts: data.count
@@ -194,18 +182,7 @@ export default function Dashboard() {
 
   const fetchCampaignCount = async () => {
     try {
-      const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/campaign/campaigns/count`, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch campaign count');
-      }
-      
-      const data = await response.json();
+      const data = await get('/campaign/campaigns/count');
       setMetrics(prev => ({
         ...prev,
         campaigns: data.count

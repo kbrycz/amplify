@@ -11,13 +11,32 @@ export function useToast() {
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
-  const addToast = (message, type = 'success', duration = 5000) => {
+  const addToast = (message, type = 'success', duration = 5000, toastId = null) => {
+    // If toastId is provided, replace that toast instead of adding a new one
+    if (toastId !== null) {
+      setToasts(prev => prev.map(toast => 
+        toast.id === toastId 
+          ? { ...toast, message, type, duration } 
+          : toast
+      ));
+      
+      // Reset the auto-remove timeout if duration is provided
+      if (duration > 0) {
+        setTimeout(() => {
+          removeToast(toastId);
+        }, duration);
+      }
+      
+      return toastId;
+    }
+    
+    // Otherwise, create a new toast
     const id = Date.now();
     const newToast = { id, message, type, duration };
     setToasts(prev => [...prev, newToast]);
     
-    // Auto-remove toast after duration
-    if (duration !== Infinity) {
+    // Auto-remove toast after duration if duration is not 0
+    if (duration > 0) {
       setTimeout(() => {
         removeToast(id);
       }, duration);
@@ -110,7 +129,9 @@ function Toast({ toast, onClose }) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-gray-900 dark:text-white">{style.title}</p>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{message}</p>
+        <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+          {typeof message === 'string' ? message : message}
+        </div>
       </div>
       <button 
         onClick={onClose}

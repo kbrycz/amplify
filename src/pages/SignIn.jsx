@@ -33,7 +33,6 @@ function useDarkMode() {
 }
 
 export default function SignIn() {
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -41,19 +40,16 @@ export default function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
-
     const formData = new FormData(e.target);
     const email = formData.get('email');
     const password = formData.get('password');
 
     try {
       await signIn(email, password);
-      navigate('/');
+      navigate('/app/dashboard', { replace: true });
     } catch (err) {
       setError(err.message.includes('Firebase') ? 'Invalid email or password' : err.message);
-      setIsLoading(false);
     }
   };
 
@@ -62,6 +58,7 @@ export default function SignIn() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       await signInWithGoogle(result);
+      navigate('/app/dashboard', { replace: true });
     } catch (err) {
       setError(err.message);
     }
@@ -198,34 +195,29 @@ export default function SignIn() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                Sign in
               </button>
             </div>
           </form>
 
           <div>
-            <div className="relative mt-10">
-              <div aria-hidden="true" className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+            <div className="relative mt-6">
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t border-gray-300 dark:border-gray-700" />
               </div>
-              <div className="relative flex justify-center text-sm/6 font-medium">
+              <div className="relative flex justify-center text-sm font-medium leading-6">
                 <span className="bg-white dark:bg-gray-800 px-6 text-gray-900 dark:text-white">Or continue with</span>
               </div>
             </div>
 
             <div className="mt-6">
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleGoogleSignIn();
-                }}
-                className="flex w-full items-center justify-center gap-3 rounded-md bg-white dark:bg-gray-900 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:ring-transparent"
+              <button
+                onClick={handleGoogleSignIn}
+                className="flex w-full items-center justify-center gap-3 rounded-md bg-white dark:bg-gray-800 px-3 py-1.5 text-sm font-semibold text-gray-900 dark:text-white outline outline-1 -outline-offset-1 outline-gray-300 dark:outline-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D9BF0]"
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+                <svg className="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24">
                   <path
                     d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z"
                     fill="#EA4335"
@@ -243,8 +235,8 @@ export default function SignIn() {
                     fill="#34A853"
                   />
                 </svg>
-                <span className="text-sm/6 font-semibold">Google</span>
-              </a>
+                <span className="text-sm font-semibold leading-6">Google</span>
+              </button>
             </div>
           </div>
         </div>
@@ -256,7 +248,7 @@ export default function SignIn() {
           </Link>
         </p>
         <p className="mx-auto mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
-          &copy; 2025 Shout. All rights reserved.
+          © 2025 Shout. All rights reserved.
         </p>
 
         <div

@@ -1,6 +1,6 @@
 // src/components/RecentActivity.jsx
 import React, { useState, useEffect } from 'react';
-import { SERVER_URL, auth } from '../lib/firebase';
+import { get } from '../lib/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
 import { Star, ChevronDown, ChevronUp } from 'lucide-react'; 
 import { RecentActivitySkeleton } from './ui/skeleton';
@@ -15,17 +15,8 @@ export default function RecentActivity() {
   useEffect(() => {
     async function fetchActivities() {
       try {
-        const idToken = await auth.currentUser.getIdToken();
-        const response = await fetch(`${SERVER_URL}/activity`, {
-          headers: {
-            'Authorization': `Bearer ${idToken}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch recent activity');
-        }
-        const data = await response.json();
-        setActivities(data);
+        const data = await get('/activity');
+        setActivities(data || []);
       } catch (err) {
         console.error('Error fetching recent activity:', err);
         setError(err.message);

@@ -1,11 +1,10 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet, useNavigationType } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet, useNavigationType, useNavigate } from 'react-router-dom';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './components/ui/toast-notification';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
-import { LoadingScreen } from './components/ui/loading-screen';
 import { CookieConsent } from './components/ui/cookie-consent';
 import SignUp from './pages/SignUp';
 import About from './pages/About';
@@ -26,25 +25,28 @@ import Responses from './pages/Responses';
 import AIVideos from './pages/AIVideos';
 import VideoEnhancer from './pages/VideoEnhancer';
 import CampaignSettings from './pages/CampaignSettings';
-import { LoadingScreen as AppLoadingScreen } from './components/ui/loading-screen';
+import PricingPage from './pages/PricingPage';
+import CheckoutSuccess from './pages/CheckoutSuccess';
+import CheckoutCancel from './pages/CheckoutCancel';
 
 function ScrollToTop() {
   const location = useLocation();
   const navigationType = useNavigationType();
 
   React.useEffect(() => {
-    // Only scroll to top on PUSH navigation (not on browser back/forward)
     if (navigationType === 'PUSH') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [location.pathname, navigationType]);
+  }, [location, navigationType]);
 
   return null;
 }
 
 function RequireAuth({ children }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
+
+  if (loading) return null;
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
@@ -54,17 +56,23 @@ function RequireAuth({ children }) {
 }
 
 function RequireUnauth({ children }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
 
+  if (loading) return null;
+
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/pricing" replace />; // Redirect to pricing instead of root
   }
 
   return children;
 }
 
 function AppLayout() {
+  const location = useLocation();
+  if (location.pathname === '/pricing') {
+    return <Outlet />;
+  }
   return (
     <SidebarProvider>
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -83,12 +91,26 @@ function AppLayout() {
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Show loading screen during initial auth check
-  if (loading) return <LoadingScreen />;
+  if (loading || isRedirecting) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent dark:border-indigo-400 dark:border-r-transparent" role="status">
+            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+          </div>
+          <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">Loading your experience...</p>
+        </div>
+      </div>
+    );
+  }
 
-  if (user) {
-    return <Navigate to="/app" replace />;
+  // Redirect authenticated users to /pricing instead of /app/dashboard
+  if (user && location.pathname === '/') {
+    return <Navigate to="/pricing" replace />;
   }
 
   return <Landing />;
@@ -98,35 +120,21 @@ function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <LoadingScreen />
         <BrowserRouter>
           <ScrollToTop />
           <CookieConsent />
           <Routes>
-            {/* Public routes */}
             <Route path="/survey/:id" element={<Survey />} />
             <Route path="/" element={<AppContent />} />
             <Route path="/about" element={<About />} />
-            <Route
-              path="/login"
-              element={
-                <RequireUnauth>
-                  <SignIn />
-                </RequireUnauth>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <RequireUnauth>
-                  <SignUp />
-                </RequireUnauth>
-              }
-            />
-            
-            {/* Protected routes */}
+            <Route path="/login" element={<RequireUnauth><SignIn /></RequireUnauth>} />
+            <Route path="/signup" element={<RequireUnauth><SignUp /></RequireUnauth>} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/success" element={<RequireAuth><CheckoutSuccess /></RequireAuth>} />
+            <Route path="/cancel" element={<RequireAuth><CheckoutCancel /></RequireAuth>} />
             <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
               <Route index element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
               <Route path="campaigns/new" element={<CreateCampaign />} />
               <Route path="campaigns/:id/ai-videos" element={<AIVideos />} />
               <Route path="campaigns/:id/responses" element={<Responses />} />
@@ -139,6 +147,7 @@ function App() {
               <Route path="account" element={<Account />} />
               <Route path="settings" element={<Settings />} />
               <Route path="support" element={<Support />} />
+              <Route path="pricing" element={<PricingPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

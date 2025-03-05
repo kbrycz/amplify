@@ -58,7 +58,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
   const [thumbnailError, setThumbnailError] = useState(false);
 
   // Check if this video is currently being processed
-  const isProcessing = isVideoProcessing(response.id);
+  const isProcessing = processingVideoIds.has(response.id);
   
   // Parse the createdAt timestamp and compute the "time ago" string.
   const createdAtDate = parseFirestoreTimestamp(response.createdAt);

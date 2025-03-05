@@ -29,6 +29,7 @@ export default function Responses() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedResponse, setSelectedResponse] = useState(null);
   const { addToast } = useToast();
+  const [processingVideoIds, setProcessingVideoIds] = useState(new Set());
 
   useEffect(() => {
     fetchResponses();
@@ -123,36 +124,177 @@ export default function Responses() {
   const handleVideoProcessingStart = (videoId) => {
     setIsTransformModalOpen(false);
     
+    // Add the video ID to the processing set
+    setProcessingVideoIds(prev => {
+      const newSet = new Set(prev);
+      newSet.add(videoId);
+      return newSet;
+    });
+    
     // Find the response object to get the campaign ID if available
     const response = responses.find(r => r.id === videoId);
     const campaignId = response?.campaignId;
     
-    // Simulate processing completion after 30 seconds
-    setTimeout(() => {
-      // Mark the video as no longer processing
-      markVideoProcessingComplete(videoId);
-      
-      // Show success message when processing completes with a button to navigate to AI Videos
-      addToast(
-        <div className="flex flex-col space-y-2">
-          <p>Success! Your enhanced video is now available.</p>
-          <button 
-            onClick={() => {
-              if (campaignId) {
-                navigate(`/app/campaigns/${campaignId}/ai-videos`);
-              } else {
-                navigate('/app/ai-videos');
-              }
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm font-medium mt-2"
-          >
-            View in AI Videos
-          </button>
-        </div>,
-        "success",
-        10000 // Show for 10 seconds to give user time to click
-      );
-    }, 30000); // 30 seconds
+    // Start polling for video processing status
+    const pollInterval = 5000; // 5 seconds
+    const maxAttempts = 60; // 5 minutes max (60 * 5 seconds)
+    let attempts = 0;
+    
+    // Show initial processing toast
+    const toastId = addToast(
+      <div className="flex flex-col space-y-2">
+        <p>Video enhancement in progress...</p>
+        <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+          <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '0%' }}></div>
+        </div>
+      </div>,
+      "info",
+      0 // Don't auto-dismiss
+    );
+    
+    const pollStatus = async () => {
+      try {
+        attempts++;
+        
+        // Call the actual status endpoint to check processing status
+        const idToken = await auth.currentUser.getIdToken();
+        const response = await fetch(`${SERVER_URL}/videoProcessor/status/${videoId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to check video processing status');
+        }
+        
+        const result = await response.json();
+        console.log('Video processing status:', result);
+        
+        // Update progress toast if we have progress information
+        if (result.status === 'processing' && result.progress) {
+          const progressPercent = Math.min(Math.round(result.progress * 100), 99);
+          
+          // Update the toast with progress
+          addToast(
+            <div className="flex flex-col space-y-2">
+              <p>Video enhancement in progress: {progressPercent}%</p>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${progressPercent}%` }}></div>
+              </div>
+            </div>,
+            "info",
+            0, // Don't auto-dismiss
+            toastId // Replace the existing toast
+          );
+          
+          // Continue polling if still processing
+          setTimeout(pollStatus, pollInterval);
+        }
+        // If processing is complete
+        else if (result.status === 'completed') {
+          // Mark the video as no longer processing
+          markVideoProcessingComplete(videoId);
+          setProcessingVideoIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(videoId);
+            return newSet;
+          });
+          
+          // Show success message when processing completes with a button to navigate to AI Videos
+          addToast(
+            <div className="flex flex-col space-y-3">
+              <p className="font-semibold text-base">Success! Your enhanced video is ready.</p>
+              <button 
+                onClick={() => {
+                  if (campaignId) {
+                    navigate(`/app/campaigns/${campaignId}/ai-videos`);
+                  } else {
+                    navigate('/app/ai-videos');
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm font-medium mt-1 w-full text-center"
+              >
+                View in AI Videos
+              </button>
+            </div>,
+            "success",
+            15000, // Show for 15 seconds to give user time to click
+            toastId // Replace the existing toast
+          );
+        } 
+        // If processing failed
+        else if (result.status === 'failed') {
+          // Mark the video as no longer processing
+          markVideoProcessingComplete(videoId);
+          setProcessingVideoIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(videoId);
+            return newSet;
+          });
+          
+          // Show error message
+          addToast(
+            `Video enhancement failed: ${result.error || 'Unknown error'}`, 
+            "error",
+            10000,
+            toastId // Replace the existing toast
+          );
+        }
+        // If status is unknown or any other status
+        else {
+          // If we've reached max attempts but the video is still not complete
+          if (attempts >= maxAttempts) {
+            // Mark the video as no longer processing in our UI, but don't stop the actual processing
+            markVideoProcessingComplete(videoId);
+            setProcessingVideoIds(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(videoId);
+              return newSet;
+            });
+            
+            // Show a message indicating that processing is taking longer than expected
+            addToast(
+              "Video processing is taking longer than expected. Please check the AI Videos page later.", 
+              "info",
+              10000,
+              toastId // Replace the existing toast
+            );
+          } else {
+            // Continue polling
+            setTimeout(pollStatus, pollInterval);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking video processing status:', error);
+        
+        // Continue polling despite error
+        if (attempts < maxAttempts) {
+          setTimeout(pollStatus, pollInterval);
+        } else {
+          // Mark the video as no longer processing after max attempts
+          markVideoProcessingComplete(videoId);
+          setProcessingVideoIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(videoId);
+            return newSet;
+          });
+          
+          // Show error message
+          addToast(
+            "Unable to determine video processing status. Please check the AI Videos page later.", 
+            "warning",
+            10000,
+            toastId // Replace the existing toast
+          );
+        }
+      }
+    };
+    
+    // Start polling immediately
+    pollStatus();
   };
 
   return (
@@ -216,6 +358,7 @@ export default function Responses() {
               onDelete={handleDelete}
               onTransform={handleTransform}
               onStarChange={handleStarChange}
+              processingVideoIds={processingVideoIds}
             />
           ))}
         </div>

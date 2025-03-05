@@ -10,7 +10,6 @@ import { VideoResponse } from '../components/survey/VideoResponse';
 import { SuccessMessage } from '../components/survey/SuccessMessage';
 import { NavigationButtons } from '../components/survey/NavigationButtons';
 import { ProgressBar } from '../components/survey/ProgressBar';
-import { LoadingScreen } from '../components/survey/LoadingScreen';
 import { ErrorScreen } from '../components/survey/ErrorScreen';
 
 const steps = [
@@ -202,7 +201,16 @@ export default function Survey() {
     }
   };
 
-  if (isLoading) return <LoadingScreen />;
+  if (isLoading) return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <div className="flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400 mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading survey...</p>
+        </div>
+      </div>
+    </div>
+  );
   if (error && !campaign) return <ErrorScreen error={error} />;
 
   return (

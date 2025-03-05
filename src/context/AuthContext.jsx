@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, SERVER_URL } from '../lib/firebase';
-import { LoadingScreen } from '../components/ui/loading-screen';
+import { auth } from '../lib/firebase';
+import { post, get } from '../lib/api';
 import { 
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
@@ -23,81 +23,74 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [newSignup, setNewSignup] = useState(false);
 
-  const createUserProfile = async (firebaseUser, firstName, lastName) => {
-    const idToken = await firebaseUser.getIdToken();
-    const response = await fetch(`${SERVER_URL}/auth/signup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}`
-      },
-      body: JSON.stringify({
+  const createUserProfile = async (firebaseUser, firstName, lastName, plan = 'basic') => {
+    try {
+      const data = await post('/auth/signup', {
+        uid: firebaseUser.uid,
         firstName,
         lastName,
-        credits: 10 // Assign 10 initial credits to new users
-      })
-    });
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to create user profile: ${errorText}`);
+        email: firebaseUser.email,
+        plan
+      });
+      
+      if (data.sessionId) {
+        return {
+          ...data,
+          requiresPayment: true,
+          sessionId: data.sessionId
+        };
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Failed to create user profile:', error);
+      throw error;
     }
-    return response.json();
   };
 
   const fetchUserProfile = async (firebaseUser) => {
-    const idToken = await firebaseUser.getIdToken();
     try {
-      const response = await fetch(`${SERVER_URL}/auth/profile`, { 
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${idToken}` }
-      });
-      
-      if (response.status === 404) {
-        // Profile doesn't exist yet
+      const profileData = await get('/auth/profile');
+      if (!profileData) {
         setUser(firebaseUser);
         return;
       }
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch profile: ${response.status}`);
-      }
-      
-      const profileData = await response.json();
-      // Merge Firebase user data with profile data including credits
       const mergedUser = { ...firebaseUser, ...profileData };
       setUser(mergedUser);
       return mergedUser;
     } catch (error) {
-      // Only log unexpected errors
-      if (!error.message.includes('404')) {
-        console.warn('Profile fetch warning:', error.message);
-      }
-      // Keep using basic Firebase user data
+      console.warn('Profile fetch warning:', error.message);
       setUser(firebaseUser);
+    }
+  };
+
+  // New function to directly set the user profile
+  const setUserProfile = (profileData) => {
+    if (auth.currentUser) {
+      const mergedUser = { ...auth.currentUser, ...profileData };
+      setUser(mergedUser);
     }
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser && !isSigningUp) {
-        try {
-          // Set basic user data immediately
+      if (firebaseUser) {
+        if (newSignup) {
           setUser(firebaseUser);
-          // Then fetch additional profile data
+        } else {
+          setUser(firebaseUser);
           fetchUserProfile(firebaseUser);
-        } catch (error) {
-          console.error('Error fetching profile:', error.message);
-          // Keep the user signed in even if profile fetch fails
-          setUser(firebaseUser);
         }
       } else {
         setUser(null);
+        setNewSignup(false);
       }
       setLoading(false);
     });
     return () => unsubscribe();
-  }, [isSigningUp]);
+  }, [newSignup]);
 
   const signIn = async (email, password) => {
     setIsAuthenticating(true);
@@ -107,40 +100,52 @@ export function AuthProvider({ children }) {
     return userCredential.user;
   };
 
-  const signUp = async (email, password, firstName, lastName) => {
-    setIsAuthenticating(true);
-    if (!firstName.trim() || !lastName.trim()) {
-      throw new Error('First name and last name are required');
-    }
-    setIsSigningUp(true); // Prevent onAuthStateChanged from fetching during signup
+  const signUp = async (email, password, firstName, lastName, plan = 'basic') => {
+    setIsSigningUp(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
-      const displayName = `${firstName} ${lastName}`.trim();
-
-      await updateProfile(firebaseUser, { displayName });
-      await createUserProfile(firebaseUser, firstName, lastName);
-      await fetchUserProfile(firebaseUser);
-      setIsSigningUp(false); // Allow onAuthStateChanged to proceed normally
+      await updateProfile(firebaseUser, {
+        displayName: `${firstName} ${lastName}`.trim()
+      });
+      setNewSignup(true);
+      await createUserProfile(firebaseUser, firstName, lastName, plan);
       return firebaseUser;
     } catch (error) {
-      setIsAuthenticating(false);
-      setIsSigningUp(false); // Reset flag on error
+      console.error('Error signing up:', error);
       throw error;
+    } finally {
+      setIsSigningUp(false);
+      console.log('Signup process completed');
     }
   };
 
-  const signInWithGoogle = async (credential) => {
-    await fetchUserProfile(credential.user);
-    return credential.user;
+  const completeNewSignup = async () => {
+    setNewSignup(false);
+    await fetchUserProfile(auth.currentUser);
+  };
+
+  const signInWithGoogle = async (credential, firstName, lastName) => {
+    setIsAuthenticating(true);
+    try {
+      const firebaseUser = auth.currentUser;
+      await createUserProfile(firebaseUser, firstName, lastName, 'basic');
+      await fetchUserProfile(firebaseUser);
+      return firebaseUser;
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+      throw error;
+    } finally {
+      setIsAuthenticating(false);
+      console.log('Google sign-in process completed');
+    }
   };
 
   const updateUserProfile = async (updates) => {
     if (!user) return;
-
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/user/update`, {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/user/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +174,7 @@ export function AuthProvider({ children }) {
       await updatePassword(auth.currentUser, newPassword);
 
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/auth/update-password`, {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/auth/update-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -190,27 +195,58 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateUserPlan = async (planName) => {
+    try {
+      if (planName === 'basic') {
+        const response = await post('/auth/update-plan', { plan: planName });
+        if (!response.success) {
+          throw new Error('Failed to update to basic plan');
+        }
+        const updatedUser = { ...user, plan: planName };
+        setUser(updatedUser);
+        return updatedUser;
+      } else {
+        const idToken = await auth.currentUser.getIdToken();
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/stripe/create-checkout-session`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({ plan: planName })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update plan: ${response.status}`);
+        }
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error updating user plan:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
     isAuthenticating,
-    updateUserProfile,
     signIn,
     signUp,
+    signOut: () => auth.signOut(),
     signInWithGoogle,
-    changePassword
+    updateUserProfile,
+    changePassword,
+    updateUserPlan,
+    completeNewSignup,
+    newSignup,
+    setUserProfile,
+    fetchUserProfile
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? (
-        <LoadingScreen message="Loading..." />
-      ) : (
-        <>
-          {isAuthenticating && <LoadingScreen message="Please wait..." />}
-          {children}
-        </>
-      )}
+      {children}
     </AuthContext.Provider>
   );
 }

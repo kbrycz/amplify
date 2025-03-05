@@ -2,8 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, CheckCircle } from 'lucide-react';
 import { Dropdown } from './ui/Dropdown';
-import axios from 'axios';
-import { SERVER_URL, auth } from '../lib/firebase';
+import { get, post } from '../lib/api';
 
 function AlertsDropdown() {
   const [alerts, setAlerts] = useState([]);
@@ -17,23 +16,15 @@ function AlertsDropdown() {
     async function fetchAlerts() {
       try {
         setLoading(true);
-        const idToken = await auth.currentUser.getIdToken();
-        const response = await fetch(`${SERVER_URL}/alerts`, {
-          headers: {
-            'Authorization': `Bearer ${idToken}`
-          }
-        });
+        const data = await get('/alerts');
         
-        if (response.status === 404) {
+        if (!data) {
           // No alerts yet - this is normal
           setAlerts([]);
           setUnreadCount(0);
           return;
-        } else if (!response.ok) {
-          throw new Error('Failed to fetch alerts');
         }
         
-        const data = await response.json();
         // Ensure we only store serializable data
         const serializedAlerts = data.map(alert => ({
           id: alert.id,
@@ -49,47 +40,31 @@ function AlertsDropdown() {
         setUnreadCount(unread);
       } catch (err) {
         console.error('Error fetching alerts:', err);
-        // Only set error for unexpected failures
-        if (!err.message.includes('404')) {
-          setError('Failed to load alerts.');
-        }
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     }
+    
     fetchAlerts();
   }, []);
 
   const markAllAsRead = async () => {
     try {
-      const idToken = await auth.currentUser.getIdToken();
-      // Only make the request if there are unread alerts
-      if (unreadCount > 0) {
-        const response = await fetch(`${SERVER_URL}/alerts/mark-read`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to mark alerts as read');
-        }
-        
-        setAlerts(prevAlerts => prevAlerts.map(alert => ({ ...alert, read: true })));
-        setUnreadCount(0);
-      }
+      await post('/alerts/mark-all-read', {});
+      
+      // Update local state
+      const updatedAlerts = alerts.map(alert => ({
+        ...alert,
+        read: true
+      }));
+      
+      setAlerts(updatedAlerts);
+      setUnreadCount(0);
     } catch (err) {
-      console.error("Failed to mark alerts as read", err);
+      console.error('Error marking alerts as read:', err);
     }
   };
-
-  useEffect(() => {
-    if (isOpen && unreadCount > 0) {
-      markAllAsRead();
-    }
-  }, [isOpen, unreadCount]);
 
   const handleAlertClick = (alert) => {
     console.log('Alert clicked:', alert);

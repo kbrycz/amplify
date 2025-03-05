@@ -16,6 +16,7 @@ function Header() {
   });
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (isDark) {
@@ -26,6 +27,21 @@ function Header() {
       localStorage.setItem('theme', 'light');
     }
   }, [isDark]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleToggle = () => {
     if (window.innerWidth >= 991) {
@@ -78,12 +94,18 @@ function Header() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Responsive View Demo button */}
             <button
               onClick={openVideoModal}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/20 transition-colors"
+              className={`flex items-center justify-center ${
+                isMobile 
+                  ? 'w-10 h-10 rounded-lg text-blue-600 border border-blue-300 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/20' 
+                  : 'gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/20'
+              } transition-colors`}
+              aria-label="View Demo"
             >
               <Play className="w-4 h-4" />
-              View Demo
+              {!isMobile && <span>View Demo</span>}
             </button>
             
             <button
