@@ -1,7 +1,7 @@
 import { auth } from './firebase';
 
 // Direct server URL
-const SERVER_URL = "https://amplify-dev-6b1c7.uc.r.appspot.com";
+export const SERVER_URL = "https://amplify-dev-6b1c7.uc.r.appspot.com";
 
 /**
  * Makes an authenticated API request to the server

@@ -13,6 +13,12 @@ export default function CheckoutSuccess() {
   const [searchParams] = useSearchParams();
   const { user, setUserProfile } = useAuth();
   const verificationAttempted = useRef(false);
+  
+  // Check if user should return to settings
+  const shouldReturnToSettings = localStorage.getItem('returnToSettings') === 'true';
+  
+  console.log("CheckoutSuccess - shouldReturnToSettings:", shouldReturnToSettings);
+  console.log("CheckoutSuccess - current user:", user);
 
   // Simple dark mode detection effect
   useEffect(() => {
@@ -52,11 +58,14 @@ export default function CheckoutSuccess() {
         }
 
         // Verify the payment and get the response
+        console.log("CheckoutSuccess - Verifying payment with sessionId:", sessionId);
         const response = await verifySubscription(sessionId);
+        console.log("CheckoutSuccess - Verification response:", response);
+        
         if (response.success) {
           // Update the user profile in AuthContext
+          console.log("CheckoutSuccess - Updating user profile with:", response.user);
           setUserProfile(response.user);
-          console.log('Updated user profile:', response.user);
           
           // Set plan details for display
           setPlanDetails({
@@ -103,9 +112,32 @@ export default function CheckoutSuccess() {
   };
 
   const handleContinue = () => {
+    // Clear the returnToSettings flag
+    const previousPlan = localStorage.getItem('previousPlan');
+    localStorage.removeItem('returnToSettings');
+    localStorage.removeItem('previousPlan');
+    
+    console.log("CheckoutSuccess - handleContinue called");
+    console.log("CheckoutSuccess - shouldReturnToSettings:", shouldReturnToSettings);
+    console.log("CheckoutSuccess - planDetails:", planDetails);
+    console.log("CheckoutSuccess - previousPlan:", previousPlan);
+    
     // Force a small delay to ensure state updates have propagated
     setTimeout(() => {
-      navigate('/app/dashboard');
+      // Redirect to account page if user came from there
+      if (shouldReturnToSettings) {
+        console.log("CheckoutSuccess - Redirecting to account page");
+        navigate('/app/account', { 
+          state: { 
+            planUpdated: true, 
+            plan: planDetails?.name || 'pro',
+            previousPlan: previousPlan
+          } 
+        });
+      } else {
+        console.log("CheckoutSuccess - Redirecting to dashboard");
+        navigate('/app/dashboard');
+      }
     }, 100);
   };
 

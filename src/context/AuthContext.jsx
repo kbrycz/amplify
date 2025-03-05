@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../lib/firebase';
-import { post, get } from '../lib/api';
+import { auth, googleAuthProvider } from '../lib/firebase';
+import { post, get, put } from '../lib/api';
+import { SERVER_URL } from '../lib/api';
 import { 
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
@@ -52,12 +53,28 @@ export function AuthProvider({ children }) {
 
   const fetchUserProfile = async (firebaseUser) => {
     try {
+      console.log("AuthContext - fetchUserProfile called for user:", firebaseUser?.uid);
       const profileData = await get('/auth/profile');
+      console.log("AuthContext - profile data received:", profileData);
+      
       if (!profileData) {
+        console.log("AuthContext - No profile data, setting basic user");
         setUser(firebaseUser);
         return;
       }
-      const mergedUser = { ...firebaseUser, ...profileData };
+      
+      // Make sure we preserve the plan information
+      const mergedUser = { 
+        ...firebaseUser, 
+        ...profileData,
+        // Ensure subscription data is properly structured
+        subscription: profileData.subscription || {
+          plan: profileData.plan,
+          period: profileData.subscriptionPeriod
+        }
+      };
+      
+      console.log("AuthContext - setting merged user with profile:", mergedUser);
       setUser(mergedUser);
       return mergedUser;
     } catch (error) {
@@ -68,9 +85,23 @@ export function AuthProvider({ children }) {
 
   // New function to directly set the user profile
   const setUserProfile = (profileData) => {
+    console.log("AuthContext - setUserProfile called with data:", profileData);
+    
     if (auth.currentUser) {
-      const mergedUser = { ...auth.currentUser, ...profileData };
+      // Make sure we preserve the plan information
+      const mergedUser = { 
+        ...auth.currentUser, 
+        ...profileData,
+        // Ensure subscription data is properly structured
+        subscription: profileData.subscription || {
+          plan: profileData.plan,
+          period: profileData.subscriptionPeriod
+        }
+      };
+      console.log("AuthContext - setting merged user:", mergedUser);
       setUser(mergedUser);
+    } else {
+      console.log("AuthContext - setUserProfile called but no current user");
     }
   };
 
@@ -196,18 +227,81 @@ export function AuthProvider({ children }) {
   };
 
   const updateUserPlan = async (planName) => {
+    console.log("AuthContext - updateUserPlan called with plan:", planName);
+    console.log("AuthContext - current user:", user);
+    
     try {
-      if (planName === 'basic') {
+      // Define a ranking for the plans to determine if this is a downgrade
+      const planRank = { basic: 1, pro: 2, premium: 3 };
+      const currentPlan = user?.subscription?.plan || user?.plan || 'basic';
+      const currentRank = planRank[currentPlan];
+      const targetRank = planRank[planName];
+      
+      console.log("AuthContext - Current plan:", currentPlan, "Target plan:", planName);
+      
+      // Check if this is a downgrade (target rank is lower than current rank)
+      if (targetRank < currentRank) {
+        console.log("AuthContext - Downgrading from", currentPlan, "to", planName);
+        const idToken = await auth.currentUser.getIdToken();
+        const response = await fetch(`${SERVER_URL}/stripe/downgrade`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({ targetPlan: planName })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to downgrade subscription');
+        }
+        
+        const data = await response.json();
+        console.log("AuthContext - downgrade response:", data);
+        
+        // Create a properly structured user object with subscription information
+        const updatedUser = { 
+          ...user, 
+          plan: data.plan,
+          subscription: {
+            plan: data.plan,
+            period: 'N/A'
+          },
+          // Clear subscription-related fields
+          stripeSubscriptionId: null,
+          stripeCustomerId: null
+        };
+        
+        console.log("AuthContext - setting user with downgraded plan:", updatedUser);
+        setUser(updatedUser);
+        return updatedUser;
+      } else if (planName === 'basic') {
+        // For users not on paid plans, use the existing endpoint
         const response = await post('/auth/update-plan', { plan: planName });
+        console.log("AuthContext - basic plan update response:", response);
+        
         if (!response.success) {
           throw new Error('Failed to update to basic plan');
         }
-        const updatedUser = { ...user, plan: planName };
+        
+        // Create a properly structured user object with subscription information
+        const updatedUser = { 
+          ...user, 
+          plan: planName,
+          subscription: {
+            plan: planName,
+            period: 'N/A'
+          }
+        };
+        
+        console.log("AuthContext - setting user with updated plan:", updatedUser);
         setUser(updatedUser);
         return updatedUser;
       } else {
+        // For upgrades, use the Stripe checkout flow
         const idToken = await auth.currentUser.getIdToken();
-        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/stripe/create-checkout-session`, {
+        const response = await fetch(`${SERVER_URL}/stripe/create-checkout-session`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

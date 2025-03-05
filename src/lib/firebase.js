@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, browserSessionPersistence, setPersistence } from 'firebase/auth';
+import { getAuth, browserSessionPersistence, setPersistence, GoogleAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDU1L2RmFbL2APSbmTMDS4OAdXWQwzxMcY",
@@ -16,6 +16,7 @@ export const SERVER_URL = "https://amplify-dev-6b1c7.uc.r.appspot.com";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const googleAuthProvider = new GoogleAuthProvider();
 
 // Set auth persistence to session
 setPersistence(auth, browserSessionPersistence)
@@ -23,4 +24,4 @@ setPersistence(auth, browserSessionPersistence)
     console.error('Error setting auth persistence:', error);
   });
 
-export { auth };
+export { auth, googleAuthProvider };

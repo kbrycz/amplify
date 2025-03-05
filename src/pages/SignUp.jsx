@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { auth } from '../lib/firebase';
+import { auth, googleAuthProvider } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { useAuth } from '../context/AuthContext';
 
@@ -79,8 +79,7 @@ export default function SignUp() {
     setLoadingState({ email: false, google: true });
     setError('');
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, googleAuthProvider);
       const user = result.user;
       const displayName = user.displayName || '';
       const nameParts = displayName.split(' ');

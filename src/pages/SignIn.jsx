@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, Mail } from 'lucide-react';
-import { auth } from '../lib/firebase';
+import { auth, googleAuthProvider } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { useAuth } from '../context/AuthContext';
 
@@ -55,8 +55,7 @@ export default function SignIn() {
 
   const handleGoogleSignIn = async () => {
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, googleAuthProvider);
       await signInWithGoogle(result);
       navigate('/app/dashboard', { replace: true });
     } catch (err) {
