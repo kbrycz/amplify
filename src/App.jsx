@@ -62,7 +62,12 @@ function RequireUnauth({ children }) {
   if (loading) return null;
 
   if (user) {
-    return <Navigate to="/pricing" replace />; // Redirect to pricing instead of root
+    // If the user is coming from signup, redirect to pricing
+    if (location.pathname === '/signup') {
+      return <Navigate to="/pricing" replace />;
+    }
+    // Otherwise, redirect to dashboard
+    return <Navigate to="/app/dashboard" replace />;
   }
 
   return children;
@@ -95,6 +100,9 @@ function AppContent() {
   const navigate = useNavigate();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
+  // Check if the user just signed up
+  const isFromSignup = location.state?.from?.pathname === '/signup';
+
   if (loading || isRedirecting) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -108,9 +116,14 @@ function AppContent() {
     );
   }
 
-  // Redirect authenticated users to /pricing instead of /app/dashboard
+  // Redirect authenticated users based on their origin
   if (user && location.pathname === '/') {
-    return <Navigate to="/pricing" replace />;
+    // If user is coming from signup, redirect to pricing
+    if (isFromSignup) {
+      return <Navigate to="/pricing" replace />;
+    }
+    // Otherwise, redirect to dashboard
+    return <Navigate to="/app/dashboard" replace />;
   }
 
   return <Landing />;

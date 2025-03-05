@@ -186,14 +186,6 @@ export default function CheckoutSuccess() {
               </>
             )}
 
-            {/* Different message for error state */}
-            {error && (
-              <p className="text-gray-600 dark:text-gray-400 mb-8">
-                Your payment has been processed. Our system is currently finalizing your subscription details. 
-                Your account will be updated with all the new features very soon.
-              </p>
-            )}
-
             <button
               onClick={handleContinue}
               className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white 

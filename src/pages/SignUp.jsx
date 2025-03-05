@@ -59,7 +59,7 @@ export default function SignUp() {
 
     try {
       await signUp(email, password, firstName, lastName);
-      navigate('/pricing');
+      navigate('/pricing', { replace: true });
     } catch (err) {
       console.error('Signup error:', err);
       if (err.message.includes('timeout') || err.message.includes('took too long')) {
@@ -87,7 +87,7 @@ export default function SignUp() {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
       await signInWithGoogle(result.credential, firstName, lastName);
-      navigate('/pricing');
+      navigate('/pricing', { replace: true });
     } catch (err) {
       console.error('Google signup error:', err);
       if (err.message.includes('timeout') || err.message.includes('took too long')) {
