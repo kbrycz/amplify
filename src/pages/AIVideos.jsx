@@ -136,7 +136,7 @@ export default function AIVideos() {
           }}
         />
       ) : (
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
           {aiVideos.map(video => (
             <ListViewResponse
               key={video.id}

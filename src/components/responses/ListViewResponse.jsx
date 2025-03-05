@@ -134,7 +134,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex flex-col rounded-lg border border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-800/50"
+      className="group relative flex flex-col rounded-lg border border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-800/50 h-full"
     >
       <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:p-4">
         {/* Thumbnail section */}
@@ -185,7 +185,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
                 ? `${response.firstName} ${response.lastName}`
                 : response.name || 'Anonymous'}
             </h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 truncate">
               {response.email || 'No email provided'}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
@@ -234,9 +234,9 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
       )}
 
       {/* Expandable Content */}
-      <div className={`overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-[280px] sm:max-h-24' : 'max-h-0'}`}>
+      <div className={`overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-[280px] md:max-h-[320px]' : 'max-h-0'}`}>
         <div className="border-t border-gray-200 dark:border-gray-800 p-4">
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
             {onTransform && (
               <button
                 className={`action-button inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium w-full sm:w-auto justify-center transition-all ${

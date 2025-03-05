@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Check, Loader2, Clock } from 'lucide-react';
+import { X, FileText, Check, Loader2, Clock, FolderX } from 'lucide-react';
 import { SERVER_URL, auth } from '../../lib/firebase';
 
 export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
@@ -156,7 +156,15 @@ export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
           
           {!isLoading && !error && campaigns.length === 0 && (
             <div className="py-8 text-center">
-              <p className="text-gray-600 dark:text-gray-400">You don't have any campaigns yet.</p>
+              <div className="flex flex-col items-center justify-center">
+                <div className="rounded-full bg-gray-100 p-3 mb-3 dark:bg-gray-800">
+                  <FolderX className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                </div>
+                <p className="text-lg font-medium text-gray-800 dark:text-gray-200">No campaigns found</p>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  You don't have any campaigns yet to use as templates.
+                </p>
+              </div>
             </div>
           )}
           
