@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Video, Clock, X, Wand2, Sparkles, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Upload, Video, Clock, X, Wand2, Sparkles, Pencil, Trash2, Loader2, ChevronDown } from 'lucide-react';
 import axios from 'axios';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { EmptyState } from '../components/ui/empty-state'; 
@@ -14,18 +14,24 @@ export default function VideoEnhancer() {
   const [videoFile, setVideoFile] = useState(null);
   const [videoDuration, setVideoDuration] = useState(null);
   const [error, setError] = useState('');
-  const [uploadStatus, setUploadStatus] = useState('');
   const [videos, setVideos] = useState([]);
   const [processingIds, setProcessingIds] = useState(new Set());
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [abortController, setAbortController] = useState(null);
   const [isVideoEditorOpen, setIsVideoEditorOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isTransformModalOpen, setIsTransformModalOpen] = useState(false);
+  const [isUploadProcessing, setIsUploadProcessing] = useState(false);
+  const [uploadProcessingId, setUploadProcessingId] = useState(null);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [currentToastId, setCurrentToastId] = useState(null);
   const { addToast } = useToast();
+  
+  // Store active polling intervals to clean them up when needed
+  const activePollingIntervals = useRef(new Map());
+
+  // Set up a ref to track if we need to start processing when the modal closes
+  const pendingProcessRef = useRef(null);
 
   // Fetch the enhancer videos for the current user
   const fetchVideos = async () => {
@@ -34,7 +40,74 @@ export default function VideoEnhancer() {
       const response = await axios.get(`${SERVER_URL}/videoEnhancer`, {
         headers: { 'Authorization': `Bearer ${idToken}` }
       });
-      setVideos(response.data);
+      
+      const fetchedVideos = response.data;
+      setVideos(fetchedVideos);
+      
+      // Get videos that are in processing state from the server
+      const serverProcessingIds = new Set(
+        fetchedVideos
+          .filter(video => video.status === 'processing')
+          .map(video => video.id)
+      );
+      
+      // Check for any videos that are in our processingIds but are actually completed
+      const currentProcessingIds = [...processingIds];
+      for (const videoId of currentProcessingIds) {
+        const video = fetchedVideos.find(v => v.id === videoId);
+        if (video && video.status === 'completed') {
+          // This video is completed but still in our processing state
+          // Show success toast and update state
+          addToast('Video enhancement completed successfully!', 'success');
+          
+          // Remove from processing IDs
+          setProcessingIds(prev => {
+            const newSet = new Set([...prev]);
+            newSet.delete(videoId);
+            return newSet;
+          });
+          
+          // If this was from the upload tab, clear the upload processing state
+          if (videoId === uploadProcessingId) {
+            setIsUploadProcessing(false);
+            setUploadProcessingId(null);
+            setVideoFile(null);
+            setVideoDuration(null);
+          }
+          
+          // Clear any polling interval
+          if (activePollingIntervals.current.has(videoId)) {
+            clearInterval(activePollingIntervals.current.get(videoId));
+            activePollingIntervals.current.delete(videoId);
+          }
+        } else if (!video || video.status !== 'processing') {
+          // This video is no longer in the list or not in processing state
+          // Remove from processing IDs
+          setProcessingIds(prev => {
+            const newSet = new Set([...prev]);
+            newSet.delete(videoId);
+            return newSet;
+          });
+          
+          // Clear any polling interval
+          if (activePollingIntervals.current.has(videoId)) {
+            clearInterval(activePollingIntervals.current.get(videoId));
+            activePollingIntervals.current.delete(videoId);
+          }
+        }
+      }
+      
+      // Add any new processing videos from the server
+      serverProcessingIds.forEach(videoId => {
+        if (!processingIds.has(videoId)) {
+          setProcessingIds(prev => new Set([...prev, videoId]));
+        }
+        
+        // Set up polling for any videos that are processing but don't have an active interval
+        if (!activePollingIntervals.current.has(videoId)) {
+          handleVideoProcessingStart(videoId);
+        }
+      });
     } catch (err) {
       console.error('Error fetching videos:', err);
       setError(err.response?.data?.error || err.message);
@@ -43,12 +116,20 @@ export default function VideoEnhancer() {
 
   useEffect(() => {
     fetchVideos();
+    
+    // Clean up any active polling intervals when component unmounts
+    return () => {
+      activePollingIntervals.current.forEach((intervalId) => {
+        clearInterval(intervalId);
+      });
+    };
   }, []);
 
   // Handle file selection and validate video duration
   const handleVideoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      console.log("Selected file:", file);
       setError('');
       // Create a temporary video element to load metadata
       const video = document.createElement('video');
@@ -57,6 +138,7 @@ export default function VideoEnhancer() {
         window.URL.revokeObjectURL(video.src);
         const duration = Math.round(video.duration);
         setVideoDuration(duration);
+        console.log("Video duration:", duration);
 
         if (duration > 180) {
           setError('Video is too long. Maximum duration is 3 minutes.');
@@ -66,12 +148,19 @@ export default function VideoEnhancer() {
           setVideoFile(null);
         } else {
           setError('');
-          setVideoFile({
-            file,
+          const videoFileObj = {
+            file: file,
             url: URL.createObjectURL(file),
-            duration
-          });
+            duration: duration
+          };
+          console.log("Setting videoFile:", videoFileObj);
+          setVideoFile(videoFileObj);
         }
+      };
+      video.onerror = function() {
+        console.error("Error loading video metadata");
+        setError('Error loading video. Please try another file.');
+        setVideoFile(null);
       };
       video.src = URL.createObjectURL(file);
     }
@@ -99,83 +188,287 @@ export default function VideoEnhancer() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Upload the raw video via our server endpoint
-  const handleUpload = async () => {
-    if (!videoFile) return;
-    setUploadStatus('Uploading...');
-    setIsUploading(true);
-    setError('');
-    try {
-      const idToken = await auth.currentUser.getIdToken();
-      const controller = new AbortController();
-      setAbortController(controller);
-
-      const formData = new FormData();
-      formData.append('video', videoFile.file);
-
-      // Show toast notification for upload start
-      addToast('Video upload started. This may take a while...', 'info');
-
-      const response = await fetch(`${SERVER_URL}/videoEnhancer/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-        },
-        body: formData,
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
-      }
-
-      // Create a reader to read the response stream
-      const reader = response.body.getReader();
-      const contentLength = +response.headers.get('Content-Length');
-
-      let receivedLength = 0;
-      while(true) {
-        const {done, value} = await reader.read();
-        
-        if (done) {
-          break;
-        }
-        
-        receivedLength += value.length;
-        const progress = (receivedLength / contentLength) * 100;
-        setUploadProgress(Math.round(progress));
-      }
-
-      setUploadStatus('Upload successful!');
-      // Show toast notification for successful upload
-      addToast('Video uploaded successfully! Processing will continue in the background.', 'success');
-      setVideoFile(null);
-      setVideoDuration(null);
-      setUploadProgress(0);
-      setAbortController(null);
-      fetchVideos();
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        setError('Upload cancelled');
-        addToast('Video upload cancelled', 'info');
-      } else {
-        console.error('Upload error:', err);
-        setError(err.message);
-        addToast(`Upload failed: ${err.message}`, 'error');
-      }
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
-      setAbortController(null);
-    }
+  // Handle when the transform modal closes
+  const handleTransformModalClose = () => {
+    setIsTransformModalOpen(false);
   };
 
-  const handleCancelUpload = () => {
-    if (abortController) {
-      abortController.abort();
-      addToast('Upload cancelled', 'info');
+  // Handle when the transform modal starts processing
+  const handleTransformStart = () => {
+    // Show a loading toast
+    const toastId = addToast(
+      "Starting video enhancement process...",
+      "info",
+      0 // Don't auto-dismiss
+    );
+    
+    // Store the toast ID so we can update it later
+    setCurrentToastId(toastId);
+  };
+
+  // Handle video processing start and set up polling
+  const handleVideoProcessingStart = (videoId, initialToastId = null, renderId = null) => {
+    // Use the currentToastId if available, otherwise use the initialToastId
+    const toastId = currentToastId || initialToastId;
+    
+    // Add this video ID to the set of processing videos
+    setProcessingIds(prev => new Set([...prev, videoId]));
+    
+    // If this is from the upload tab, set the upload processing state
+    if (activeTab === 'upload') {
+      setIsUploadProcessing(true);
+      setUploadProcessingId(videoId);
     }
+    
+    // Clear any existing polling for this video
+    if (activePollingIntervals.current.has(videoId)) {
+      clearInterval(activePollingIntervals.current.get(videoId));
+    }
+    
+    // Reset the currentToastId after using it
+    setCurrentToastId(null);
+    
+    // Check status immediately to see if it's already completed
+    const checkInitialStatus = async () => {
+      try {
+        const idToken = await auth.currentUser.getIdToken();
+        const response = await fetch(`${SERVER_URL}/videoEnhancer/status/${videoId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+          },
+        });
+        
+        if (!response.ok) {
+          console.error('Failed to check initial video status:', response.status);
+          return false;
+        }
+        
+        const data = await response.json();
+        console.log('Initial video status check:', data);
+        
+        // Update videos list with latest status
+        setVideos(prevVideos => 
+          prevVideos.map(v => 
+            v.id === videoId 
+              ? { 
+                  ...v, 
+                  status: data.status, 
+                  error: data.error,
+                  processedVideoUrl: data.processedVideoUrl || v.processedVideoUrl,
+                  renderId: renderId || v.renderId
+                } 
+              : v
+          )
+        );
+        
+        // If already completed, handle it now
+        if (data.status === 'completed') {
+          // Remove from processing IDs
+          setProcessingIds(prev => {
+            const newSet = new Set([...prev]);
+            newSet.delete(videoId);
+            return newSet;
+          });
+          
+          // If this was from the upload tab, clear the upload processing state
+          if (videoId === uploadProcessingId) {
+            setIsUploadProcessing(false);
+            setUploadProcessingId(null);
+            setVideoFile(null);
+            setVideoDuration(null);
+          }
+          
+          // Update toast with success message
+          if (toastId) {
+            addToast('Video enhancement completed successfully!', 'success', 5000, toastId);
+          }
+          
+          // Refresh videos to get the latest data
+          fetchVideos();
+          
+          return true; // Already completed, no need to poll
+        }
+        
+        // If failed, handle it now
+        if (data.status === 'failed') {
+          // Remove from processing IDs
+          setProcessingIds(prev => {
+            const newSet = new Set([...prev]);
+            newSet.delete(videoId);
+            return newSet;
+          });
+          
+          // If this was from the upload tab, clear the upload processing state
+          if (videoId === uploadProcessingId) {
+            setIsUploadProcessing(false);
+            setUploadProcessingId(null);
+          }
+          
+          // Update toast with error message
+          const errorMessage = data.error || 'Video enhancement failed';
+          if (toastId) {
+            addToast(errorMessage, 'error', 10000, toastId);
+          }
+          
+          return true; // Failed, no need to poll
+        }
+        
+        return false; // Not completed or failed, continue with polling
+      } catch (error) {
+        console.error('Error checking initial video status:', error);
+        
+        // If there's an error, we should still clear the processing state
+        if (videoId === uploadProcessingId) {
+          setIsUploadProcessing(false);
+          setUploadProcessingId(null);
+        }
+        
+        return false;
+      }
+    };
+    
+    // Start the initial check and then set up polling if needed
+    checkInitialStatus().then(isAlreadyResolved => {
+      if (!isAlreadyResolved) {
+        // Set up polling for this video's status
+        const pollStatus = async () => {
+          try {
+            const idToken = await auth.currentUser.getIdToken();
+            const response = await fetch(`${SERVER_URL}/videoEnhancer/status/${videoId}`, {
+              headers: {
+                'Authorization': `Bearer ${idToken}`,
+              },
+            });
+            
+            if (!response.ok) {
+              console.error('Failed to check video status:', response.status);
+              return;
+            }
+            
+            const data = await response.json();
+            console.log('Video status response:', data);
+            
+            // Update videos list with latest status
+            setVideos(prevVideos => 
+              prevVideos.map(v => 
+                v.id === videoId 
+                  ? { 
+                      ...v, 
+                      status: data.status, 
+                      error: data.error,
+                      processedVideoUrl: data.processedVideoUrl || v.processedVideoUrl,
+                      renderId: renderId || v.renderId
+                    } 
+                  : v
+              )
+            );
+            
+            // Handle completed processing
+            if (data.status === 'completed') {
+              // Clear the interval
+              clearInterval(activePollingIntervals.current.get(videoId));
+              activePollingIntervals.current.delete(videoId);
+              
+              // Remove from processing IDs
+              setProcessingIds(prev => {
+                const newSet = new Set([...prev]);
+                newSet.delete(videoId);
+                return newSet;
+              });
+              
+              // If this was from the upload tab, clear the upload processing state
+              if (videoId === uploadProcessingId) {
+                setIsUploadProcessing(false);
+                setUploadProcessingId(null);
+                setVideoFile(null); // Only remove the video from the upload container on success
+                setVideoDuration(null);
+              }
+              
+              // Update toast with success message
+              if (toastId) {
+                addToast(
+                  <div className="flex flex-col space-y-3">
+                    <p className="font-semibold text-base">Success! Your enhanced video is ready.</p>
+                    <button 
+                      onClick={() => {
+                        setActiveTab('videos');
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm font-medium mt-1 w-full text-center"
+                    >
+                      View Enhanced Videos
+                    </button>
+                  </div>,
+                  "success",
+                  15000, // Show for 15 seconds to give user time to click
+                  toastId // Replace the existing toast
+                );
+              }
+              
+              // Refresh videos to get the latest data
+              fetchVideos();
+            }
+            
+            // Handle failed processing
+            else if (data.status === 'failed') {
+              // Clear the interval
+              clearInterval(activePollingIntervals.current.get(videoId));
+              activePollingIntervals.current.delete(videoId);
+              
+              // Remove from processing IDs
+              setProcessingIds(prev => {
+                const newSet = new Set([...prev]);
+                newSet.delete(videoId);
+                return newSet;
+              });
+              
+              // If this was from the upload tab, clear the upload processing state
+              if (videoId === uploadProcessingId) {
+                setIsUploadProcessing(false);
+                setUploadProcessingId(null);
+              }
+              
+              // Update toast with error message
+              const errorMessage = data.error || 'Video enhancement failed';
+              if (toastId) {
+                addToast(errorMessage, 'error', 10000, toastId);
+              }
+            }
+          } catch (error) {
+            console.error('Error polling video status:', error);
+            
+            // If there's an error, we should still clear the processing state after a few retries
+            if (error.retryCount >= 3 && videoId === uploadProcessingId) {
+              setIsUploadProcessing(false);
+              setUploadProcessingId(null);
+              
+              // Clear the interval
+              clearInterval(activePollingIntervals.current.get(videoId));
+              activePollingIntervals.current.delete(videoId);
+              
+              // Remove from processing IDs
+              setProcessingIds(prev => {
+                const newSet = new Set([...prev]);
+                newSet.delete(videoId);
+                return newSet;
+              });
+              
+              // Show error toast
+              addToast('Failed to check video status. Please try again.', 'error');
+            }
+            
+            // Add retry count to the error
+            error.retryCount = (error.retryCount || 0) + 1;
+          }
+        };
+        
+        // Start polling immediately
+        pollStatus();
+        
+        // Then set up interval (every 5 seconds)
+        const intervalId = setInterval(pollStatus, 5000);
+        activePollingIntervals.current.set(videoId, intervalId);
+      }
+    });
   };
 
   // Trigger processing (i.e. enhance) the video via the server which calls Shotstack
@@ -196,27 +489,20 @@ export default function VideoEnhancer() {
       };
       
       // Show toast notification that processing has started
-      addToast("Video enhancement started. You'll be notified when it's complete.", "info");
+      const toastId = addToast("Video enhancement started. You'll be notified when it's complete.", "info", 0);
       
-      const response = await axios.post(`${SERVER_URL}/videoEnhancer/process`, payload, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      // Show success toast
-      addToast("Video processing started successfully! It will continue in the background.", "success");
+      // Start polling for status updates
+      handleVideoProcessingStart(videoId, toastId);
       
       // Update the video with the processed video URL
       setVideos(prevVideos =>
-        prevVideos.map(v => v.id === videoId ? { ...v, processedVideoUrl: response.data.processedVideoUrl } : v)
+        prevVideos.map(v => v.id === videoId ? { ...v, status: 'processing' } : v)
       );
     } catch (err) {
       console.error('Processing error:', err);
       setError(err.response?.data?.error || err.message);
       addToast(err.response?.data?.error || err.message || "Failed to process video", "error");
-    } finally {
+      
       // Remove this video ID from the set of processing videos
       setProcessingIds(prev => {
         const newSet = new Set([...prev]);
@@ -253,6 +539,11 @@ export default function VideoEnhancer() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Toggle dropdown for a video
+  const toggleDropdown = (videoId) => {
+    setOpenDropdownId(openDropdownId === videoId ? null : videoId);
   };
 
   return (
@@ -308,25 +599,23 @@ export default function VideoEnhancer() {
                     className="w-full h-full object-contain rounded-lg"
                     controls
                   />
-                  <button
-                    type="button"
-                    onClick={handleRemoveVideo}
-                    className="absolute top-2 right-2 p-2 rounded-full bg-gray-900/80 text-white backdrop-blur-sm"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                  {!isUploadProcessing && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveVideo}
+                      className="absolute top-2 right-2 p-2 rounded-full bg-gray-900/80 text-white backdrop-blur-sm"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                  {isUploadProcessing && (
+                    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center">
                       <div className="text-center text-white">
-                        <div className="mb-2">Uploading... {uploadProgress}%</div>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleCancelUpload();
-                          }}
-                          className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700"
-                        >Cancel Upload</button>
+                        <div className="flex items-center justify-center mb-2">
+                          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                          <span>Processing video...</span>
+                        </div>
+                        <p className="text-sm">Your video is being enhanced with AI</p>
                       </div>
                     </div>
                   )}
@@ -349,6 +638,7 @@ export default function VideoEnhancer() {
                 className="hidden"
                 accept="video/*"
                 onChange={handleVideoUpload}
+                disabled={isUploadProcessing}
               />
             </label>
 
@@ -358,18 +648,50 @@ export default function VideoEnhancer() {
               </div>
             )}
 
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                disabled={!videoFile || videoDuration < 10 || videoDuration > 180 || isUploading}
-                onClick={() => {
-                  setIsTransformModalOpen(true);
-                }}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Sparkles className="h-4 w-4" />
-                Enhance with AI
-              </button>
+            <div className="mt-4 flex justify-between">
+              {isUploadProcessing && uploadProcessingId && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('videos')}
+                  className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  View All Videos
+                </button>
+              )}
+              <div className="ml-auto">
+                <button
+                  type="button"
+                  disabled={!videoFile || videoDuration < 10 || videoDuration > 180 || isUploadProcessing}
+                  onClick={() => {
+                    if (videoFile && videoFile.file) {
+                      const videoObj = {
+                        file: videoFile.file,
+                        url: videoFile.url,
+                        duration: videoDuration,
+                        id: uploadProcessingId
+                      };
+                      console.log("Setting selectedVideo:", videoObj);
+                      setSelectedVideo(videoObj);
+                      setIsTransformModalOpen(true);
+                    } else {
+                      addToast("No video file selected", "error");
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUploadProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Enhance with AI
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -390,101 +712,145 @@ export default function VideoEnhancer() {
               }}
             />
           ) : (
-            videos.map((video) => (
-              <div
-                key={video.id}
-                className="flex flex-col sm:flex-row items-start gap-4 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-gray-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700"
-              >
-                {/* Thumbnail */}
-                <div className="relative aspect-video w-full sm:w-48 overflow-hidden rounded-lg">
-                  {video.thumbnailUrl ? (
-                    <img
-                      src={video.thumbnailUrl}
-                      alt={video.name}
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-300">
-                      <Video className="w-10 h-10 text-gray-500" />
+            videos.map((video) => {
+              const isProcessing = processingIds.has(video.id) || video.status === 'processing';
+              const isDropdownOpen = openDropdownId === video.id;
+              
+              return (
+                <div
+                  key={video.id}
+                  className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+                >
+                  <div 
+                    className="flex flex-col sm:flex-row items-start gap-4 p-4 cursor-pointer"
+                    onClick={() => toggleDropdown(video.id)}
+                  >
+                    {/* Thumbnail */}
+                    <div className="relative aspect-video w-full sm:w-48 overflow-hidden rounded-lg">
+                      {video.thumbnailUrl ? (
+                        <img
+                          src={video.thumbnailUrl}
+                          alt={video.title || 'Video'}
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-300">
+                          <Video className="w-10 h-10 text-gray-500" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40" />
+                      <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm">
+                        <Clock className="h-3 w-3" />
+                        <span>{video.duration ? `${Math.floor(video.duration / 60)}:${String(video.duration % 60).padStart(2, '0')}` : 'N/A'}</span>
+                      </div>
                     </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/40" />
-                  <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm">
-                    <Clock className="h-3 w-3" />
-                    <span>{video.duration ? `${Math.floor(video.duration / 60)}:${String(video.duration % 60).padStart(2, '0')}` : 'N/A'}</span>
-                  </div>
-                </div>
 
-                {/* Info */}
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900 dark:text-white">
-                    {video.name || 'Untitled Video'}
-                  </h3>
-                  <div className="mt-2 flex flex-wrap items-center gap-4">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {video.createdAt ? formatDate(video.createdAt) : 'Unknown'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  {video.processedVideoUrl ? (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedVideo(video);
-                          setIsVideoEditorOpen(true);
-                        }}
-                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
-                      >
-                        <Pencil className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedVideo(video);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleProcess(video.id);
-                        }}
-                        disabled={processingIds.has(video.id)}
-                        className={`rounded-lg p-2 text-blue-500 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors ${
-                          processingIds.has(video.id) ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        {processingIds.has(video.id) ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                          <Wand2 className="h-5 w-5" />
+                    {/* Info */}
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-gray-900 dark:text-white">
+                          {video.title || 'Untitled Video'}
+                        </h3>
+                        <ChevronDown className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-4">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {video.createdAt ? formatDate(video.createdAt) : 'Unknown'}
+                        </span>
+                        {isProcessing && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Processing
+                          </span>
                         )}
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedVideo(video);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
+                        {video.status === 'failed' && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                            Failed
+                          </span>
+                        )}
+                        {video.status === 'completed' && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                            Completed
+                          </span>
+                        )}
+                      </div>
+                      {video.status === 'failed' && video.error && (
+                        <div className="mt-2 text-sm text-red-600 dark:text-red-400">
+                          Error: {video.error}
+                        </div>
+                      )}
+                      
+                      {/* View processed video link */}
+                      {video.processedVideoUrl && video.status === 'completed' && (
+                        <div className="mt-2">
+                          <a 
+                            href={video.processedVideoUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                            onClick={(e) => e.stopPropagation()} // Prevent dropdown toggle when clicking the link
+                          >
+                            <Video className="h-4 w-4" />
+                            View Enhanced Video
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Dropdown content */}
+                  {isDropdownOpen && (
+                    <div className="border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+                      <div className="flex flex-wrap gap-2">
+                        {video.processedVideoUrl && video.status === 'completed' && (
+                          <button
+                            onClick={() => {
+                              setSelectedVideo(video);
+                              setIsVideoEditorOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                          >
+                            <Pencil className="h-4 w-4" />
+                            Edit
+                          </button>
+                        )}
+                        
+                        {!isProcessing && video.status !== 'completed' && (
+                          <button
+                            onClick={() => handleProcess(video.id)}
+                            disabled={isProcessing}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed dark:border-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600"
+                          >
+                            {isProcessing ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <Wand2 className="h-4 w-4" />
+                                Transform
+                              </>
+                            )}
+                          </button>
+                        )}
+                        
+                        <button
+                          onClick={() => {
+                            setSelectedVideo(video);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 dark:border-red-500 dark:bg-red-500 dark:hover:bg-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
@@ -501,9 +867,11 @@ export default function VideoEnhancer() {
 
       <TransformModal
         isOpen={isTransformModalOpen}
-        onClose={() => setIsTransformModalOpen(false)}
+        onClose={handleTransformModalClose}
         video={selectedVideo}
-        endpoint="/video-enhancer/upload"
+        endpoint="/videoEnhancer/upload"
+        onProcessingStart={handleVideoProcessingStart}
+        onTransformStart={handleTransformStart}
       />
 
       <ConfirmationModal

@@ -20,8 +20,15 @@ export function markVideoProcessingComplete(videoId) {
 export async function checkVideoProcessingStatus(videoId) {
   try {
     const idToken = await auth.currentUser.getIdToken();
-    // Use the correct endpoint for checking video processing status
-    const response = await fetch(`${SERVER_URL}/videoProcessor/status/${videoId}`, {
+    
+    // Determine the correct endpoint based on the videoId format or other logic
+    // For now, we'll use a simple approach - if the videoId starts with 'ai-', use videoProcessor endpoint
+    // otherwise use videoEnhancer endpoint
+    const endpoint = videoId.startsWith('ai-') 
+      ? `/videoProcessor/status/${videoId}`
+      : `/videoEnhancer/status/${videoId}`;
+    
+    const response = await fetch(`${SERVER_URL}${endpoint}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${idToken}`,
@@ -53,7 +60,7 @@ export async function checkVideoProcessingStatus(videoId) {
   }
 }
 
-export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingStart }) {
+export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingStart, onTransformStart }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [totalLengthSeconds, setTotalLengthSeconds] = useState(60);
@@ -83,8 +90,13 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
       setCaptionText('');
       setBackgroundMusic('https://shotstack-assets.s3.ap-southeast-2.amazonaws.com/music/freepd/effects.mp3');
       setOutputResolution('1080x1920');
+      
+      // Set default caption text based on endpoint
+      if (endpoint === '/videoEnhancer/upload') {
+        setCaptionText('Enhanced with AI');
+      }
     }
-  }, [isOpen, videoIsAlreadyProcessing, addToast, onClose]);
+  }, [isOpen, videoIsAlreadyProcessing, addToast, onClose, endpoint]);
 
   const handleTransform = async () => {
     if (!video) {
@@ -93,6 +105,8 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
       return;
     }
 
+    console.log("Transform video:", video);
+
     // Set processing state to disable the button
     setIsProcessing(true);
     setError(null);
@@ -100,6 +114,11 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
     // Add this video to the processing set
     if (video.id) {
       processingVideos.add(video.id);
+    }
+    
+    // Call onTransformStart if provided - do this BEFORE any async operations
+    if (onTransformStart) {
+      onTransformStart();
     }
     
     // Close the modal immediately
@@ -116,8 +135,54 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
       const idToken = await auth.currentUser.getIdToken();
       const lengthInSeconds = parseInt(totalLengthSeconds);
       
-      if (endpoint === '/video-enhancer/upload') {
-        // Handle new video uploads
+      if (endpoint === '/videoEnhancer/upload') {
+        // Handle new video uploads for videoEnhancer
+        if (!video.file) {
+          console.error('Video file is required for upload', video);
+          addToast("Video file is required for upload", "error", 10000, toastId);
+          setIsProcessing(false);
+          if (video.id) {
+            processingVideos.delete(video.id);
+          }
+          return;
+        }
+        
+        console.log("Uploading video file:", video.file);
+        
+        const formData = new FormData();
+        formData.append('video', video.file);
+        formData.append('desiredLength', lengthInSeconds.toString());
+        formData.append('transitionEffect', transitionEffect);
+        formData.append('captionText', captionText);
+        formData.append('backgroundMusic', backgroundMusic);
+        formData.append('outputResolution', outputResolution);
+
+        // Wait for the initial response from the server
+        const response = await fetch(`${SERVER_URL}${endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+          },
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to process video');
+        }
+
+        // Get the videoId and renderId from the response
+        const responseData = await response.json().catch(() => ({}));
+        console.log("Upload response:", responseData);
+        const videoId = responseData.videoId;
+        const renderId = responseData.renderId;
+        
+        // Call onProcessingStart if provided, passing the videoId and toastId
+        if (onProcessingStart && videoId) {
+          onProcessingStart(videoId, toastId, renderId);
+        }
+      } else if (endpoint === '/video-enhancer/upload') {
+        // Handle new video uploads for video-enhancer
         if (!video.file) {
           console.error('Video file is required for upload');
           addToast("Video file is required for upload", "error", 10000, toastId);
@@ -172,11 +237,8 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
           outputResolution,
         };
 
-        // Ensure we're using the correct endpoint
-        const apiEndpoint = endpoint || '/videoProcessor/process-video';
-
         // Wait for the initial response from the server
-        const response = await fetch(`${SERVER_URL}${apiEndpoint}`, {
+        const response = await fetch(`${SERVER_URL}${endpoint}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${idToken}`,
@@ -196,8 +258,11 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
         const aiVideoId = responseData.aiVideoId;
         
         // Call onProcessingStart if provided, passing the aiVideoId and toastId
-        if (onProcessingStart && video.id) {
+        if (onProcessingStart && aiVideoId) {
           onProcessingStart(video.id, toastId, aiVideoId);
+        } else if (onProcessingStart && video.id) {
+          // Fallback to using video.id if aiVideoId is not available
+          onProcessingStart(video.id, toastId);
         }
       }
     } catch (err) {
@@ -248,127 +313,117 @@ export function TransformModal({ isOpen, onClose, video, endpoint, onProcessingS
             <div className="mt-8 grid grid-cols-2 gap-6">
               {/* Video Length Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Minutes
+                <label className="block text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Video Length (seconds)
                 </label>
                 <input
                   type="number"
-                  min="0"
-                  value={Math.floor(totalLengthSeconds / 60)}
-                  onChange={(e) => setTotalLengthSeconds(Math.floor(e.target.value) * 60 + (totalLengthSeconds % 60))}
-                  className="mt-2 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/10"
+                  min="10"
+                  max="120"
+                  value={totalLengthSeconds}
+                  onChange={(e) => setTotalLengthSeconds(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
-             </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Seconds
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="59"
-                  value={totalLengthSeconds % 60}
-                  onChange={(e) => setTotalLengthSeconds(Math.floor(totalLengthSeconds / 60) * 60 + parseInt(e.target.value))}
-                  className="mt-2 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/10"
-                />
-             </div>
+              </div>
 
               {/* Transition Effect */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-left text-sm font-medium text-gray-700 dark:text-gray-300">
                   Transition Effect
                 </label>
                 <select
                   value={transitionEffect}
                   onChange={(e) => setTransitionEffect(e.target.value)}
-                  className="mt-2 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/10"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="fade">Fade</option>
-                  <option value="fadeSlow">Fade Slow</option>
+                  <option value="slideLeft">Slide Left</option>
+                  <option value="slideRight">Slide Right</option>
                   <option value="slideUp">Slide Up</option>
-                </select>
-             </div>
-
-              {/* Output Resolution */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Output Resolution
-                </label>
-                <select
-                  value={outputResolution}
-                  onChange={(e) => setOutputResolution(e.target.value)}
-                  className="mt-2 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/10"
-                >
-                  <option value="1080x1920">1080x1920 (Vertical - Shorts)</option>
-                  <option value="1920x1080">1920x1080 (Horizontal - Standard)</option>
-                  <option value="720x1280">720x1280 (Vertical - Lower Res)</option>
+                  <option value="slideDown">Slide Down</option>
                 </select>
               </div>
 
               {/* Caption Text */}
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-left text-sm font-medium text-gray-700 dark:text-gray-300">
                   Caption Text
                 </label>
                 <input
                   type="text"
                   value={captionText}
                   onChange={(e) => setCaptionText(e.target.value)}
-                  placeholder="Optional caption text"
-                  className="mt-2 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/10"
+                  placeholder="Enter caption text (optional)"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
               {/* Background Music */}
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-left text-sm font-medium text-gray-700 dark:text-gray-300">
                   Background Music
                 </label>
                 <select
                   value={backgroundMusic}
                   onChange={(e) => setBackgroundMusic(e.target.value)}
-                  className="mt-2 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/10"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="https://shotstack-assets.s3.ap-southeast-2.amazonaws.com/music/freepd/effects.mp3">Upbeat Effects</option>
-                  <option value="https://shotstack-assets.s3.ap-southeast-2.amazonaws.com/music/freepd/chill.mp3">Chill Vibes</option>
-                  <option value="https://shotstack-assets.s3.ap-southeast-2.amazonaws.com/music/freepd/energetic.mp3">Energetic Beat</option>
+                  <option value="https://shotstack-assets.s3.ap-southeast-2.amazonaws.com/music/freepd/effects.mp3">Upbeat Electronic</option>
+                  <option value="https://shotstack-assets.s3.ap-southeast-2.amazonaws.com/music/freepd/motions.mp3">Smooth Jazz</option>
+                  <option value="https://shotstack-assets.s3.ap-southeast-2.amazonaws.com/music/freepd/urban-pulse.mp3">Urban Pulse</option>
                 </select>
               </div>
 
-              {error && (
-                <div className="mt-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
-                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-                </div>
-              )}
+              {/* Output Resolution */}
+              <div className="col-span-2">
+                <label className="block text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Output Resolution
+                </label>
+                <select
+                  value={outputResolution}
+                  onChange={(e) => setOutputResolution(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                >
+                  <option value="1080x1920">1080x1920 (Portrait)</option>
+                  <option value="1920x1080">1920x1080 (Landscape)</option>
+                  <option value="1080x1080">1080x1080 (Square)</option>
+                </select>
+              </div>
             </div>
+          </div>
 
-            <div className="mt-8 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-              <button
-                onClick={onClose}
-                className="inline-flex w-full sm:w-auto justify-center rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleTransform}
-                disabled={isProcessing}
-                className={`inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white ${
-                  isProcessing ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'
-                }`}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="h-4 w-4" />
-                    Use 1 Credit to Enhance Video
-                  </>
-                )}
-              </button>
+          {error && (
+            <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
+              {error}
             </div>
+          )}
+
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleTransform}
+              disabled={isProcessing}
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Transform Video
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
