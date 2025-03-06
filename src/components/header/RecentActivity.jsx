@@ -1,9 +1,9 @@
 // src/components/RecentActivity.jsx
 import React, { useState, useEffect } from 'react';
-import { get } from '../lib/api';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
+import { get } from '../../lib/api';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { Star, ChevronDown, ChevronUp } from 'lucide-react'; 
-import { RecentActivitySkeleton } from './ui/skeleton';
+import { RecentActivitySkeleton } from '../ui/skeleton';
 
 export default function RecentActivity() {
   const [activities, setActivities] = useState([]);

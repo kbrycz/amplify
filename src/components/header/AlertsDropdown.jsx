@@ -1,9 +1,9 @@
 // AlertsDropdown.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, CheckCircle, ChevronDown } from 'lucide-react';
-import { Dropdown } from './ui/Dropdown';
-import { get } from '../lib/api';
-import { SERVER_URL, auth } from '../lib/firebase';
+import { Dropdown } from '../ui/Dropdown';
+import { get } from '../../lib/api';
+import { SERVER_URL, auth } from '../../lib/firebase';
 
 function AlertsDropdown() {
   const [alerts, setAlerts] = useState([]);

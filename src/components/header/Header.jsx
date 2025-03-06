@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Moon, Sun, Bell, Play } from 'lucide-react';
-import { useSidebar } from '../context/SidebarContext';
+import { useSidebar } from '../../context/SidebarContext';
 import UserDropdown from './UserDropdown';
 import AlertsDropdown from './AlertsDropdown';
-import { VideoModal } from './ui/VideoModal';
+import { VideoModal } from '../ui/VideoModal';
 
 function Header() {
   const [isDark, setIsDark] = useState(() => {

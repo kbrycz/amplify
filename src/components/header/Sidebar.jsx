@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { useSidebar } from '../context/SidebarContext';
+import { useSidebar } from '../../context/SidebarContext';
 import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings, HelpCircle } from 'lucide-react';
 
 // Hook to detect dark mode

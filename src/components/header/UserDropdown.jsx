@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronDown, Cog, LogOut, User, CreditCard, Crown } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { auth } from '../lib/firebase';
+import { useAuth } from '../../context/AuthContext';
+import { auth } from '../../lib/firebase';
 import { signOut } from 'firebase/auth';
-import { Dropdown } from './ui/Dropdown';
-import { DropdownItem } from './ui/DropdownItem';
+import { Dropdown } from '../ui/Dropdown';
+import { DropdownItem } from '../ui/DropdownItem';
 /* UserDropdown Component */
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
