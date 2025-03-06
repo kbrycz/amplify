@@ -1,32 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PageHeader } from '../components/ui/page-header';
-import { ArrowLeft, Star, Video, Sparkles } from 'lucide-react';
 import { SERVER_URL, auth } from '../lib/firebase';
-import { LoadingSpinner } from '../components/ui/loading-spinner';
-import { ListViewResponse } from '../components/responses/ListViewResponse';
-import { VideoModal } from '../components/responses/VideoModal';
-import { VideoEditorModal } from '../components/responses/VideoEditorModal';
-import { ConfirmationModal } from '../components/ui/confirmation-modal';
-import { EmptyState } from '../components/ui/empty-state';
-import { ErrorMessage } from '../components/ui/error-message';
 import { useToast } from '../components/ui/toast-notification';
+import AIVideosHeader from '../components/aiVideos/AIVideosHeader';
+import AIVideosList from '../components/aiVideos/AIVideosList';
+import AIVideosModals from '../components/aiVideos/AIVideosModals';
 
 export default function AIVideos() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { addToast } = useToast();
+
   const [aiVideos, setAiVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedForAction, setSelectedForAction] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const { addToast } = useToast();
 
   useEffect(() => {
     fetchAIVideos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchAIVideos = async () => {
@@ -71,8 +67,6 @@ export default function AIVideos() {
     if (!selectedForAction) return;
     
     setIsDeleting(true);
-    
-    // Close the modal immediately
     setIsDeleteModalOpen(false);
     
     try {
@@ -96,8 +90,6 @@ export default function AIVideos() {
       addToast("AI video deleted successfully", "success", 3000);
     } catch (err) {
       console.error('Error deleting AI video:', err);
-      
-      // Show error toast
       addToast(`Failed to delete AI video: ${err.message}`, "error", 5000);
     } finally {
       setIsDeleting(false);
@@ -106,87 +98,35 @@ export default function AIVideos() {
 
   return (
     <div className="p-6">
-      <button
-        onClick={() => navigate(`/app/campaigns/${id}`)}
-        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to campaign
-      </button>
+      <AIVideosHeader id={id} navigate={navigate} />
 
-      <PageHeader
-        title="AI Generated Videos"
-        description="View and manage AI-generated videos for this campaign."
-        className="mb-6"
+      <AIVideosList 
+        aiVideos={aiVideos}
+        isLoading={isLoading}
+        error={error}
+        onVideoClick={setSelectedVideo}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        campaignId={id}
+        navigate={navigate}
       />
 
-      {isLoading ? (
-        <LoadingSpinner message="Loading AI videos..." />
-      ) : error ? (
-        <ErrorMessage message={error} />
-      ) : aiVideos.length === 0 ? (
-        <EmptyState
-          title="No AI-generated videos yet"
-          description="Transform your video responses into polished, professional content with our AI tools."
-          icon={Sparkles}
-          primaryAction={{
-            label: 'View Responses',
-            onClick: () => navigate(`/app/campaigns/${id}/responses`),
-            icon: <Video className="h-5 w-5" />
-          }}
-        />
-      ) : (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
-          {aiVideos.map(video => (
-            <ListViewResponse
-              key={video.id}
-              response={{
-                ...video,
-                name: 'AI Generated Video',
-                email: 'Generated from original response',
-                videoUrl: video.processedVideoUrl,
-                thumbnailUrl: video.thumbnailUrl || 'https://images.unsplash.com/photo-1590856029826-c7a73142bbf1?q=80&w=2073'
-              }}
-              onVideoClick={setSelectedVideo}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onStarChange={() => {}}
-            />
-          ))}
-        </div>
-      )}
-      
-      {/* Video modal */}
-      {selectedVideo && (
-        <VideoModal
-          testimonial={selectedVideo}
-          onClose={() => setSelectedVideo(null)}
-        />
-      )}
-
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        title="Delete AI Video"
-        message="Are you sure you want to delete this AI-generated video? This action cannot be undone."
-        isLoading={isDeleting}
-        simpleConfirm={true}
-      />
-
-      {/* Edit Modal */}
-      <VideoEditorModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        video={selectedForAction}
-        onSave={async () => {
-          // TODO: Implement save functionality
+      <AIVideosModals
+        selectedVideo={selectedVideo}
+        setSelectedVideo={setSelectedVideo}
+        isDeleteModalOpen={isDeleteModalOpen}
+        setIsDeleteModalOpen={setIsDeleteModalOpen}
+        isDeleting={isDeleting}
+        handleDeleteConfirm={handleDeleteConfirm}
+        isEditModalOpen={isEditModalOpen}
+        setIsEditModalOpen={setIsEditModalOpen}
+        selectedForAction={selectedForAction}
+        onSaveEdit={async () => {
           setIsEditModalOpen(false);
           await fetchAIVideos();
         }}
       />
-      
+
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         &copy; 2025 Shout. All rights reserved.
       </div>
