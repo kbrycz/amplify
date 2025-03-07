@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Label } from '../../ui/label';
-import { themes } from '../../survey/themes';
 import { HexColorPicker } from 'react-colorful';
 import { Check, Palette, ChevronDown } from 'lucide-react';
 
@@ -12,16 +11,67 @@ export function DesignPage({
   gradientDirection,
   setGradientDirection,
   hexText,
-  setHexText
+  setHexText,
+  themes
 }) {
   const [showCustomColors, setShowCustomColors] = useState(selectedTheme === 'custom');
   const [activeColorPicker, setActiveColorPicker] = useState(null);
   const [showTextPicker, setShowTextPicker] = useState(false);
 
+  // Ensure all color values have # prefix
+  React.useEffect(() => {
+    // Check and fix gradient colors
+    const updatedGradientColors = { ...gradientColors };
+    let needsUpdate = false;
+    
+    ['from', 'via', 'to'].forEach(position => {
+      if (!gradientColors[position].startsWith('#')) {
+        updatedGradientColors[position] = `#${gradientColors[position]}`;
+        needsUpdate = true;
+      }
+    });
+    
+    if (needsUpdate) {
+      setGradientColors(updatedGradientColors);
+    }
+    
+    // Check and fix text color
+    if (!hexText.startsWith('#')) {
+      setHexText(`#${hexText}`);
+    }
+  }, []);
+
   // Update showCustomColors when selectedTheme changes
   React.useEffect(() => {
     setShowCustomColors(selectedTheme === 'custom');
   }, [selectedTheme]);
+
+  // Handle gradient color change with # enforcement
+  const handleGradientColorChange = (position, value) => {
+    // Remove any existing # symbol
+    let colorValue = value.replace('#', '');
+    
+    // Ensure it's uppercase
+    colorValue = colorValue.toUpperCase();
+    
+    // Add the # symbol back
+    setGradientColors(prev => ({
+      ...prev,
+      [position]: `#${colorValue}`
+    }));
+  };
+
+  // Handle text color change with # enforcement
+  const handleTextColorChange = (value) => {
+    // Remove any existing # symbol
+    let colorValue = value.replace('#', '');
+    
+    // Ensure it's uppercase
+    colorValue = colorValue.toUpperCase();
+    
+    // Add the # symbol back
+    setHexText(`#${colorValue}`);
+  };
 
   const handleThemeSelect = (key) => {
     setSelectedTheme(key);
@@ -86,10 +136,7 @@ export function DesignPage({
                         id={`gradient-${position}`}
                         placeholder="#000000"
                         value={gradientColors[position]}
-                        onChange={(e) => setGradientColors(prev => ({
-                          ...prev,
-                          [position]: e.target.value.toUpperCase()
-                        }))}
+                        onChange={(e) => handleGradientColorChange(position, e.target.value)}
                         className="w-24 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
                       />
                     </div>
@@ -98,10 +145,14 @@ export function DesignPage({
                         <div className="rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                           <HexColorPicker 
                             color={gradientColors[position]} 
-                            onChange={(color) => setGradientColors(prev => ({
-                              ...prev,
-                              [position]: color
-                            }))}
+                            onChange={(color) => {
+                              // Ensure color has # prefix
+                              const formattedColor = color.startsWith('#') ? color : `#${color}`;
+                              setGradientColors(prev => ({
+                                ...prev,
+                                [position]: formattedColor
+                              }));
+                            }}
                           />
                         </div>
                       </div>
@@ -152,14 +203,21 @@ export function DesignPage({
                     id="customText"
                     placeholder="#FFFFFF"
                     value={hexText}
-                    onChange={(e) => setHexText(e.target.value.toUpperCase())}
+                    onChange={(e) => handleTextColorChange(e.target.value)}
                     className="w-24 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
                   />
                   </div>
                   {showTextPicker && (
                     <div className="absolute right-0 top-full z-10 mt-2">
                       <div className="rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                        <HexColorPicker color={hexText} onChange={setHexText} />
+                        <HexColorPicker 
+                          color={hexText} 
+                          onChange={(color) => {
+                            // Ensure color has # prefix
+                            const formattedColor = color.startsWith('#') ? color : `#${color}`;
+                            setHexText(formattedColor);
+                          }} 
+                        />
                       </div>
                     </div>
                   )}
@@ -167,22 +225,6 @@ export function DesignPage({
               </div>
             </div>
 
-            <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-800">
-              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Preview</h4>
-              <div 
-                className="rounded-lg p-8"
-                style={{
-                  background: getGradientStyle(),
-                  color: hexText
-                }}
-              >
-                <div className="flex flex-col items-center gap-6">
-                  <div className="space-y-6 text-center">
-                    <p className="opacity-80">This is how your text will look with the selected gradient</p>
-                  </div>
-                </div>
-              </div>
-            </div>
             <div className="mt-8 flex justify-center">
               <button
                 type="button"
@@ -203,7 +245,9 @@ export function DesignPage({
         ) : (
           <>
           <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Object.entries(themes).map(([key, theme]) => (
+          {Object.entries(themes)
+            .filter(([key]) => key !== 'custom') // Filter out the custom theme
+            .map(([key, theme]) => (
             <button
               key={key}
               onClick={(e) => {

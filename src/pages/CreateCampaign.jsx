@@ -21,14 +21,6 @@ import { CampaignTemplateModal } from '../components/create-campaign/CampaignTem
 
 // Theme configuration
 const themes = {
-  midnight: {
-    background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
-    text: 'text-white',
-    subtext: 'text-blue-200',
-    border: 'border-blue-900/50',
-    input: 'bg-blue-950/50',
-    name: 'Midnight Blue'
-  },
   sunset: {
     background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
     text: 'text-white',
@@ -37,6 +29,14 @@ const themes = {
     input: 'bg-white/20',
     name: 'Sunset Vibes'
   },
+  midnight: {
+    background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
+    text: 'text-white',
+    subtext: 'text-blue-200',
+    border: 'border-blue-900/50',
+    input: 'bg-blue-950/50',
+    name: 'Midnight Blue'
+  },
   nature: {
     background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
     text: 'text-white',
@@ -44,6 +44,30 @@ const themes = {
     border: 'border-white/20',
     input: 'bg-white/20',
     name: 'Nature Fresh'
+  },
+  ocean: {
+    background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600',
+    text: 'text-white',
+    subtext: 'text-cyan-100',
+    border: 'border-white/20',
+    input: 'bg-white/20',
+    name: 'Ocean Depths'
+  },
+  aurora: {
+    background: 'bg-gradient-to-br from-teal-400 via-purple-500 to-pink-500',
+    text: 'text-white',
+    subtext: 'text-teal-100',
+    border: 'border-white/20',
+    input: 'bg-white/20',
+    name: 'Aurora Lights'
+  },
+  desert: {
+    background: 'bg-gradient-to-br from-amber-500 via-red-500 to-rose-600',
+    text: 'text-white',
+    subtext: 'text-amber-100',
+    border: 'border-white/20',
+    input: 'bg-white/20',
+    name: 'Desert Sands'
   },
   custom: {
     background: '', // Will be set dynamically
@@ -68,7 +92,7 @@ export default function CreateCampaign() {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedTheme, setSelectedTheme] = useState('sunset');
   const [isDraftsOpen, setIsDraftsOpen] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
@@ -411,16 +435,16 @@ export default function CreateCampaign() {
     
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
-      // Show preview starting from step 2 (Campaign Info)
-      setShowPreview(currentStep + 1 >= 2);
+      // Always show preview
+      setShowPreview(true);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      // Hide preview when going back before step 2
-      setShowPreview(currentStep - 1 >= 2);
+      // Always show preview
+      setShowPreview(true);
     }
   };
 
@@ -715,7 +739,7 @@ export default function CreateCampaign() {
           </div>
         </div>
 
-        <div className={`relative ${currentStep < 2 ? 'w-full' : 'max-w-[800px]'} mt-4`} ref={draftsRef}>
+        <div className={`relative max-w-[800px] mt-4`} ref={draftsRef}>
           {isLoadingDrafts ? (
             <div className="w-full flex items-center gap-2 p-3 text-sm text-gray-600 bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
               <div className="animate-pulse flex items-center gap-2 w-full">
@@ -820,6 +844,7 @@ export default function CreateCampaign() {
                     setGradientDirection={setGradientDirection}
                     hexText={hexText}
                     setHexText={setHexText}
+                    themes={themes}
                   />
                 )}
 
@@ -881,7 +906,7 @@ export default function CreateCampaign() {
             </CardContent>
           </Card>
 
-          {showPreview && <PhonePreview
+          <PhonePreview
             selectedTheme={selectedTheme}
             themes={themes}
             previewImage={previewImage}
@@ -891,7 +916,7 @@ export default function CreateCampaign() {
             gradientColors={gradientColors}
             gradientDirection={gradientDirection}
             hexText={hexText}
-          />}
+          />
         </div>
       </div>
 

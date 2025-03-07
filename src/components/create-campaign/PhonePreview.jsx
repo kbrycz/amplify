@@ -2,33 +2,6 @@ import React from 'react';
 import { Upload, ChevronRight, ChevronLeft, ChevronLeft as SafariBack, ChevronRight as SafariForward, Share2, MoreVertical, Video } from 'lucide-react';
 import { Iphone15Pro } from '../ui/iphone';
 
-const themes = {
-  midnight: {
-    background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
-    text: 'text-white',
-    subtext: 'text-blue-200',
-    border: 'border-blue-900/50',
-    input: 'bg-blue-950/50',
-    name: 'Midnight Blue'
-  },
-  sunset: {
-    background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
-    text: 'text-white',
-    subtext: 'text-orange-100',
-    border: 'border-white/20',
-    input: 'bg-white/20',
-    name: 'Sunset Vibes'
-  },
-  nature: {
-    background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
-    text: 'text-white',
-    subtext: 'emerald-100',
-    border: 'border-white/20',
-    input: 'bg-white/20',
-    name: 'Nature Fresh'
-  }
-};
-
 const steps = [
   { id: 'intro', title: 'Welcome' },
   { id: 'contact', title: 'Contact Info' },
@@ -44,7 +17,8 @@ export function PhonePreview({
   currentStep = 0,
   gradientColors,
   gradientDirection,
-  hexText
+  hexText,
+  themes
 }) {
   const [previewStep, setPreviewStep] = React.useState('intro');
   const [previewFormData, setPreviewFormData] = React.useState({
@@ -90,8 +64,8 @@ export function PhonePreview({
   // Custom theme object for rendering
   const customTheme = {
     background: '',  // This will be overridden by inline style
-    text: `text-[${hexText}]`,
-    subtext: `text-[${hexText}]/80`,
+    text: '',  // Will be set with inline style
+    subtext: '', // Will be set with inline style
     border: 'border-white/20',
     input: 'bg-white/20',
     name: 'Custom Theme'
@@ -100,14 +74,27 @@ export function PhonePreview({
   // Determine which theme to use
   const themeToUse = selectedTheme === 'custom' ? customTheme : themes[selectedTheme] || themes.sunset;
 
+  // Get text style for custom theme
+  const getTextStyle = () => {
+    if (selectedTheme !== 'custom') return {};
+    return { color: hexText };
+  };
+
+  // Get subtext style for custom theme
+  const getSubtextStyle = () => {
+    if (selectedTheme !== 'custom') return {};
+    // Create a slightly transparent version of the text color
+    return { color: hexText, opacity: 0.8 };
+  };
+
   return (
     <div className="hidden lg:block sticky top-0 h-[calc(100vh-1.5rem)] w-[500px] xl:block">
       <div className="flex flex-col items-center">
         <div className="scale-[0.8] origin-top xl:scale-[0.85] -mt-24">
           <Iphone15Pro>
             <div 
-              className={`h-full ${selectedTheme === 'custom' ? '' : themeToUse.background} transition-colors duration-200`}
-              style={selectedTheme === 'custom' ? { background: getCustomGradientStyle() } : {}}
+              className={`h-full ${currentStep === 0 ? 'bg-gray-100 dark:bg-gray-800' : selectedTheme === 'custom' ? '' : themeToUse.background} transition-colors duration-200`}
+              style={selectedTheme === 'custom' && currentStep !== 0 ? { background: getCustomGradientStyle() } : {}}
             >
               <div className="flex flex-col h-full">
                 {/* Safari URL Bar */}
@@ -144,8 +131,53 @@ export function PhonePreview({
                 </div>
 
                 <div className="p-6">
-                  {/* Welcome Screen */}
-                  {previewStep === 'intro' && (
+                  {/* Internal Name Step - Blank Preview */}
+                  {currentStep === 0 && (
+                    <div className="text-center flex flex-col items-center justify-center h-[500px] rounded-xl p-8">
+                      <div className="max-w-xs">
+                        <h1 className={`text-2xl font-bold tracking-tight text-gray-800 dark:text-white mb-3`}>
+                          Preview
+                        </h1>
+                        <p className={`text-gray-600 dark:text-gray-300`}>
+                          Your campaign will appear here as you build it. Continue to the next step to start designing.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Design Step - Theme Preview with Dummy Text */}
+                  {currentStep === 1 && (
+                    <div className="text-center">
+                      <div className="flex justify-center mb-8">
+                        <div className={`w-20 h-20 rounded-full flex items-center justify-center ${themeToUse.border} border-2`}>
+                          <Upload className={`w-8 h-8 ${selectedTheme === 'custom' ? '' : themeToUse.text} opacity-50`} 
+                            style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                          />
+                        </div>
+                      </div>
+                      <h1 className={`text-3xl font-bold tracking-tight ${selectedTheme === 'custom' ? '' : themeToUse.text} mb-2`}
+                        style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                      >
+                        Campaign Title
+                      </h1>
+                      <p className={`mt-4 text-base ${selectedTheme === 'custom' ? '' : themeToUse.subtext}`}
+                        style={selectedTheme === 'custom' ? getSubtextStyle() : {}}
+                      >
+                        Campaign Description
+                      </p>
+                      <button
+                        className={`mt-8 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
+                          themeToUse.border} border-2 ${selectedTheme === 'custom' ? '' : themeToUse.text} hover:bg-white/10`}
+                        style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                      >
+                        Get Started
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Welcome Screen for other steps */}
+                  {currentStep > 1 && previewStep === 'intro' && (
                     <div className="text-center">
                       {previewImage ? (
                         <div className="flex justify-center mb-8">
@@ -158,62 +190,82 @@ export function PhonePreview({
                       ) : (
                         <div className="flex justify-center mb-8">
                           <div className={`w-20 h-20 rounded-full flex items-center justify-center ${themeToUse.border} border-2`}>
-                            <Upload className={`w-8 h-8 ${themeToUse.text} opacity-50`} />
+                            <Upload className={`w-8 h-8 ${selectedTheme === 'custom' ? '' : themeToUse.text} opacity-50`}
+                              style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                            />
                           </div>
                         </div>
                       )}
-                      <h1 className={`text-3xl font-bold tracking-tight ${themeToUse.text} mb-2`}>
+                      <h1 className={`text-3xl font-bold tracking-tight ${selectedTheme === 'custom' ? '' : themeToUse.text} mb-2`}
+                        style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                      >
                         {formData.title || 'Campaign Title'}
                       </h1>
-                      <p className={`mt-4 text-base ${themeToUse.subtext}`}>
+                      <p className={`mt-4 text-base ${selectedTheme === 'custom' ? '' : themeToUse.subtext}`}
+                        style={selectedTheme === 'custom' ? getSubtextStyle() : {}}
+                      >
                         {formData.description || 'Campaign Description'}
                       </p>
                       <button
                         onClick={goToNextStep}
                         className={`mt-8 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
-                          themeToUse.border} border-2 ${themeToUse.text} hover:bg-white/10`}
+                          themeToUse.border} border-2 ${selectedTheme === 'custom' ? '' : themeToUse.text} hover:bg-white/10`}
+                        style={selectedTheme === 'custom' ? getTextStyle() : {}}
                       >
                         Get Started
                         <ChevronRight className="h-4 w-4" />
                       </button>
                     </div>
                   )}
-
+                  
                   {/* Contact Info Screen */}
                   {previewStep === 'contact' && (
                     <div>
-                      <h2 className={`text-2xl font-bold ${themeToUse.text}`}>Contact Information</h2>
-                      <p className={`mt-2 text-sm ${themeToUse.subtext}`}>
+                      <h2 className={`text-2xl font-bold ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
+                        style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                      >Contact Information</h2>
+                      <p className={`mt-2 text-sm ${selectedTheme === 'custom' ? '' : themeToUse.subtext}`}
+                        style={selectedTheme === 'custom' ? getSubtextStyle() : {}}
+                      >
                         Please provide your contact details. This information will be kept private.
                       </p>
                       <div className="mt-8 space-y-6">
                         <div className="grid grid-cols-1 gap-6">
                           <div>
-                            <label className={`block text-sm font-medium ${themeToUse.text}`}>First name</label>
+                            <label className={`block text-sm font-medium ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
+                              style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                            >First name</label>
                             <input
                               name="firstName"
                               value={previewFormData.firstName}
                               onChange={handleInputChange}
-                              className={`mt-2 block w-full rounded-lg ${themeToUse.border} ${themeToUse.input} text-white placeholder:text-white/50 focus:ring-white/20 px-3 py-2`}
+                              className={`mt-2 block w-full rounded-lg ${themeToUse.border} ${themeToUse.input} ${selectedTheme === 'custom' ? '' : themeToUse.text} placeholder:${selectedTheme === 'custom' ? '' : themeToUse.text}/50 focus:ring-white/20 px-3 py-2`}
+                              style={selectedTheme === 'custom' ? getTextStyle() : {}}
                             />
                           </div>
                           <div>
-                            <label className={`block text-sm font-medium ${themeToUse.text}`}>Last name</label>
+                            <label className={`block text-sm font-medium ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
+                              style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                            >Last name</label>
                             <input
                               name="lastName"
                               value={previewFormData.lastName}
                               onChange={handleInputChange}
-                              className={`mt-2 block w-full rounded-lg ${themeToUse.border} ${themeToUse.input} text-white placeholder:text-white/50 focus:ring-white/20 px-3 py-2`}
+                              className={`mt-2 block w-full rounded-lg ${themeToUse.border} ${themeToUse.input} ${selectedTheme === 'custom' ? '' : themeToUse.text} placeholder:${selectedTheme === 'custom' ? '' : themeToUse.text}/50 focus:ring-white/20 px-3 py-2`}
+                              style={selectedTheme === 'custom' ? getTextStyle() : {}}
                             />
                           </div>
                           <div>
-                            <label className={`block text-sm font-medium ${themeToUse.text}`}>Email address</label>
+                            <label className={`block text-sm font-medium ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
+                              style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                            >Email address</label>
                             <input
                               name="email"
                               type="email"
                               value={previewFormData.email}
                               onChange={handleInputChange}
-                              className={`mt-2 block w-full rounded-lg ${themeToUse.border} ${themeToUse.input} text-white placeholder:text-white/50 focus:ring-white/20 px-3 py-2`}
+                              className={`mt-2 block w-full rounded-lg ${themeToUse.border} ${themeToUse.input} ${selectedTheme === 'custom' ? '' : themeToUse.text} placeholder:${selectedTheme === 'custom' ? '' : themeToUse.text}/50 focus:ring-white/20 px-3 py-2`}
+                              style={selectedTheme === 'custom' ? getTextStyle() : {}}
                             />
                           </div>
                         </div>
@@ -224,19 +276,26 @@ export function PhonePreview({
                   {/* Location Screen */}
                   {previewStep === 'location' && (
                     <div>
-                      <h2 className={`text-2xl font-bold ${themeToUse.text}`}>Location</h2>
-                      <p className={`mt-2 text-sm ${themeToUse.subtext}`}>
+                      <h2 className={`text-2xl font-bold ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
+                        style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                      >Location</h2>
+                      <p className={`mt-2 text-sm ${selectedTheme === 'custom' ? '' : themeToUse.subtext}`}
+                        style={selectedTheme === 'custom' ? getSubtextStyle() : {}}
+                      >
                         Please provide your zip code to help us understand our community better.
                       </p>
                       <div className="mt-8">
-                        <label className={`block text-sm font-medium ${themeToUse.text}`}>Zip code</label>
+                        <label className={`block text-sm font-medium ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
+                          style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                        >Zip code</label>
                         <input
                           name="zipCode"
                           value={previewFormData.zipCode}
                           onChange={handleInputChange}
                           maxLength={5}
                           pattern="[0-9]*"
-                          className={`mt-2 block w-full rounded-lg ${themeToUse.border} ${themeToUse.input} text-white placeholder:text-white/50 focus:ring-white/20 px-3 py-2`}
+                          className={`mt-2 block w-full rounded-lg ${themeToUse.border} ${themeToUse.input} ${selectedTheme === 'custom' ? '' : themeToUse.text} placeholder:${selectedTheme === 'custom' ? '' : themeToUse.text}/50 focus:ring-white/20 px-3 py-2`}
+                          style={selectedTheme === 'custom' ? getTextStyle() : {}}
                         />
                       </div>
                     </div>
@@ -247,52 +306,45 @@ export function PhonePreview({
                     <div>
                       {/* Questions Panel */}
                       <div>
-                        <h2 className={`text-2xl font-bold ${themeToUse.text}`}>Questions</h2>
-                        <p className={`mt-2 text-sm ${themeToUse.subtext}`}>
+                        <h2 className={`text-2xl font-bold ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
+                          style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                        >Questions</h2>
+                        <p className={`mt-2 text-sm ${selectedTheme === 'custom' ? '' : themeToUse.subtext}`}
+                          style={selectedTheme === 'custom' ? getSubtextStyle() : {}}
+                        >
                           Choose one or more questions to answer in your video response.
                         </p>
-                        <div className="mt-4 space-y-2">
+                        <div className="mt-6 space-y-4">
                           {surveyQuestions.map((question, index) => (
-                            <div
-                              key={index}
-                              className={`flex items-start gap-2 rounded-lg border p-3 ${themeToUse.border} hover:bg-white/5 cursor-pointer`}
-                            >
-                              <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium bg-white/10 text-white`}>
-                                {index + 1}
-                              </div>
-                              {typeof question === 'object' ? (
-                                <p className={`text-base ${themeToUse.text}`}>
-                                  {question.question}
-                                </p>
-                              ) : (
-                                <p className={`text-base ${themeToUse.text}`}>
-                                  {question}
-                                </p>
-                              )}
+                            <div key={index} className={`rounded-lg ${themeToUse.border} border p-4`}>
+                              <p className={`text-sm font-medium ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
+                                style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                              >
+                                {question.question}
+                              </p>
                             </div>
                           ))}
+                          {surveyQuestions.length === 0 && (
+                            <div className={`rounded-lg ${themeToUse.border} border p-4`}>
+                              <p className={`text-sm font-medium ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
+                                style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                              >
+                                Sample question: What's your opinion on this topic?
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="mt-8">
+                          <button
+                            className={`w-full flex items-center justify-center gap-2 rounded-lg ${themeToUse.border} border-2 px-4 py-3 ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
+                            style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                          >
+                            <Video className="h-5 w-5" />
+                            Record Video Response
+                          </button>
                         </div>
                       </div>
-
-                        {/* Video Upload */}
-                        <div className="mt-8">
-                          <h3 className={`text-lg font-bold ${themeToUse.text}`}>Record Response</h3>
-                          <div className="mt-2">
-                            <div className={`relative flex items-center justify-center w-full aspect-video border-2 border-dashed rounded-xl ${themeToUse.border}`}>
-                              <div className="flex flex-col items-center justify-center p-4 text-center">
-                                <div className={`mb-4 rounded-full p-3 ${themeToUse.input}`}>
-                                  <Video className={`w-6 h-6 ${themeToUse.text}`} />
-                                </div>
-                                <p className={`text-base font-medium ${themeToUse.text}`}>
-                                  Record a video answering your selected question(s)
-                                </p>
-                                <div className={`mt-1 text-xs ${themeToUse.subtext}`}>
-                                  <p className="font-medium">Maximum video length: 2 minutes</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
                     </div>
                   )}
                 </div>

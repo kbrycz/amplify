@@ -102,7 +102,7 @@ export default function CampaignDetails() {
       
       <CampaignInfo campaign={campaign} />
       
-      <CampaignMetrics metrics={metrics} campaignId={id} navigate={navigate} />
+      <CampaignMetrics metrics={metrics} campaignId={id} navigate={navigate} campaign={campaign} />
       
       <CampaignCharts />
       

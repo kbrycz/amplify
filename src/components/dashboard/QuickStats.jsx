@@ -188,7 +188,7 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
       <div className="mt-10 space-y-10">
         <Card>
           <CardHeader>
-            <CardTitle>Campaigns</CardTitle>
+            <CardTitle>Campaign Data</CardTitle>
             <CardDescription>Track your campaign performance</CardDescription>
           </CardHeader>
           <CardContent>
@@ -253,7 +253,7 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
       {/* Campaigns Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Campaigns</CardTitle>
+          <CardTitle>Campaign Data</CardTitle>
           <CardDescription>Track your campaign performance</CardDescription>
         </CardHeader>
         <CardContent>
