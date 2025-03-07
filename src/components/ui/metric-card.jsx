@@ -1,7 +1,7 @@
 import React from "react";
 import { NumberTicker } from "./number-ticker";
 
-export function MetricCard({ title, value, icon: Icon, onClick }) {
+export function MetricCard({ title, value, icon: Icon, onClick, className }) {
   return (
     <button
       onClick={onClick}
@@ -15,10 +15,16 @@ export function MetricCard({ title, value, icon: Icon, onClick }) {
         </div>
         
         <div className="flex items-center justify-between">
-          <NumberTicker 
-            value={value} 
-            className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white"
-          />
+          {typeof value === 'number' ? (
+            <NumberTicker 
+              value={value} 
+              className={`text-3xl font-semibold tracking-tight text-gray-900 dark:text-white ${className || ''}`}
+            />
+          ) : (
+            <span className={`text-3xl font-semibold tracking-tight text-gray-900 dark:text-white ${className || ''}`}>
+              {value}
+            </span>
+          )}
           {Icon && (
             <div className="rounded-md bg-gray-100/80 p-2 dark:bg-gray-800">
               <Icon className="h-5 w-5 text-gray-600 dark:text-gray-400" />

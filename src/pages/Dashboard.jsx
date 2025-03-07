@@ -125,21 +125,25 @@ export default function Dashboard() {
         onNewCampaign={() => navigate('/app/campaigns/new')}
       />
 
-      <QuickStats
-        isLoading={isLoading}
-        metrics={metrics}
-        user={user}
-        navigate={navigate}
-      />
+      <div className="mt-10">
+        <RecentCampaigns
+          isLoading={isLoading}
+          totalCampaigns={metrics.campaigns}
+          recentCampaigns={metrics.recentCampaigns}
+          onViewAllCampaigns={() => navigate('/app/campaigns')}
+          onCampaignClick={(id) => navigate(`/app/campaigns/${id}`)}
+          onNewCampaign={() => navigate('/app/campaigns/new')}
+        />
+      </div>
 
-      <RecentCampaigns
-        isLoading={isLoading}
-        totalCampaigns={metrics.campaigns}
-        recentCampaigns={metrics.recentCampaigns}
-        onViewAllCampaigns={() => navigate('/app/campaigns')}
-        onCampaignClick={(id) => navigate(`/app/campaigns/${id}`)}
-        onNewCampaign={() => navigate('/app/campaigns/new')}
-      />
+      <div className="mt-10">
+        <QuickStats
+          isLoading={isLoading}
+          metrics={metrics}
+          user={user}
+          navigate={navigate}
+        />
+      </div>
 
       <div className="mt-10">
         <RecentActivity />

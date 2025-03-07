@@ -5,6 +5,51 @@ import { Dropdown } from '../ui/Dropdown';
 import { get } from '../../lib/api';
 import { SERVER_URL, auth } from '../../lib/firebase';
 
+/**
+ * Helper: Convert Firestore-like timestamp objects to a JS Date.
+ * Supports either { _seconds, _nanoseconds } or { seconds, nanoseconds }.
+ */
+function parseFirestoreTimestamp(ts) {
+  if (!ts) return null;
+  if (typeof ts.toDate === 'function') {
+    return ts.toDate();
+  }
+  const seconds = ts._seconds ?? ts.seconds;
+  const nanos = ts._nanoseconds ?? ts.nanoseconds ?? 0;
+  if (typeof seconds === 'number' && typeof nanos === 'number') {
+    return new Date(seconds * 1000 + nanos / 1000000);
+  }
+  const d = new Date(ts);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Helper: Format a Date into a "time ago" string.
+ */
+function timeAgo(date) {
+  if (!date) return 'Unknown';
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  if (diffInSeconds < 60) return 'Just now';
+
+  const intervals = [
+    { label: 'year', secs: 31536000 },
+    { label: 'month', secs: 2592000 },
+    { label: 'week', secs: 604800 },
+    { label: 'day', secs: 86400 },
+    { label: 'hour', secs: 3600 },
+    { label: 'minute', secs: 60 },
+  ];
+
+  for (const interval of intervals) {
+    const count = Math.floor(diffInSeconds / interval.secs);
+    if (count >= 1) {
+      return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
+    }
+  }
+  return 'Just now';
+}
+
 function AlertsDropdown() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,15 +73,25 @@ function AlertsDropdown() {
           return;
         }
         
-        // Ensure we only store serializable data
-        const serializedAlerts = data.map(alert => ({
-          id: alert.id,
-          title: alert.title,
-          message: alert.message,
-          time: alert.time,
-          read: alert.read,
-          color: alert.color
-        }));
+        // Ensure we only store serializable data and format timestamps
+        const serializedAlerts = data.map(alert => {
+          // Parse the timestamp to a Date object
+          const createdAtDate = parseFirestoreTimestamp(alert.createdAt);
+          
+          return {
+            id: alert.id,
+            title: alert.alertType || 'Notification',
+            message: alert.message,
+            time: timeAgo(createdAtDate),
+            read: alert.read,
+            color: getAlertColor(alert.alertType),
+            createdAt: createdAtDate, // Store the actual date for sorting if needed
+            extraData: alert.extraData
+          };
+        });
+        
+        // Sort alerts by date (newest first)
+        serializedAlerts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         
         setAlerts(serializedAlerts);
         const unread = serializedAlerts.filter(alert => !alert.read).length;
@@ -51,6 +106,20 @@ function AlertsDropdown() {
     
     fetchAlerts();
   }, []);
+
+  // Helper function to determine alert color based on type
+  function getAlertColor(alertType) {
+    switch (alertType) {
+      case 'enhancement_success':
+        return 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50';
+      case 'enhancement_failed':
+        return 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/50';
+      case 'campaign_created':
+        return 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50';
+      default:
+        return 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50';
+    }
+  }
 
   // Reset showAllAlerts when dropdown is closed
   useEffect(() => {
@@ -181,7 +250,7 @@ function AlertsDropdown() {
                   onClick={() => handleAlertClick(alert)}
                   className="flex items-start gap-4 w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                 >
-                  <div className={`rounded-full p-2 ${alert.color || 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50'}`}>
+                  <div className={`rounded-full p-2 ${alert.color}`}>
                     <CheckCircle className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -192,7 +261,7 @@ function AlertsDropdown() {
                       {alert.message}
                     </p>
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                      {alert.time || 'Just now'}
+                      {alert.time}
                     </p>
                   </div>
                 </button>
