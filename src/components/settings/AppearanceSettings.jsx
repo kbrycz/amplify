@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/card';
 import { Label } from '../../components/ui/label';
-import { Select } from '../../components/ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
 import { Moon } from 'lucide-react';
 
 export default function AppearanceSettings() {
@@ -20,12 +20,16 @@ export default function AppearanceSettings() {
             <Select
               id="theme"
               name="theme"
-              className="mt-2"
-              defaultValue="system"
+              value="system"
             >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="system">System</option>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select theme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="system">System</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <div>
@@ -33,12 +37,16 @@ export default function AppearanceSettings() {
             <Select
               id="density"
               name="density"
-              className="mt-2"
-              defaultValue="comfortable"
+              value="comfortable"
             >
-              <option value="compact">Compact</option>
-              <option value="comfortable">Comfortable</option>
-              <option value="spacious">Spacious</option>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select density" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="compact">Compact</SelectItem>
+                <SelectItem value="comfortable">Comfortable</SelectItem>
+                <SelectItem value="spacious">Spacious</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <div>

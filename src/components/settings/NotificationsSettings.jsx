@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { Select } from '../../components/ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
 import { Bell, Check, Loader2 } from 'lucide-react';
 
 export default function NotificationsSettings({ isLoading, messages, onSaveNotifications }) {
@@ -21,12 +21,16 @@ export default function NotificationsSettings({ isLoading, messages, onSaveNotif
             <Select
               id="email-notifications"
               name="email-notifications"
-              className="mt-2"
-              defaultValue="important"
+              value="important"
             >
-              <option value="all">All notifications</option>
-              <option value="important">Important only</option>
-              <option value="none">None</option>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select email notification preference" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All notifications</SelectItem>
+                <SelectItem value="important">Important only</SelectItem>
+                <SelectItem value="none">None</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <div>
@@ -34,12 +38,16 @@ export default function NotificationsSettings({ isLoading, messages, onSaveNotif
             <Select
               id="push-notifications"
               name="push-notifications"
-              className="mt-2"
-              defaultValue="all"
+              value="all"
             >
-              <option value="all">All notifications</option>
-              <option value="important">Important only</option>
-              <option value="none">None</option>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select push notification preference" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All notifications</SelectItem>
+                <SelectItem value="important">Important only</SelectItem>
+                <SelectItem value="none">None</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <div className="flex items-center gap-3">

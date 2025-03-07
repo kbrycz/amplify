@@ -22,6 +22,15 @@ export default function CampaignSettings() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
+  // Add missing state variables for gradient and text colors
+  const [gradientColors, setGradientColors] = useState({
+    from: '#4F46E5',
+    via: '#7C3AED',
+    to: '#DB2777'
+  });
+  const [gradientDirection, setGradientDirection] = useState('br');
+  const [hexText, setHexText] = useState('#FFFFFF');
 
   useEffect(() => {
     fetchCampaign();
@@ -81,7 +90,7 @@ export default function CampaignSettings() {
     try {
       setIsDeleting(true);
       const idToken = await auth.currentUser.getIdToken();
-      // Immediately navigate away—don’t wait for the response.
+      // Immediately navigate away—don't wait for the response.
       navigate('/app/campaigns');
       await fetch(`${SERVER_URL}/campaign/campaigns/${id}`, {
         method: 'DELETE',
@@ -150,6 +159,10 @@ export default function CampaignSettings() {
           formData={campaign}
           surveyQuestions={surveyQuestions}
           currentStep={3}
+          gradientColors={gradientColors}
+          gradientDirection={gradientDirection}
+          hexText={hexText}
+          themes={[]} // Pass an empty array or fetch themes if available
         />
       </div>
 

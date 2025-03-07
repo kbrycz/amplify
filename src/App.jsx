@@ -14,6 +14,8 @@ import Backdrop from './components//header/Backdrop';
 import Dashboard from './pages/Dashboard';
 import CreateCampaign from './pages/CreateCampaign';
 import ManageCampaigns from './pages/ManageCampaigns';
+import CreateTemplate from './pages/CreateTemplate';
+import ManageTemplates from './pages/ManageTemplates';
 import CampaignDetails from './pages/CampaignDetails';
 import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
@@ -154,6 +156,8 @@ function App() {
               <Route path="campaigns/:id/settings" element={<CampaignSettings />} />
               <Route path="campaigns/:id" element={<CampaignDetails />} />
               <Route path="campaigns" element={<ManageCampaigns />} />
+              <Route path="templates/new" element={<CreateTemplate />} />
+              <Route path="templates" element={<ManageTemplates />} />
               <Route path="video-enhancer" element={<VideoEnhancer />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="profile" element={<EditProfile />} />

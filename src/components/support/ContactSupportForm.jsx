@@ -4,7 +4,7 @@ import { Plus, Minus, Upload, X } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { Select } from '../ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
 
 export default function ContactSupportForm({
   previewImage,
@@ -50,12 +50,16 @@ export default function ContactSupportForm({
 
             <div className="sm:col-span-2">
               <Label htmlFor="subject">Subject</Label>
-              <Select id="subject" name="subject" required className="mt-2">
-                <option value="">Select a subject</option>
-                <option value="technical">Technical Issue</option>
-                <option value="billing">Billing Question</option>
-                <option value="feature">Feature Request</option>
-                <option value="other">Other</option>
+              <Select id="subject" name="subject" required>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select a subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="technical">Technical Issue</SelectItem>
+                  <SelectItem value="billing">Billing Question</SelectItem>
+                  <SelectItem value="feature">Feature Request</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
               </Select>
             </div>
 

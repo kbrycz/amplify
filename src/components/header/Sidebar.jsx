@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useSidebar } from '../../context/SidebarContext';
-import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings, HelpCircle } from 'lucide-react';
+import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings, HelpCircle, FileText } from 'lucide-react';
 
 // Hook to detect dark mode
 function useDarkMode() {
@@ -42,6 +42,14 @@ const navItems = [
     subItems: [
       { name: 'New Campaign', path: '/app/campaigns/new', primary: true },
       { name: 'Manage Campaigns', path: '/app/campaigns' }
+    ]
+  },
+  {
+    icon: <FileText className="w-5 h-5" />,
+    name: 'Templates',
+    subItems: [
+      { name: 'Create Template', path: '/app/templates/new', primary: true },
+      { name: 'Manage Templates', path: '/app/templates' }
     ]
   },
   {

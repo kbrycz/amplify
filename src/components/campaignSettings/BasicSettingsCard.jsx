@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
-import { Select } from '../ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
 import { Textarea } from '../ui/textarea';
 
 export default function BasicSettingsCard({ campaign }) {
@@ -40,12 +40,16 @@ export default function BasicSettingsCard({ campaign }) {
           <Select
             id="status"
             name="status"
-            defaultValue={campaign?.status || 'Active'}
-            className="mt-2"
+            value={campaign?.status || 'Active'}
           >
-            <option value="Active">Active</option>
-            <option value="Draft">Draft</option>
-            <option value="Scheduled">Scheduled</option>
+            <SelectTrigger className="mt-2">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Draft">Draft</SelectItem>
+              <SelectItem value="Scheduled">Scheduled</SelectItem>
+            </SelectContent>
           </Select>
         </div>
         <div>

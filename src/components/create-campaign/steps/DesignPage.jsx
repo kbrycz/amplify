@@ -51,6 +51,9 @@ export function DesignPage({
     // Remove any existing # symbol
     let colorValue = value.replace('#', '');
     
+    // Limit to 6 characters
+    colorValue = colorValue.substring(0, 6);
+    
     // Ensure it's uppercase
     colorValue = colorValue.toUpperCase();
     
@@ -65,6 +68,9 @@ export function DesignPage({
   const handleTextColorChange = (value) => {
     // Remove any existing # symbol
     let colorValue = value.replace('#', '');
+    
+    // Limit to 6 characters
+    colorValue = colorValue.substring(0, 6);
     
     // Ensure it's uppercase
     colorValue = colorValue.toUpperCase();
@@ -137,6 +143,7 @@ export function DesignPage({
                         placeholder="#000000"
                         value={gradientColors[position]}
                         onChange={(e) => handleGradientColorChange(position, e.target.value)}
+                        maxLength={7}
                         className="w-24 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
                       />
                     </div>
@@ -146,8 +153,10 @@ export function DesignPage({
                           <HexColorPicker 
                             color={gradientColors[position]} 
                             onChange={(color) => {
-                              // Ensure color has # prefix
-                              const formattedColor = color.startsWith('#') ? color : `#${color}`;
+                              // Ensure color has # prefix and limit to 7 characters
+                              let formattedColor = color.startsWith('#') ? color : `#${color}`;
+                              // Limit to 7 characters (# + 6 hex digits)
+                              formattedColor = formattedColor.substring(0, 7);
                               setGradientColors(prev => ({
                                 ...prev,
                                 [position]: formattedColor
@@ -204,6 +213,7 @@ export function DesignPage({
                     placeholder="#FFFFFF"
                     value={hexText}
                     onChange={(e) => handleTextColorChange(e.target.value)}
+                    maxLength={7}
                     className="w-24 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
                   />
                   </div>
@@ -213,8 +223,10 @@ export function DesignPage({
                         <HexColorPicker 
                           color={hexText} 
                           onChange={(color) => {
-                            // Ensure color has # prefix
-                            const formattedColor = color.startsWith('#') ? color : `#${color}`;
+                            // Ensure color has # prefix and limit to 7 characters
+                            let formattedColor = color.startsWith('#') ? color : `#${color}`;
+                            // Limit to 7 characters (# + 6 hex digits)
+                            formattedColor = formattedColor.substring(0, 7);
                             setHexText(formattedColor);
                           }} 
                         />

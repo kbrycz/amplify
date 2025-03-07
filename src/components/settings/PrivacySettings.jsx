@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/card';
 import { Label } from '../../components/ui/label';
-import { Select } from '../../components/ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
 import { Shield, Check, Loader2 } from 'lucide-react';
 
 export default function PrivacySettings() {
@@ -20,12 +20,16 @@ export default function PrivacySettings() {
             <Select
               id="profile-visibility"
               name="profile-visibility"
-              className="mt-2"
-              defaultValue="public"
+              value="public"
             >
-              <option value="public">Public</option>
-              <option value="private">Private</option>
-              <option value="contacts">Contacts Only</option>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">Public</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
+                <SelectItem value="contacts">Contacts Only</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <div>
@@ -33,11 +37,15 @@ export default function PrivacySettings() {
             <Select
               id="activity-status"
               name="activity-status"
-              className="mt-2"
-              defaultValue="online"
+              value="online"
             >
-              <option value="online">Show when online</option>
-              <option value="offline">Always appear offline</option>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="online">Show when online</SelectItem>
+                <SelectItem value="offline">Always appear offline</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <div className="flex items-center gap-3">
