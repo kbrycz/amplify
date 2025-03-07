@@ -170,40 +170,51 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
         onClick={onClose}
       />
 
-      <div className="relative w-full max-w-md transform overflow-y-auto rounded-xl bg-white shadow-xl transition-all dark:bg-gray-900">
-        <div className="px-4 pb-4 pt-5 sm:p-6">
+      <div className="relative w-full max-w-xl transform overflow-y-auto rounded-xl bg-white shadow-xl transition-all dark:bg-gray-900">
+        <div className="px-8 pb-8 pt-8">
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="absolute right-6 top-6 rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
           >
             <X className="h-5 w-5" />
           </button>
 
-          <div className="mt-3 text-center sm:mt-5">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-              <Wand2 className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+          <div className="mt-3 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+              <Wand2 className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
-              <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="mt-5 text-xl font-semibold text-gray-900 dark:text-white">
                 Transform Video
               </h3>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
                 Enhance your video with professional effects using our AI video processor.
               </p>
+              
+              <div className="mt-4 mx-auto max-w-md">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg px-4 py-3">
+                  <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    If processing fails, your credit will be automatically refunded.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
           {error && (
-            <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
+            <div className="mt-5 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
               {error}
             </div>
           )}
 
-          <div className="mt-6 flex justify-end gap-3">
+          <div className="mt-8 flex justify-between gap-8">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               Cancel
             </button>
@@ -211,7 +222,7 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
               type="button"
               onClick={handleTransform}
               disabled={isProcessing}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing ? (
                 <>
@@ -221,7 +232,7 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
               ) : (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  Transform Video
+                  Use 1 Credit to Transform Video
                 </>
               )}
             </button>
