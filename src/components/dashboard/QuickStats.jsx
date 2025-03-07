@@ -125,34 +125,20 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
     return ageString;
   };
 
-  // Check if user is new (account less than 7 days old)
-  const isNewUser = () => {
-    if (!user || !user.createdAt) return false;
-    
-    const createdAtSeconds = user.createdAt._seconds || user.createdAt.seconds;
-    const createdAt = new Date(createdAtSeconds * 1000);
-    const now = new Date();
-    
-    // Calculate difference in days
-    const diffMs = now - createdAt;
-    const msInDay = 1000 * 60 * 60 * 24;
-    const days = Math.floor(diffMs / msInDay);
-    
-    return days < 7;
-  };
-
-  // Check if user has no campaigns
-  const hasNoCampaigns = () => {
-    return metrics.campaigns === 0;
-  };
-
   const handleCardClick = (type) => {
     switch (type) {
-      case 'credits':
+      case 'creditsUsed':
         setModalInfo({
-          title: 'Your Credits',
-          content: 'Credits are used to generate AI videos from your responses. You currently have ' + 
-                  (user?.credits || 0) + ' credits available. You can purchase more credits in the Settings page.'
+          title: 'Credits Used',
+          content: 'You have used ' + (planCredits - (user?.credits || 0)) + ' credits out of ' + 
+                  (user?.plan?.credits || 100) + ' total in your plan.'
+        });
+        setShowModal(true);
+        break;
+      case 'totalCampaigns':
+        setModalInfo({
+          title: 'Total Campaigns',
+          content: 'You have created ' + metrics.campaigns + ' campaigns out of ' + (user?.plan?.campaigns || 10) + ' total in your plan.'
         });
         setShowModal(true);
         break;
@@ -177,6 +163,27 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
         });
         setShowModal(true);
         break;
+      case 'unreadResponses':
+        setModalInfo({
+          title: 'Unread Responses',
+          content: 'You have ' + metrics.unread + ' unread responses across all your campaigns.'
+        });
+        setShowModal(true);
+        break;
+      case 'totalResponses':
+        setModalInfo({
+          title: 'Total Responses',
+          content: 'You have collected a total of ' + metrics.collected + ' responses across all your campaigns.'
+        });
+        setShowModal(true);
+        break;
+      case 'totalTemplates':
+        setModalInfo({
+          title: 'Total Templates',
+          content: 'You have access to ' + (metrics.templates || 15) + ' templates that you can use to create new campaigns quickly.'
+        });
+        setShowModal(true);
+        break;
       default:
         // For campaign metrics, navigate to campaigns page
         navigate('/app/campaigns');
@@ -185,256 +192,124 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
 
   if (isLoading) {
     return (
-      <div className="mt-10 space-y-10">
-        <Card>
-          <CardHeader>
-            <CardTitle>Campaign Data</CardTitle>
-            <CardDescription>Track your campaign performance</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-            </div>
-            
-            {/* Chart skeleton */}
-            <div className="mt-8">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <Skeleton className="h-6 w-48" />
-                  <Skeleton className="h-4 w-64 mt-1" />
-                </div>
-                <Skeleton className="h-6 w-24" />
-              </div>
-              <ChartSkeleton height={300} />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Account</CardTitle>
-            <CardDescription>Your account statistics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-            </div>
-            
-            {/* Chart skeleton */}
-            <div className="mt-8">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <Skeleton className="h-6 w-48" />
-                  <Skeleton className="h-4 w-64 mt-1" />
-                </div>
-                <Skeleton className="h-6 w-24" />
-              </div>
-              <ChartSkeleton height={300} />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Overview</CardTitle>
+          <CardDescription>Your account and campaign statistics</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
   
   // Format the account age to display properly
   const formattedAccountAge = calculateAccountAge();
-  const userIsNew = isNewUser();
-  const noCampaigns = hasNoCampaigns();
   
+  // Calculate plan values
+  const planCredits = user?.plan?.credits || 100;
+  const planCampaigns = user?.plan?.campaigns || 10;
+  const creditsRemaining = user?.credits || 0;
+  const creditsUsed = planCredits - creditsRemaining;
+  const campaignsUsed = metrics.campaigns || 0;
+  
+  // Mock templates count (would come from API in a real app)
+  const templates = metrics.templates || 15;
+
   return (
-    <div className="space-y-10">
-      {/* Campaigns Section */}
+    <>
       <Card>
         <CardHeader>
-          <CardTitle>Campaign Data</CardTitle>
-          <CardDescription>Track your campaign performance</CardDescription>
+          <CardTitle>Overview</CardTitle>
+          <CardDescription>Your account and campaign statistics</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {/* Unread Responses */}
             <MetricCard
               title="Unread Responses"
-              value={noCampaigns ? 0 : metrics.unread}
+              value={metrics.unread}
               icon={Bell}
-              onClick={() => navigate('/app/campaigns')}
+              description="Responses awaiting review"
+              onClick={() => handleCardClick('unreadResponses')}
             />
+            
+            {/* Total Responses */}
             <MetricCard
               title="Total Responses"
-              value={noCampaigns ? 0 : metrics.collected}
-              icon={Activity}
-              onClick={() => navigate('/app/campaigns')}
+              value={metrics.collected}
+              icon={BarChart3}
+              description="Total responses collected"
+              onClick={() => handleCardClick('totalResponses')}
             />
+            
+            {/* Credits Used */}
             <MetricCard
-              title="Active Campaigns"
-              value={noCampaigns ? 0 : metrics.waiting}
-              icon={Zap}
-              onClick={() => navigate('/app/campaigns')}
+              title="Credits Used"
+              value={`${creditsUsed}/${planCredits}`}
+              icon={CreditCard}
+              description="Credits used out of plan total"
+              onClick={() => handleCardClick('creditsUsed')}
             />
+            
+            {/* Total Campaigns */}
             <MetricCard
               title="Total Campaigns"
-              value={metrics.campaigns}
+              value={`${campaignsUsed}/${planCampaigns}`}
               icon={FolderOpen}
-              onClick={() => navigate('/app/campaigns')}
+              description="Campaigns created out of plan total"
+              onClick={() => handleCardClick('totalCampaigns')}
             />
-          </div>
-          
-          {/* New Responses by Day Chart (7 days) */}
-          <div className="relative mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">New Responses by Day</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Daily response collection trends (last 7 days)</p>
-              </div>
-              <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20">
-                <TrendingUp className="mr-1 h-3 w-3" />
-                +18% this week
-              </span>
-            </div>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={responsesByDayData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-                  <XAxis
-                    dataKey="day"
-                    className="text-xs text-gray-600 dark:text-gray-400"
-                    tick={{ fill: 'currentColor' }}
-                  />
-                  <YAxis
-                    className="text-xs text-gray-600 dark:text-gray-400"
-                    tick={{ fill: 'currentColor' }}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar
-                    dataKey="responses"
-                    name="Responses"
-                    fill="#6366f1"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
             
-            {noCampaigns && (
-              <EmptyStateOverlay
-                title="No Response Data Yet"
-                description="Once you create a campaign and start collecting responses, you'll see daily response trends here."
-              />
-            )}
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Account Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Account</CardTitle>
-          <CardDescription>Your account statistics</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard
-              title="Your Credits"
-              value={user?.credits || 0}
-              icon={CreditCard}
-              onClick={() => handleCardClick('credits')}
-            />
+            {/* Account Age */}
             <MetricCard
               title="Account Age"
               value={formattedAccountAge}
               icon={Clock}
+              description="Time since account creation"
               onClick={() => handleCardClick('accountAge')}
-              className="font-normal"
             />
+            
+            {/* Total Reach */}
             <MetricCard
               title="Total Reach"
-              value={userIsNew || noCampaigns ? 0 : metrics.users}
+              value={metrics.users.toLocaleString()}
               icon={Users}
+              description="Total users reached"
               onClick={() => handleCardClick('totalReach')}
             />
+            
+            {/* Videos Generated */}
             <MetricCard
               title="Videos Generated"
-              value={userIsNew || noCampaigns ? 0 : metrics.videos}
+              value={metrics.videos.toLocaleString()}
               icon={Film}
+              description="AI videos created"
               onClick={() => handleCardClick('videosGenerated')}
             />
-          </div>
-          
-          {/* Total Reach Over Time Chart */}
-          <div className="relative mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Total Reach Over Time</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Monthly audience growth</p>
-              </div>
-              <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
-                <TrendingUp className="mr-1 h-3 w-3" />
-                +22% growth
-              </span>
-            </div>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={reachOverTimeData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="reachGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-                  <XAxis
-                    dataKey="month"
-                    className="text-xs text-gray-600 dark:text-gray-400"
-                    tick={{ fill: 'currentColor' }}
-                  />
-                  <YAxis
-                    className="text-xs text-gray-600 dark:text-gray-400"
-                    tick={{ fill: 'currentColor' }}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line
-                    type="monotone"
-                    dataKey="reach"
-                    name="Total Reach"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={{ r: 4, fill: "#3b82f6" }}
-                    activeDot={{ r: 6, fill: "#3b82f6" }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
             
-            {(userIsNew || noCampaigns) && (
-              <EmptyStateOverlay
-                title="No Reach Data Yet"
-                description={userIsNew 
-                  ? "As your account grows and your campaigns collect responses, you'll see audience reach metrics here." 
-                  : "Create your first campaign to start tracking audience reach over time."}
-              />
-            )}
+            {/* Total Templates */}
+            <MetricCard
+              title="Total Templates"
+              value={templates}
+              icon={FileText}
+              description="Available campaign templates"
+              onClick={() => handleCardClick('totalTemplates')}
+            />
           </div>
         </CardContent>
       </Card>
       
-      {/* Show drafts card if there are any */}
-      {metrics.drafts > 0 && (
-        <div className="mt-6">
-          <MetricCard
-            title="Campaign Drafts"
-            value={metrics.drafts}
-            icon={FileText}
-            onClick={() => navigate('/app/campaigns/new')}
-          />
-        </div>
-      )}
-
-      {/* Info Modal */}
       {showModal && (
         <InfoModal
           title={modalInfo.title}
@@ -442,6 +317,6 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
           onClose={() => setShowModal(false)}
         />
       )}
-    </div>
+    </>
   );
 }

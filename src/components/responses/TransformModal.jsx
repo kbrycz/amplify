@@ -21,8 +21,8 @@ export async function checkVideoProcessingStatus(videoId) {
   try {
     const idToken = await auth.currentUser.getIdToken();
     
-    // Use the new Creatomate status endpoint
-    const response = await fetch(`${SERVER_URL}/creatomate/status/job/${videoId}`, {
+    // Use the new Creatomate status endpoint – ensure this path matches your server
+    const response = await fetch(`${SERVER_URL}/creatomate/creatomate-process/status/job/${videoId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${idToken}`,
@@ -64,13 +64,11 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
 
   useEffect(() => {
     if (isOpen) {
-      // If the video is already being processed, show a message and close the modal
       if (videoIsAlreadyProcessing) {
         addToast("This video is already being processed. Please wait for it to complete.", "info");
         onClose();
         return;
       }
-      
       // Reset state when modal opens
       setIsProcessing(false);
       setError(null);
@@ -92,23 +90,18 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
 
     console.log("Transform video:", video);
 
-    // Set processing state to disable the button
     setIsProcessing(true);
     setError(null);
-    
-    // Add this video to the processing set
     processingVideos.add(video.id);
-    
-    // Call onTransformStart if provided - do this BEFORE any async operations
+
     if (onTransformStart) {
       onTransformStart();
     }
     
-    // Close the modal immediately
     onClose();
     
-    // Show a simple loading toast without progress bar
-    const toastId = addToast(
+    let toastId;
+    toastId = addToast(
       "Video processing in progress. This may take a few minutes...",
       "info",
       0 // Don't auto-dismiss
@@ -116,13 +109,9 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
 
     try {
       const idToken = await auth.currentUser.getIdToken();
-      
-      // Call the new Creatomate process endpoint
-      const payload = {
-        videoId: video.id
-      };
+      const payload = { videoId: video.id };
 
-      // Wait for the initial response from the server
+      // Call the Creatomate process endpoint – ensure this path matches your server's mount path
       const response = await fetch(`${SERVER_URL}/creatomate/creatomate-process`, {
         method: 'POST',
         headers: {
@@ -137,26 +126,20 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
         throw new Error(errorData.error || 'Failed to process video');
       }
 
-      // Get the jobId from the response
       const responseData = await response.json().catch(() => ({}));
       console.log('Video processing initiated:', responseData);
       const jobId = responseData.jobId;
       
-      // Call onProcessingStart if provided, passing the jobId and toastId
       if (onProcessingStart && jobId) {
         onProcessingStart(video.id, toastId, jobId);
       } else if (onProcessingStart) {
-        // Fallback to using video.id if jobId is not available
         onProcessingStart(video.id, toastId);
       }
     } catch (err) {
       console.error('Error processing video:', err);
       setError(err.message || 'Failed to process video');
       addToast(err.message || 'Failed to process video', "error", 10000, toastId);
-      
-      // Remove from processing set if there's an error
       processingVideos.delete(video.id);
-      
       setIsProcessing(false);
     }
   };
@@ -169,7 +152,6 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-
       <div className="relative w-full max-w-xl transform overflow-y-auto rounded-xl bg-white shadow-xl transition-all dark:bg-gray-900">
         <div className="px-8 pb-8 pt-8">
           <button
@@ -178,7 +160,6 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
           >
             <X className="h-5 w-5" />
           </button>
-
           <div className="mt-3 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
               <Wand2 className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
@@ -190,7 +171,6 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
               <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
                 Enhance your video with professional effects using our AI video processor.
               </p>
-              
               <div className="mt-4 mx-auto max-w-md">
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg px-4 py-3">
                   <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center justify-center">
@@ -203,13 +183,11 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
               </div>
             </div>
           </div>
-
           {error && (
             <div className="mt-5 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
               {error}
             </div>
           )}
-
           <div className="mt-8 flex justify-between gap-8">
             <button
               type="button"

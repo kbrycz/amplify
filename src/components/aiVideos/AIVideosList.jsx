@@ -20,7 +20,11 @@ export default function AIVideosList({
   }
 
   if (error) {
-    return <ErrorMessage message={error} />;
+    return (
+      <div className="mt-4">
+        <ErrorMessage message={error} />
+      </div>
+    );
   }
 
   if (aiVideos.length === 0) {

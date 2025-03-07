@@ -22,6 +22,7 @@ export default function Dashboard() {
     unread: 0,
     collected: 0,
     waiting: 0,
+    templates: 0,
   });
 
   // Refresh user data on mount.
@@ -38,7 +39,6 @@ export default function Dashboard() {
 
   const fetchRecentCampaigns = async () => {
     try {
-      setIsLoading(true);
       const data = await get('/campaign/campaigns/recent');
       if (data && data.length > 0) {
         // Include counts from API if available.
@@ -54,8 +54,6 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.warn('Campaign fetch warning:', err.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -83,21 +81,60 @@ export default function Dashboard() {
     }
   };
 
+  const fetchResponseCounts = async () => {
+    try {
+      // This is a placeholder - in a real app, you would fetch this data from your API
+      setMetrics((prev) => ({
+        ...prev,
+        unread: Math.floor(Math.random() * 100),
+        collected: Math.floor(Math.random() * 2000),
+      }));
+    } catch (err) {
+      console.error('Error fetching response counts:', err);
+    }
+  };
+
+  const fetchTemplatesCount = async () => {
+    try {
+      // This is a placeholder - in a real app, you would fetch this data from your API
+      setMetrics((prev) => ({
+        ...prev,
+        templates: 15, // Mock value for templates
+      }));
+    } catch (err) {
+      console.error('Error fetching templates count:', err);
+    }
+  };
+
   useEffect(() => {
     // Refresh user data and fetch metrics on mount.
     refreshUserData();
-    // Simulate additional metric values.
-    setMetrics((prev) => ({
-      ...prev,
-      videos: Math.floor(Math.random() * 1000),
-      users: Math.floor(Math.random() * 5000),
-      unread: Math.floor(Math.random() * 100),
-      collected: Math.floor(Math.random() * 2000),
-      waiting: Math.floor(Math.random() * 200),
-    }));
-    fetchCampaignCount();
-    fetchDraftCount();
-    fetchRecentCampaigns();
+    
+    // Set loading state
+    setIsLoading(true);
+    
+    // Fetch all required metrics
+    Promise.all([
+      fetchCampaignCount(),
+      fetchDraftCount(),
+      fetchResponseCounts(),
+      fetchRecentCampaigns(),
+      fetchTemplatesCount(),
+    ]).then(() => {
+      // Simulate additional metric values for demo purposes
+      setMetrics((prev) => ({
+        ...prev,
+        videos: Math.floor(Math.random() * 1000),
+        users: Math.floor(Math.random() * 5000),
+        waiting: Math.floor(Math.random() * 200),
+      }));
+      
+      // Set loading to false when all data is fetched
+      setIsLoading(false);
+    }).catch(err => {
+      console.error('Error fetching dashboard data:', err);
+      setIsLoading(false);
+    });
   }, []);
 
   // Determine if the user is new (signed up less than 5 minutes ago).

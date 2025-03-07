@@ -28,7 +28,7 @@ export default function AIVideos() {
   const fetchAIVideos = async () => {
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/videoProcessor/ai-videos/campaign/${id}`, {
+      const response = await fetch(`${SERVER_URL}/creatomate/ai-videos/campaign/${id}`, {
         headers: {
           'Authorization': `Bearer ${idToken}`
         }

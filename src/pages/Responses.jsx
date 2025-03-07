@@ -49,10 +49,8 @@ export default function Responses() {
         throw new Error('Failed to fetch responses');
       }
 
-      // Just store raw data; let ListViewResponse handle date parsing
       const data = await response.json();
 
-      // Initialize starred from the returned data
       const initialStarred = new Set(data.filter(r => r.starred).map(r => r.id));
       setStarredResponses(initialStarred);
       setResponses(data);
@@ -81,7 +79,6 @@ export default function Responses() {
         throw new Error('Failed to delete video');
       }
 
-      // Remove from local state
       setResponses(prev => prev.filter(r => r.id !== selectedResponse.id));
       setIsDeleteModalOpen(false);
     } catch (err) {
@@ -120,23 +117,19 @@ export default function Responses() {
     setIsTransformModalOpen(true);
   };
 
-  // Add a function to handle when a video starts processing
+  // Updated function to use Creatomate endpoints for status checking
   const handleVideoProcessingStart = (videoId, initialToastId = null, aiVideoId = null) => {
-    // Add the video ID to the processing set
     setProcessingVideoIds(prev => {
       const newSet = new Set(prev);
       newSet.add(videoId);
       return newSet;
     });
     
-    // Find the response object to get the campaign ID if available
-    const response = responses.find(r => r.id === videoId);
-    const campaignId = response?.campaignId;
+    const responseObj = responses.find(r => r.id === videoId);
+    const campaignId = responseObj?.campaignId;
     
-    // Use the toast ID passed from the TransformModal if available
     let toastId = initialToastId;
     
-    // If we don't have an aiVideoId, we can't poll for status
     if (!aiVideoId) {
       console.error('No aiVideoId provided for status polling');
       addToast(
@@ -148,11 +141,11 @@ export default function Responses() {
       return;
     }
     
-    // Check initial status before setting up polling
     const checkInitialStatus = async () => {
       try {
         const idToken = await auth.currentUser.getIdToken();
-        const response = await fetch(`${SERVER_URL}/videoProcessor/status/job/${aiVideoId}`, {
+        // Using the Creatomate status endpoint instead of videoProcessor one
+        const response = await fetch(`${SERVER_URL}/creatomate/creatomate-process/status/job/${aiVideoId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${idToken}`,
@@ -161,15 +154,13 @@ export default function Responses() {
         });
         
         if (!response.ok) {
-          return false; // Continue with polling
+          return false;
         }
         
         const result = await response.json();
         console.log('Initial video processing status:', result);
         
-        // If already completed, handle it now
         if (result.status === 'completed') {
-          // Mark the video as no longer processing
           markVideoProcessingComplete(videoId);
           setProcessingVideoIds(prev => {
             const newSet = new Set(prev);
@@ -177,7 +168,6 @@ export default function Responses() {
             return newSet;
           });
           
-          // Show success message
           addToast(
             <div className="flex flex-col space-y-3">
               <p className="font-semibold text-base">Success! Your enhanced video is ready.</p>
@@ -198,16 +188,11 @@ export default function Responses() {
             15000,
             toastId
           );
-          
-          // Refresh the responses list
           fetchResponses();
-          
-          return true; // Already completed, no need to poll
+          return true;
         }
         
-        // If failed, handle it now
         if (result.status === 'failed') {
-          // Mark the video as no longer processing
           markVideoProcessingComplete(videoId);
           setProcessingVideoIds(prev => {
             const newSet = new Set(prev);
@@ -215,65 +200,53 @@ export default function Responses() {
             return newSet;
           });
           
-          // Show error message
           addToast(
             `Video enhancement failed: ${result.error || 'Unknown error'}`,
             "error",
             10000,
             toastId
           );
-          
-          return true; // Already failed, no need to poll
+          return true;
         }
         
-        return false; // Not completed or failed, continue with polling
+        return false;
       } catch (error) {
         console.error('Error checking initial video status:', error);
-        return false; // Continue with polling
+        return false;
       }
     };
     
-    // Set up polling interval
     const pollInterval = 5000; // 5 seconds
-    const maxAttempts = 60; // 5 minutes max (60 * 5 seconds)
+    const maxAttempts = 60; // 5 minutes max
     let attempts = 0;
     let intervalId = null;
     
-    // Check initial status and then set up polling if needed
     checkInitialStatus().then(isAlreadyResolved => {
-      if (isAlreadyResolved) {
-        return; // No need to poll
-      }
+      if (isAlreadyResolved) return;
       
       const pollStatus = async () => {
         try {
           attempts++;
-          
           if (attempts > maxAttempts) {
-            // If we've exceeded the maximum number of attempts, show an error
             addToast(
               "Video processing is taking longer than expected. Please check back later.",
               "info",
               10000,
               toastId
             );
-            
-            // Remove from processing set after max attempts
             markVideoProcessingComplete(videoId);
             setProcessingVideoIds(prev => {
               const newSet = new Set(prev);
               newSet.delete(videoId);
               return newSet;
             });
-            
-            // Clear the interval
             if (intervalId) clearInterval(intervalId);
             return;
           }
           
-          // Call the status endpoint with the aiVideoId
           const idToken = await auth.currentUser.getIdToken();
-          const response = await fetch(`${SERVER_URL}/videoProcessor/status/job/${aiVideoId}`, {
+          // Use the Creatomate status endpoint here
+          const response = await fetch(`${SERVER_URL}/creatomate/creatomate-process/status/job/${aiVideoId}`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${idToken}`,
@@ -288,20 +261,14 @@ export default function Responses() {
           const result = await response.json();
           console.log('Video processing status:', result);
           
-          // If processing is complete
           if (result.status === 'completed') {
-            // Clear the interval
             if (intervalId) clearInterval(intervalId);
-            
-            // Mark the video as no longer processing
             markVideoProcessingComplete(videoId);
             setProcessingVideoIds(prev => {
               const newSet = new Set(prev);
               newSet.delete(videoId);
               return newSet;
             });
-            
-            // Show success message when processing completes with a button to navigate to AI Videos
             addToast(
               <div className="flex flex-col space-y-3">
                 <p className="font-semibold text-base">Success! Your enhanced video is ready.</p>
@@ -319,52 +286,35 @@ export default function Responses() {
                 </button>
               </div>,
               "success",
-              15000, // Show for 15 seconds to give user time to click
-              toastId // Replace the existing toast
+              15000,
+              toastId
             );
-            
-            // Refresh the responses list to show updated data
             fetchResponses();
-          } 
-          // If processing failed
-          else if (result.status === 'failed') {
-            // Clear the interval
+          } else if (result.status === 'failed') {
             if (intervalId) clearInterval(intervalId);
-            
-            // Mark the video as no longer processing
             markVideoProcessingComplete(videoId);
             setProcessingVideoIds(prev => {
               const newSet = new Set(prev);
               newSet.delete(videoId);
               return newSet;
             });
-            
-            // Show error message
             addToast(
               `Video enhancement failed: ${result.error || 'Unknown error'}`,
               "error",
               10000,
-              toastId // Replace the existing toast
+              toastId
             );
           }
-          // If still processing, just continue polling
         } catch (error) {
           console.error('Error polling video status:', error);
-          
-          // Show error toast but continue polling if we haven't reached max attempts
           if (attempts >= maxAttempts) {
-            // Clear the interval
             if (intervalId) clearInterval(intervalId);
-            
-            // Mark the video as no longer processing after max attempts
             markVideoProcessingComplete(videoId);
             setProcessingVideoIds(prev => {
               const newSet = new Set(prev);
               newSet.delete(videoId);
               return newSet;
             });
-            
-            // Show error message
             addToast(
               `Error checking video status: ${error.message}`,
               "error",
@@ -375,12 +325,10 @@ export default function Responses() {
         }
       };
       
-      // Start polling immediately and then at regular intervals
       pollStatus();
       intervalId = setInterval(pollStatus, pollInterval);
     });
     
-    // Return a cleanup function
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
@@ -453,7 +401,6 @@ export default function Responses() {
         </div>
       )}
 
-      {/* Video modal */}
       {selectedTestimonial && (
         <VideoModal
           testimonial={selectedTestimonial}
@@ -465,17 +412,15 @@ export default function Responses() {
         isOpen={isTransformModalOpen}
         onClose={() => setIsTransformModalOpen(false)}
         video={selectedResponse}
-        endpoint="/videoProcessor/process-video"
+        endpoint="/creatomate/creatomate-process"
         onProcessingStart={handleVideoProcessingStart}
       />
 
-      {/* Video Editor Modal */}
       <VideoEditorModal
         isOpen={isVideoEditorOpen}
         onClose={() => setIsVideoEditorOpen(false)}
         video={selectedResponse}
         onSave={async () => {
-          // Refresh the list after saving changes
           await fetchResponses();
           setIsVideoEditorOpen(false);
         }}

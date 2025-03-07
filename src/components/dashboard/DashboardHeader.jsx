@@ -9,7 +9,7 @@ export default function DashboardHeader({ firstName, isNewUser, onManageCampaign
           {isNewUser ? `Welcome, ${firstName}!` : `Welcome back, ${firstName}!`}
         </h1>
         <p className="mt-2 text-base text-gray-600 dark:text-gray-400">
-          Here's what's happening with your campaigns today.
+          Here's an overview of your account and campaign metrics.
         </p>
       </div>
 
