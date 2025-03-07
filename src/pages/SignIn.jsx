@@ -29,16 +29,19 @@ export default function SignIn() {
       navigate('/app/dashboard', { replace: true });
     } catch (err) {
       setError(err.message.includes('Firebase') ? 'Invalid email or password' : err.message);
+      throw err; // Re-throw to let the component handle loading state
     }
   };
 
   const handleGoogleSignIn = async () => {
     try {
+      setError('');
       const result = await signInWithPopup(auth, googleAuthProvider);
       await signInWithGoogle(result);
       navigate('/app/dashboard', { replace: true });
     } catch (err) {
       setError(err.message);
+      throw err; // Re-throw to let the component handle loading state
     }
   };
 
