@@ -4,7 +4,7 @@ import {
   Pencil, Trash2, ChevronRight, Clock, Users, Video, Sparkles 
 } from 'lucide-react';
 import { ConfirmationModal } from '../../components/ui/confirmation-modal';
-import { EditCampaignModal } from '../../components/ui/edit-campaign-modal';
+import { EditCampaignModal } from './edit-campaign-modal';
 import { NumberTicker } from '../../components/ui/number-ticker';
 
 /**

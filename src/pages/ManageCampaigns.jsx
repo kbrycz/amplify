@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
-import { Plus, X, Pencil } from 'lucide-react';
-import { ConfirmationModal } from '../components/ui/confirmation-modal';
-import { EditCampaignModal } from '../components/ui/edit-campaign-modal';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import ManageCampaignHeader from '../components/manageCampaigns/ManageCampaignHeader';
 import CampaignList from '../components/manageCampaigns/CampaignList';
