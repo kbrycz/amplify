@@ -165,53 +165,49 @@ export function Outro({
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Your logo will be displayed at the end of your videos. Upload a transparent PNG for best results.
             </p>
-            {outroLogo ? (
-              <div className="mt-4 relative">
-                <div className="relative w-full max-w-xs mx-auto bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-                  <img 
-                    src={outroLogo} 
-                    alt="Your logo" 
-                    className="max-h-40 max-w-full mx-auto object-contain"
-                  />
-                  <button
-                    onClick={handleRemoveLogo}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md"
-                    type="button"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div
-                className={`mt-4 border-2 border-dashed rounded-lg p-8 text-center ${
-                  dragActive ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-300 dark:border-gray-700'
-                }`}
+            <div className="mt-2">
+              <div className="flex items-center justify-center w-full min-h-[160px]"
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
               >
-                <div className="flex flex-col items-center">
-                  <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-2">
-                    <Image className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                <label className="relative flex items-center justify-center w-full h-full border-2 border-gray-200 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50">
+                  <div className="flex flex-col items-center justify-center p-6">
+                    {outroLogo ? (
+                      <div className="relative w-40 h-40 group">
+                        <img
+                          src={outroLogo}
+                          alt="Your logo"
+                          className="w-full h-full object-contain rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveLogo}
+                          className="absolute -top-2 -right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <span className="font-semibold">Click to upload</span> or drag and drop
+                        </p>
+                      </>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                    Drag and drop your logo here, or click to browse
-                  </p>
-                  <label className="cursor-pointer bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-                    Browse Files
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*" 
-                      onChange={handleFileChange}
-                      ref={fileInputRef}
-                    />
-                  </label>
-                </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    ref={fileInputRef}
+                  />
+                </label>
               </div>
-            )}
+            </div>
           </div>
 
           <div className={`transition-opacity duration-200 ${showOutro ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>

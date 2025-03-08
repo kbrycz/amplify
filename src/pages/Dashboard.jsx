@@ -57,18 +57,6 @@ export default function Dashboard() {
     }
   };
 
-  const fetchDraftCount = async () => {
-    try {
-      const data = await get('/draftCampaign/drafts/count');
-      setMetrics((prev) => ({
-        ...prev,
-        drafts: data.count,
-      }));
-    } catch (err) {
-      console.error('Error fetching draft count:', err);
-    }
-  };
-
   const fetchCampaignCount = async () => {
     try {
       const data = await get('/campaign/campaigns/count');
@@ -96,10 +84,10 @@ export default function Dashboard() {
 
   const fetchTemplatesCount = async () => {
     try {
-      // This is a placeholder - in a real app, you would fetch this data from your API
+      const data = await get('/templates/count');
       setMetrics((prev) => ({
         ...prev,
-        templates: 15, // Mock value for templates
+        templates: data.count,
       }));
     } catch (err) {
       console.error('Error fetching templates count:', err);
@@ -116,7 +104,6 @@ export default function Dashboard() {
     // Fetch all required metrics
     Promise.all([
       fetchCampaignCount(),
-      fetchDraftCount(),
       fetchResponseCounts(),
       fetchRecentCampaigns(),
       fetchTemplatesCount(),

@@ -28,6 +28,45 @@ export function PhonePreview({
     zipCode: ''
   });
 
+  // Default themes if none are provided
+  const defaultThemes = {
+    sunset: {
+      background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
+      text: 'text-white',
+      subtext: 'text-orange-100',
+      border: 'border-white/20',
+      input: 'bg-white/20',
+      name: 'Sunset Vibes'
+    },
+    midnight: {
+      background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
+      text: 'text-white',
+      subtext: 'text-blue-200',
+      border: 'border-blue-900/50',
+      input: 'bg-blue-950/50',
+      name: 'Midnight Blue'
+    },
+    nature: {
+      background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
+      text: 'text-white',
+      subtext: 'emerald-100',
+      border: 'border-white/20',
+      input: 'bg-white/20',
+      name: 'Nature Fresh'
+    },
+    ocean: {
+      background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600',
+      text: 'text-white',
+      subtext: 'text-cyan-100',
+      border: 'border-white/20',
+      input: 'bg-white/20',
+      name: 'Ocean Depths'
+    }
+  };
+
+  // Use provided themes or fall back to default themes
+  const availableThemes = themes && Object.keys(themes).length > 0 ? themes : defaultThemes;
+  
   // Show response screen when on campaign details step (step 3)
   React.useEffect(() => {
     setPreviewStep(currentStep === 3 ? 'response' : 'intro');
@@ -72,7 +111,7 @@ export function PhonePreview({
   };
   
   // Determine which theme to use
-  const themeToUse = selectedTheme === 'custom' ? customTheme : themes[selectedTheme] || themes.sunset;
+  const themeToUse = selectedTheme === 'custom' ? customTheme : availableThemes[selectedTheme] || availableThemes.sunset;
 
   // Get text style for custom theme
   const getTextStyle = () => {

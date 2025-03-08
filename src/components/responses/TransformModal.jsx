@@ -1,3 +1,4 @@
+// TransformModal.jsx
 import React, { useState, useEffect } from 'react';
 import { X, Wand2, Sparkles, Loader2 } from 'lucide-react';
 import { SERVER_URL, auth } from '../../lib/firebase';
@@ -6,22 +7,17 @@ import { useToast } from '../ui/toast-notification';
 // Keep track of which videos are currently being processed
 const processingVideos = new Set();
 
-// Function to check if a video is being processed
 export function isVideoProcessing(videoId) {
   return processingVideos.has(videoId);
 }
 
-// Function to mark a video as no longer processing
 export function markVideoProcessingComplete(videoId) {
   processingVideos.delete(videoId);
 }
 
-// Function to check the status of a video processing request
 export async function checkVideoProcessingStatus(videoId) {
   try {
     const idToken = await auth.currentUser.getIdToken();
-    
-    // Use the new Creatomate status endpoint – ensure this path matches your server
     const response = await fetch(`${SERVER_URL}/creatomate/creatomate-process/status/job/${videoId}`, {
       method: 'GET',
       headers: {
@@ -31,7 +27,6 @@ export async function checkVideoProcessingStatus(videoId) {
     });
     
     if (response.status === 404) {
-      // Job not found or processing hasn't started
       return { status: 'pending' };
     } else if (!response.ok) {
       console.error('Failed to check video processing status:', response.status);
@@ -40,7 +35,6 @@ export async function checkVideoProcessingStatus(videoId) {
     
     const data = await response.json();
     
-    // Map the API response to our status format
     if (data.status === 'completed') {
       return { status: 'completed', data };
     } else if (data.status === 'failed' || data.status === 'error') {
@@ -59,7 +53,6 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
   const [error, setError] = useState(null);
   const { addToast } = useToast();
 
-  // Check if this video is already being processed
   const videoIsAlreadyProcessing = video && video.id && processingVideos.has(video.id);
 
   useEffect(() => {
@@ -69,7 +62,6 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
         onClose();
         return;
       }
-      // Reset state when modal opens
       setIsProcessing(false);
       setError(null);
     }
@@ -81,7 +73,6 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
       addToast("No video selected", "error");
       return;
     }
-
     if (!video.id) {
       setError("Video ID is required for processing");
       addToast("Video ID is required for processing", "error");
@@ -89,19 +80,15 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
     }
 
     console.log("Transform video:", video);
-
     setIsProcessing(true);
     setError(null);
     processingVideos.add(video.id);
 
-    if (onTransformStart) {
-      onTransformStart();
-    }
+    if (onTransformStart) onTransformStart();
     
     onClose();
     
-    let toastId;
-    toastId = addToast(
+    const toastId = addToast(
       "Video processing in progress. This may take a few minutes...",
       "info",
       0 // Don't auto-dismiss
@@ -111,7 +98,6 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
       const idToken = await auth.currentUser.getIdToken();
       const payload = { videoId: video.id };
 
-      // Call the Creatomate process endpoint – ensure this path matches your server's mount path
       const response = await fetch(`${SERVER_URL}/creatomate/creatomate-process`, {
         method: 'POST',
         headers: {

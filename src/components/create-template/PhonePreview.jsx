@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { ChevronLeft as SafariBack, ChevronRight as SafariForward, Share2, MoreVertical, Image } from 'lucide-react';
+import { ChevronLeft as SafariBack, ChevronRight as SafariForward, Share2, MoreVertical, Image, Upload } from 'lucide-react';
 import { Iphone15Pro } from '../ui/iphone';
 
 export function PhonePreview({ 
@@ -13,17 +13,21 @@ export function PhonePreview({
   customOutroColor,
   outroText,
   outroTextColor,
-  showOutro = true
+  showOutro = true,
+  videoRef
 }) {
-  const videoRef = useRef(null);
+  const internalVideoRef = useRef(null);
+  
+  // Use the provided videoRef or the internal one
+  const actualVideoRef = videoRef || internalVideoRef;
 
   useEffect(() => {
-    if (videoRef.current && currentStep === 1) {
-      videoRef.current.play().catch(error => {
+    if (actualVideoRef.current && currentStep === 1) {
+      actualVideoRef.current.play().catch(error => {
         console.error("Video autoplay failed:", error);
       });
     }
-  }, [currentStep]);
+  }, [currentStep, actualVideoRef]);
 
   const theme = themes[selectedTheme] || themes.sunset;
 
@@ -87,7 +91,7 @@ export function PhonePreview({
     if (!captionStyle) {
       return (
         <video 
-          ref={videoRef}
+          ref={actualVideoRef}
           className="w-full h-full object-cover"
           muted
           loop
@@ -108,7 +112,7 @@ export function PhonePreview({
         return (
           <>
             <video 
-              ref={videoRef}
+              ref={actualVideoRef}
               className="w-full h-full object-cover"
               muted
               loop
@@ -124,7 +128,7 @@ export function PhonePreview({
         return (
           <>
             <video 
-              ref={videoRef}
+              ref={actualVideoRef}
               className="w-full h-full object-cover"
               muted
               loop
@@ -141,7 +145,7 @@ export function PhonePreview({
         return (
           <>
             <video 
-              ref={videoRef}
+              ref={actualVideoRef}
               className="w-full h-full object-cover"
               muted
               loop
@@ -179,9 +183,9 @@ export function PhonePreview({
               className="h-32 w-auto object-contain mb-4"
             />
           ) : (
-            <div className="h-32 w-32 flex items-center justify-center mb-4">
-              <div className="w-16 h-16 bg-gray-400 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                <Image className="w-8 h-8 text-white" />
+            <div className="flex justify-center mb-4">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center border-2 border-white/20">
+                <Upload className="w-8 h-8 text-white opacity-50" />
               </div>
             </div>
           )}
@@ -200,9 +204,9 @@ export function PhonePreview({
   };
 
   return (
-    <div className="hidden lg:block sticky top-0 h-[calc(100vh-1.5rem)] w-[500px] xl:block">
+    <div className="hidden lg:block sticky top-24 h-[calc(100vh-6rem)] w-[500px] xl:block">
       <div className="flex flex-col items-center">
-        <div className="scale-[0.8] origin-top xl:scale-[0.85] -mt-24">
+        <div className="scale-[0.8] origin-top xl:scale-[0.85] -mt-12">
           <Iphone15Pro>
             {/* Content based on current step */}
             {currentStep === 0 && (

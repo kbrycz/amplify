@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/page-header';
-import { ArrowLeft, Star, Share2, Video, Sparkles } from 'lucide-react';
+import { ArrowLeft, Star, Share2, Video, Sparkles, Loader2 } from 'lucide-react';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { ListViewResponse } from '../components/responses/ListViewResponse';
@@ -40,17 +40,10 @@ export default function Responses() {
     try {
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${SERVER_URL}/survey/videos/${id}`, {
-        headers: {
-          Authorization: `Bearer ${idToken}`
-        }
+        headers: { Authorization: `Bearer ${idToken}` }
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch responses');
-      }
-
+      if (!response.ok) throw new Error('Failed to fetch responses');
       const data = await response.json();
-
       const initialStarred = new Set(data.filter(r => r.starred).map(r => r.id));
       setStarredResponses(initialStarred);
       setResponses(data);
@@ -65,20 +58,13 @@ export default function Responses() {
   const handleDeleteConfirm = async () => {
     if (!selectedResponse) return;
     setIsDeleting(true);
-
     try {
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${SERVER_URL}/videoEditor/delete/${selectedResponse.id}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${idToken}`
-        }
+        headers: { Authorization: `Bearer ${idToken}` }
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete video');
-      }
-
+      if (!response.ok) throw new Error('Failed to delete video');
       setResponses(prev => prev.filter(r => r.id !== selectedResponse.id));
       setIsDeleteModalOpen(false);
     } catch (err) {
@@ -100,11 +86,7 @@ export default function Responses() {
 
   const handleStarChange = (responseId, isStarred) => {
     const newStarred = new Set(starredResponses);
-    if (isStarred) {
-      newStarred.add(responseId);
-    } else {
-      newStarred.delete(responseId);
-    }
+    isStarred ? newStarred.add(responseId) : newStarred.delete(responseId);
     setStarredResponses(newStarred);
   };
 
@@ -117,19 +99,12 @@ export default function Responses() {
     setIsTransformModalOpen(true);
   };
 
-  // Updated function to use Creatomate endpoints for status checking
+  // Function that starts polling using the Creatomate status endpoint.
   const handleVideoProcessingStart = (videoId, initialToastId = null, aiVideoId = null) => {
-    setProcessingVideoIds(prev => {
-      const newSet = new Set(prev);
-      newSet.add(videoId);
-      return newSet;
-    });
-    
+    setProcessingVideoIds(prev => new Set(prev).add(videoId));
     const responseObj = responses.find(r => r.id === videoId);
     const campaignId = responseObj?.campaignId;
-    
     let toastId = initialToastId;
-    
     if (!aiVideoId) {
       console.error('No aiVideoId provided for status polling');
       addToast(
@@ -140,44 +115,34 @@ export default function Responses() {
       );
       return;
     }
-    
+
     const checkInitialStatus = async () => {
       try {
         const idToken = await auth.currentUser.getIdToken();
-        // Using the Creatomate status endpoint instead of videoProcessor one
         const response = await fetch(`${SERVER_URL}/creatomate/creatomate-process/status/job/${aiVideoId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
           }
         });
-        
-        if (!response.ok) {
-          return false;
-        }
-        
+        if (!response.ok) return false;
         const result = await response.json();
         console.log('Initial video processing status:', result);
-        
-        if (result.status === 'completed') {
+        if (result.status === 'succeeded') {
           markVideoProcessingComplete(videoId);
           setProcessingVideoIds(prev => {
             const newSet = new Set(prev);
             newSet.delete(videoId);
             return newSet;
           });
-          
           addToast(
             <div className="flex flex-col space-y-3">
               <p className="font-semibold text-base">Success! Your enhanced video is ready.</p>
               <button 
                 onClick={() => {
-                  if (campaignId) {
-                    navigate(`/app/campaigns/${campaignId}/ai-videos`);
-                  } else {
-                    navigate('/app/ai-videos');
-                  }
+                  navigate(campaignId ? `/app/campaigns/${campaignId}/ai-videos` : '/app/ai-videos');
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm font-medium mt-1 w-full text-center"
               >
@@ -191,7 +156,6 @@ export default function Responses() {
           fetchResponses();
           return true;
         }
-        
         if (result.status === 'failed') {
           markVideoProcessingComplete(videoId);
           setProcessingVideoIds(prev => {
@@ -199,7 +163,6 @@ export default function Responses() {
             newSet.delete(videoId);
             return newSet;
           });
-          
           addToast(
             `Video enhancement failed: ${result.error || 'Unknown error'}`,
             "error",
@@ -208,61 +171,53 @@ export default function Responses() {
           );
           return true;
         }
-        
         return false;
       } catch (error) {
         console.error('Error checking initial video status:', error);
         return false;
       }
     };
-    
+
     const pollInterval = 5000; // 5 seconds
     const maxAttempts = 60; // 5 minutes max
     let attempts = 0;
     let intervalId = null;
-    
-    checkInitialStatus().then(isAlreadyResolved => {
-      if (isAlreadyResolved) return;
-      
+
+    checkInitialStatus().then(isResolved => {
+      if (isResolved) return;
       const pollStatus = async () => {
+        attempts++;
+        if (attempts > maxAttempts) {
+          addToast(
+            "Video processing is taking longer than expected. Please check back later.",
+            "info",
+            10000,
+            toastId
+          );
+          markVideoProcessingComplete(videoId);
+          setProcessingVideoIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(videoId);
+            return newSet;
+          });
+          clearInterval(intervalId);
+          return;
+        }
         try {
-          attempts++;
-          if (attempts > maxAttempts) {
-            addToast(
-              "Video processing is taking longer than expected. Please check back later.",
-              "info",
-              10000,
-              toastId
-            );
-            markVideoProcessingComplete(videoId);
-            setProcessingVideoIds(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(videoId);
-              return newSet;
-            });
-            if (intervalId) clearInterval(intervalId);
-            return;
-          }
-          
           const idToken = await auth.currentUser.getIdToken();
-          // Use the Creatomate status endpoint here
           const response = await fetch(`${SERVER_URL}/creatomate/creatomate-process/status/job/${aiVideoId}`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${idToken}`,
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache'
             }
           });
-          
-          if (!response.ok) {
-            throw new Error('Failed to check video processing status');
-          }
-          
+          if (!response.ok) throw new Error('Failed to check video processing status');
           const result = await response.json();
           console.log('Video processing status:', result);
-          
-          if (result.status === 'completed') {
-            if (intervalId) clearInterval(intervalId);
+          if (result.status === 'succeeded') {
+            clearInterval(intervalId);
             markVideoProcessingComplete(videoId);
             setProcessingVideoIds(prev => {
               const newSet = new Set(prev);
@@ -274,11 +229,7 @@ export default function Responses() {
                 <p className="font-semibold text-base">Success! Your enhanced video is ready.</p>
                 <button 
                   onClick={() => {
-                    if (campaignId) {
-                      navigate(`/app/campaigns/${campaignId}/ai-videos`);
-                    } else {
-                      navigate('/app/ai-videos');
-                    }
+                    navigate(campaignId ? `/app/campaigns/${campaignId}/ai-videos` : '/app/ai-videos');
                   }}
                   className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm font-medium mt-1 w-full text-center"
                 >
@@ -291,7 +242,7 @@ export default function Responses() {
             );
             fetchResponses();
           } else if (result.status === 'failed') {
-            if (intervalId) clearInterval(intervalId);
+            clearInterval(intervalId);
             markVideoProcessingComplete(videoId);
             setProcessingVideoIds(prev => {
               const newSet = new Set(prev);
@@ -308,7 +259,7 @@ export default function Responses() {
         } catch (error) {
           console.error('Error polling video status:', error);
           if (attempts >= maxAttempts) {
-            if (intervalId) clearInterval(intervalId);
+            clearInterval(intervalId);
             markVideoProcessingComplete(videoId);
             setProcessingVideoIds(prev => {
               const newSet = new Set(prev);
@@ -324,7 +275,6 @@ export default function Responses() {
           }
         }
       };
-      
       pollStatus();
       intervalId = setInterval(pollStatus, pollInterval);
     });
@@ -388,9 +338,7 @@ export default function Responses() {
             <ListViewResponse
               key={response.id}
               response={response}
-              onVideoClick={(response) => {
-                setSelectedTestimonial(response);
-              }}
+              onVideoClick={(response) => setSelectedTestimonial(response)}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onTransform={handleTransform}

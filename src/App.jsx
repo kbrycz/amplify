@@ -30,6 +30,7 @@ import CampaignSettings from './pages/CampaignSettings';
 import PricingPage from './pages/PricingPage';
 import CheckoutSuccess from './pages/CheckoutSuccess';
 import CheckoutCancel from './pages/CheckoutCancel';
+import TemplateDetails from './pages/TemplateDetails';
 
 function ScrollToTop() {
   const location = useLocation();
@@ -157,6 +158,7 @@ function App() {
               <Route path="campaigns/:id" element={<CampaignDetails />} />
               <Route path="campaigns" element={<ManageCampaigns />} />
               <Route path="templates/new" element={<CreateTemplate />} />
+              <Route path="templates/:id" element={<TemplateDetails />} />
               <Route path="templates" element={<ManageTemplates />} />
               <Route path="video-enhancer" element={<VideoEnhancer />} />
               <Route path="analytics" element={<Analytics />} />
