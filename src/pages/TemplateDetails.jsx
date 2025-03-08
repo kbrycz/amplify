@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { SERVER_URL, auth } from '../lib/firebase';
@@ -7,6 +7,42 @@ import { ConfirmationModal } from '../components/ui/confirmation-modal';
 import { PhonePreview } from '../components/create-template/PhonePreview';
 import TemplateDetailsHeader from '../components/templateDetails/TemplateDetailsHeader';
 import TemplateDetailsForm from '../components/templateDetails/TemplateDetailsForm';
+
+// Theme configuration – should match your campaign themes
+const themes = {
+  sunset: {
+    background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
+    text: 'text-white',
+    subtext: 'text-orange-100',
+    border: 'border-white/20',
+    input: 'bg-white/20',
+    name: 'Sunset Vibes'
+  },
+  midnight: {
+    background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
+    text: 'text-white',
+    subtext: 'text-blue-200',
+    border: 'border-blue-900/50',
+    input: 'bg-blue-950/50',
+    name: 'Midnight Blue'
+  },
+  nature: {
+    background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
+    text: 'text-white',
+    subtext: 'emerald-100',
+    border: 'border-white/20',
+    input: 'bg-white/20',
+    name: 'Nature Fresh'
+  },
+  ocean: {
+    background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600',
+    text: 'text-white',
+    subtext: 'text-cyan-100',
+    border: 'border-white/20',
+    input: 'bg-white/20',
+    name: 'Ocean Depths'
+  }
+};
 
 export default function TemplateDetails() {
   const { id } = useParams();
@@ -29,80 +65,36 @@ export default function TemplateDetails() {
   const videoRef = useRef(null);
   const outroSectionRef = useRef(null);
   const [currentPreviewStep, setCurrentPreviewStep] = useState(1); // 1 for video, 2 for outro
-  
-  // Theme configuration – should match your campaign themes
-  const themes = {
-    sunset: {
-      background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
-      text: 'text-white',
-      subtext: 'text-orange-100',
-      border: 'border-white/20',
-      input: 'bg-white/20',
-      name: 'Sunset Vibes'
-    },
-    midnight: {
-      background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
-      text: 'text-white',
-      subtext: 'text-blue-200',
-      border: 'border-blue-900/50',
-      input: 'bg-blue-950/50',
-      name: 'Midnight Blue'
-    },
-    nature: {
-      background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
-      text: 'text-white',
-      subtext: 'emerald-100',
-      border: 'border-white/20',
-      input: 'bg-white/20',
-      name: 'Nature Fresh'
-    },
-    ocean: {
-      background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600',
-      text: 'text-white',
-      subtext: 'text-cyan-100',
-      border: 'border-white/20',
-      input: 'bg-white/20',
-      name: 'Ocean Depths'
-    }
-  };
 
+  // Fetch template data on mount or when ID changes
   useEffect(() => {
     fetchTemplate();
   }, [id]);
 
-  // Play the video when the component mounts
+  // Autoplay video when previewing video step
   useEffect(() => {
-    if (videoRef.current) {
+    if (videoRef.current && currentPreviewStep === 1) {
       videoRef.current.play().catch(error => {
         console.error("Video autoplay failed:", error);
       });
     }
-  }, [videoRef.current]);
+  }, [currentPreviewStep]);
 
-  // Add scroll event listener to track scroll position
+  // Set up IntersectionObserver for scroll-based preview switching
   useEffect(() => {
-    const handleScroll = () => {
-      if (!outroSectionRef.current) return;
-      
-      const outroRect = outroSectionRef.current.getBoundingClientRect();
-      const scrollThreshold = window.innerHeight * 0.6; // 60% down the viewport
-      
-      // If the outro section is in view (top of section is above the threshold)
-      if (outroRect.top < scrollThreshold) {
-        setCurrentPreviewStep(2); // Show outro preview
-      } else {
-        setCurrentPreviewStep(1); // Show video preview
-      }
-    };
+    if (!outroSectionRef.current) return;
 
-    // Initial check
-    handleScroll();
-    
-    // Add event listener
-    window.addEventListener('scroll', handleScroll);
-    
-    // Clean up
-    return () => window.removeEventListener('scroll', handleScroll);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setCurrentPreviewStep(entry.isIntersecting ? 2 : 1);
+      },
+      { threshold: 0.1 } // Trigger when 10% of the outro section is visible
+    );
+
+    observer.observe(outroSectionRef.current);
+
+    // Cleanup observer on unmount
+    return () => observer.disconnect();
   }, []);
 
   const fetchTemplate = async () => {
@@ -118,34 +110,15 @@ export default function TemplateDetails() {
         throw new Error('Failed to fetch template');
       }
       const data = await response.json();
-      console.log('Template data:', data);
-      
-      // Ensure we have a valid template object
-      if (!data || typeof data !== 'object') {
-        throw new Error('Invalid template data received');
-      }
-      
       setTemplate(data);
-      
-      // Set all the template properties with fallbacks for missing data
       setSelectedTheme(data.theme || 'sunset');
-      
-      // Handle caption style with proper fallbacks
-      if (data.captionStyle) {
-        setSelectedCaptionStyle(typeof data.captionStyle === 'object' 
-          ? data.captionStyle 
-          : { style: data.captionStyle, position: data.captionPosition || 'bottom' });
-      } else {
-        setSelectedCaptionStyle({ style: 'standard', position: 'bottom' });
-      }
-      
+      setSelectedCaptionStyle(data.captionStyle || { style: 'standard', position: 'bottom' });
       setSelectedOutroTheme(data.outroTheme || 'sunset');
       setOutroLogo(data.outroLogo || null);
       setCustomOutroColor(data.customOutroColor || '#3B82F6');
       setOutroText(data.outroText || '');
       setOutroTextColor(data.outroTextColor || '#FFFFFF');
       setShowOutro(data.showOutro !== undefined ? data.showOutro : true);
-      
     } catch (err) {
       console.error('Error fetching template:', err);
       setError(err.message);
@@ -167,7 +140,6 @@ export default function TemplateDetails() {
     try {
       setIsSaving(true);
       setError(null);
-      
       const formData = {
         ...template,
         theme: selectedTheme,
@@ -179,7 +151,6 @@ export default function TemplateDetails() {
         outroTextColor,
         showOutro
       };
-      
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${SERVER_URL}/templates/${id}`, {
         method: 'PUT',
@@ -189,17 +160,12 @@ export default function TemplateDetails() {
         },
         body: JSON.stringify(formData)
       });
-      
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to update template');
       }
-      
       setSuccessMessage('Template updated successfully');
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000);
-      
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -211,7 +177,6 @@ export default function TemplateDetails() {
     try {
       setIsDeleting(true);
       const idToken = await auth.currentUser.getIdToken();
-      // Immediately navigate away—don't wait for the response.
       navigate('/app/templates');
       await fetch(`${SERVER_URL}/templates/${id}`, {
         method: 'DELETE',
@@ -222,7 +187,6 @@ export default function TemplateDetails() {
       });
     } catch (err) {
       console.error('Error deleting template:', err);
-      // Already navigated away—no need to set error state.
     }
   };
 
@@ -234,16 +198,8 @@ export default function TemplateDetails() {
     return (
       <div className="p-6">
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/50">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                Error
-              </h3>
-              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                <p>{error}</p>
-              </div>
-            </div>
-          </div>
+          <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+          <p className="mt-2 text-sm text-red-700 dark:text-red-300">{error}</p>
         </div>
       </div>
     );
@@ -251,12 +207,7 @@ export default function TemplateDetails() {
 
   return (
     <div className="p-6">
-      <TemplateDetailsHeader
-        id={id}
-        templateName={template?.name}
-        navigate={navigate}
-      />
-
+      <TemplateDetailsHeader id={id} templateName={template?.name} navigate={navigate} />
       <div className="grid grid-cols-1 lg:grid-cols-[800px,auto] gap-6 items-start">
         <div>
           <TemplateDetailsForm
@@ -290,6 +241,8 @@ export default function TemplateDetails() {
         <PhonePreview
           selectedTheme={selectedTheme}
           formData={template}
+          currentStep={currentPreviewStep}
+          themes={themes}
           selectedCaptionStyle={selectedCaptionStyle}
           selectedOutroTheme={selectedOutroTheme}
           outroLogo={outroLogo}
@@ -297,12 +250,10 @@ export default function TemplateDetails() {
           outroText={outroText}
           outroTextColor={outroTextColor}
           showOutro={showOutro}
-          themes={themes}
           videoRef={videoRef}
-          currentStep={currentPreviewStep} // Dynamic step based on scroll position
+          previewMode={currentPreviewStep === 1 ? 'video' : 'outro'}
         />
       </div>
-
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
@@ -311,10 +262,9 @@ export default function TemplateDetails() {
         message={`Are you sure you want to delete "${template?.name}"? This action cannot be undone and will permanently remove this template.`}
         confirmButtonText="Delete Template"
       />
-
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
-        &copy; 2025 Shout. All rights reserved.
+        © 2025 Shout. All rights reserved.
       </div>
     </div>
   );
-} 
+}

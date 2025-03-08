@@ -26,6 +26,7 @@ import Survey from './pages/Survey.jsx';
 import Responses from './pages/Responses';
 import AIVideos from './pages/AIVideos';
 import VideoEnhancer from './pages/VideoEnhancer';
+import VideoPolisher from './pages/VideoPolisher';
 import CampaignSettings from './pages/CampaignSettings';
 import PricingPage from './pages/PricingPage';
 import CheckoutSuccess from './pages/CheckoutSuccess';
@@ -154,6 +155,7 @@ function App() {
               <Route path="campaigns/new" element={<CreateCampaign />} />
               <Route path="campaigns/:id/ai-videos" element={<AIVideos />} />
               <Route path="campaigns/:id/responses" element={<Responses />} />
+              <Route path="campaigns/:campaignId/responses/:id/polish" element={<VideoPolisher />} />
               <Route path="campaigns/:id/settings" element={<CampaignSettings />} />
               <Route path="campaigns/:id" element={<CampaignDetails />} />
               <Route path="campaigns" element={<ManageCampaigns />} />

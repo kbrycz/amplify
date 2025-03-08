@@ -14,20 +14,21 @@ export function PhonePreview({
   outroText,
   outroTextColor,
   showOutro = true,
-  videoRef
+  videoRef,
+  previewMode // New optional prop for TemplateDetails
 }) {
   const internalVideoRef = useRef(null);
-  
-  // Use the provided videoRef or the internal one
   const actualVideoRef = videoRef || internalVideoRef;
 
   useEffect(() => {
-    if (actualVideoRef.current && currentStep === 1) {
+    if (actualVideoRef.current && (previewMode === 'video' || (!previewMode && currentStep === 1))) {
       actualVideoRef.current.play().catch(error => {
         console.error("Video autoplay failed:", error);
       });
+    } else if (actualVideoRef.current) {
+      actualVideoRef.current.pause();
     }
-  }, [currentStep, actualVideoRef]);
+  }, [currentStep, actualVideoRef, previewMode]);
 
   const theme = themes[selectedTheme] || themes.sunset;
 
@@ -58,7 +59,6 @@ export function PhonePreview({
     if (!selectedCaptionStyle || typeof selectedCaptionStyle !== 'object') {
       return 'bottom';
     }
-    
     return selectedCaptionStyle.position || 'bottom';
   };
 
@@ -66,7 +66,6 @@ export function PhonePreview({
     if (selectedOutroTheme === 'custom') {
       return '';
     }
-    
     switch (selectedOutroTheme) {
       case 'sunset':
         return themes.sunset.background;
@@ -76,8 +75,6 @@ export function PhonePreview({
         return themes.nature.background;
       case 'ocean':
         return themes.ocean.background;
-      case 'custom':
-        return '';
       default:
         return themes.sunset.background;
     }
@@ -87,7 +84,6 @@ export function PhonePreview({
     const position = getCaptionPosition();
     const captionStyle = getCaptionStyle();
     
-    // If no captions selected, just show the video
     if (!captionStyle) {
       return (
         <video 
@@ -189,7 +185,6 @@ export function PhonePreview({
               </div>
             </div>
           )}
-          
           {outroText && (
             <div 
               className="text-base font-medium max-w-[80%] break-words text-center"
@@ -203,30 +198,48 @@ export function PhonePreview({
     );
   };
 
+  const renderContent = () => {
+    // If previewMode is provided (from TemplateDetails), use it
+    if (previewMode) {
+      if (previewMode === 'video') {
+        return (
+          <div className="flex flex-col h-full relative">
+            {renderCaptionsByPosition()}
+          </div>
+        );
+      } else if (previewMode === 'outro') {
+        return renderOutroScreen();
+      }
+    }
+    // Otherwise, use currentStep (for CreateTemplate)
+    if (currentStep === 0) {
+      return (
+        <div className="flex flex-col h-full bg-gray-100 dark:bg-gray-800">
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+              Video Preview will be shown on next page
+            </p>
+          </div>
+        </div>
+      );
+    } else if (currentStep === 1) {
+      return (
+        <div className="flex flex-col h-full relative">
+          {renderCaptionsByPosition()}
+        </div>
+      );
+    } else if (currentStep === 2) {
+      return renderOutroScreen();
+    }
+    return null;
+  };
+
   return (
     <div className="hidden lg:block sticky top-24 h-[calc(100vh-6rem)] w-[500px] xl:block">
       <div className="flex flex-col items-center">
         <div className="scale-[0.8] origin-top xl:scale-[0.85] -mt-12">
           <Iphone15Pro>
-            {/* Content based on current step */}
-            {currentStep === 0 && (
-              <div className="flex flex-col h-full bg-gray-100 dark:bg-gray-800">
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-                    Video Preview will be shown on next page
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {currentStep === 1 && (
-              <div className="flex flex-col h-full relative">
-                {/* Video with captions based on position */}
-                {renderCaptionsByPosition()}
-              </div>
-            )}
-
-            {currentStep === 2 && renderOutroScreen()}
+            {renderContent()}
           </Iphone15Pro>
         </div>
       </div>

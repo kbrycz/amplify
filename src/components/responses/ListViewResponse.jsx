@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Clock, Circle, ChevronDown, Pencil, Trash2, Wand2, Star, Video, Loader2 } from 'lucide-react';
+import { Play, Clock, Circle, ChevronDown, Pencil, Trash2, Wand2, Star, Video } from 'lucide-react';
 import { SERVER_URL, auth } from '../../lib/firebase';
-import { isVideoProcessing } from './TransformModal';
 
 /**
  * Helper: Convert Firestore-like timestamp objects to a JS Date.
@@ -48,7 +47,7 @@ function timeAgo(date) {
   return 'Just now';
 }
 
-export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onTransform, onStarChange, processingVideoIds = new Set() }) {
+export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onTransform, onStarChange }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isStarred, setIsStarred] = useState(response.isStarred || false);
   const [isStarring, setIsStarring] = useState(false);
@@ -56,9 +55,6 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
   const [error, setError] = useState(null);
   const errorTimeoutRef = useRef(null);
   const [thumbnailError, setThumbnailError] = useState(false);
-
-  // Check if this video is currently being processed
-  const isProcessing = processingVideoIds.has(response.id);
   
   // Parse the createdAt timestamp and compute the "time ago" string.
   const createdAtDate = parseFirestoreTimestamp(response.createdAt);
@@ -240,30 +236,17 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
             {onTransform && (
               <button
                 className={`action-button inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium w-full sm:w-auto justify-center transition-all ${
-                  isProcessing 
-                    ? 'bg-gray-400 text-white cursor-not-allowed opacity-80' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105'
+                  'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105'
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (!isProcessing) {
-                    onTransform(response);
-                  }
+                  onTransform(response);
                 }}
-                disabled={isProcessing}
-                title={isProcessing ? "This video is currently being processed. Please wait for it to complete." : "Transform this video into a polished short with AI"}
               >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Processing Video...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="w-4 h-4" />
-                    Transform into Polished Short
-                  </>
-                )}
+                <>
+                  <Wand2 className="w-4 h-4" />
+                  Transform into Polished Short
+                </>
               </button>
             )}
             <button

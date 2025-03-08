@@ -1,8 +1,36 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
+// Helper function to convert Firebase Storage gs:// URLs to HTTPS URLs
+const convertGsUrlToHttps = (url) => {
+  if (!url) return null;
+  
+  // If it's already an HTTPS URL, return it as is
+  if (url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Convert gs:// URL to HTTPS URL
+  if (url.startsWith('gs://')) {
+    // Extract bucket name and path
+    const gsPattern = /gs:\/\/([^\/]+)\/(.+)/;
+    const match = url.match(gsPattern);
+    
+    if (match && match.length === 3) {
+      const [, bucket, path] = match;
+      return `https://storage.googleapis.com/${bucket}/${path}`;
+    }
+  }
+  
+  // Return original URL if conversion failed
+  return url;
+};
+
 export function VideoModal({ testimonial, onClose }) {
   if (!testimonial) return null;
+
+  // Convert the video URL if needed
+  const videoUrl = convertGsUrlToHttps(testimonial.videoUrl);
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
@@ -24,7 +52,7 @@ export function VideoModal({ testimonial, onClose }) {
       <div className="relative w-full max-w-4xl mx-4">
         <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
           <video
-            src={testimonial.videoUrl}
+            src={videoUrl}
             controls
             autoPlay
             className="w-full h-full"

@@ -5,6 +5,31 @@ import { ErrorMessage } from '../ui/error-message';
 import { EmptyState } from '../ui/empty-state';
 import { ListViewResponse } from '../responses/ListViewResponse';
 
+// Helper function to convert Firebase Storage gs:// URLs to HTTPS URLs
+const convertGsUrlToHttps = (url) => {
+  if (!url) return null;
+  
+  // If it's already an HTTPS URL, return it as is
+  if (url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Convert gs:// URL to HTTPS URL
+  if (url.startsWith('gs://')) {
+    // Extract bucket name and path
+    const gsPattern = /gs:\/\/([^\/]+)\/(.+)/;
+    const match = url.match(gsPattern);
+    
+    if (match && match.length === 3) {
+      const [, bucket, path] = match;
+      return `https://storage.googleapis.com/${bucket}/${path}`;
+    }
+  }
+  
+  // Return original URL if conversion failed
+  return url;
+};
+
 export default function AIVideosList({
   aiVideos,
   isLoading,
@@ -51,7 +76,7 @@ export default function AIVideosList({
             ...video,
             name: 'AI Generated Video',
             email: 'Generated from original response',
-            videoUrl: video.processedVideoUrl,
+            videoUrl: convertGsUrlToHttps(video.processedVideoUrl),
             thumbnailUrl: video.thumbnailUrl || 'https://images.unsplash.com/photo-1590856029826-c7a73142bbf1?q=80&w=2073'
           }}
           onVideoClick={onVideoClick}

@@ -10,7 +10,6 @@ export default function AIVideos() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToast } = useToast();
-
   const [aiVideos, setAiVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,16 +32,13 @@ export default function AIVideos() {
           'Authorization': `Bearer ${idToken}`
         }
       });
-
       if (response.status === 404) {
         setAiVideos([]);
         return;
       }
-
       if (!response.ok) {
         throw new Error('Failed to fetch AI videos');
       }
-
       const data = await response.json();
       setAiVideos(data);
     } catch (err) {
@@ -65,10 +61,7 @@ export default function AIVideos() {
 
   const handleDeleteConfirm = async () => {
     if (!selectedForAction) return;
-    
     setIsDeleting(true);
-    setIsDeleteModalOpen(false);
-    
     try {
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${SERVER_URL}/videoProcessor/ai-videos/${selectedForAction.id}`, {
@@ -77,16 +70,11 @@ export default function AIVideos() {
           'Authorization': `Bearer ${idToken}`
         }
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to delete AI video');
       }
-
-      // Remove the deleted video from the state
       setAiVideos(prev => prev.filter(video => video.id !== selectedForAction.id));
-      
-      // Show success toast
       addToast("AI video deleted successfully", "success", 3000);
     } catch (err) {
       console.error('Error deleting AI video:', err);
@@ -99,7 +87,6 @@ export default function AIVideos() {
   return (
     <div className="p-6">
       <AIVideosHeader id={id} navigate={navigate} />
-
       <AIVideosList 
         aiVideos={aiVideos}
         isLoading={isLoading}
@@ -110,7 +97,6 @@ export default function AIVideos() {
         campaignId={id}
         navigate={navigate}
       />
-
       <AIVideosModals
         selectedVideo={selectedVideo}
         setSelectedVideo={setSelectedVideo}
@@ -126,7 +112,6 @@ export default function AIVideos() {
           await fetchAIVideos();
         }}
       />
-
       <div className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         &copy; 2025 Shout. All rights reserved.
       </div>
