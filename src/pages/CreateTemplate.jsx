@@ -1,20 +1,20 @@
-// CreateTemplate.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { Card, CardContent } from '../components/ui/card';
 import { FileText, ChevronDown, Plus, Upload, X, Save } from 'lucide-react';
-import { TemplateSuccessModal } from '../components/templates/template-success-modal';
+import { TemplateSuccessModal } from '../components/shared/templates/template-success-modal';
 import { DraftsDropdown } from '../components/create-template/DraftsDropdown';
-import { LoadingModal } from '../components/templates/loading-modal';
+import { LoadingModal } from '../components/shared/templates/loading-modal';
 import { SuccessMessage } from '../components/ui/success-message';
 import { ErrorMessage } from '../components/ui/error-message';
 import { useFormCache } from '../hooks/useFormCache';
-import { PhonePreview } from '../components/create-template/PhonePreview';
-import { InternalName } from '../components/create-template/steps/InternalName';
-import { Captions } from '../components/create-template/steps/Captions';
-import { Outro } from '../components/create-template/steps/Outro';
-import { StepNavigation } from '../components/create-template/StepNavigation';
+import { PhonePreview } from '../components/shared/templates/PhonePreview';
+import { InternalName } from '../components/shared/templates/InternalName';
+import { Captions } from '../components/shared/templates/Captions';
+import { Outro } from '../components/shared/templates/Outro';
+import { StepNavigation } from '../components/shared/templates/StepNavigation';
+import { TemplateModal } from '../components/videoPolisher/TemplateModal';
 
 // Theme configuration – should match your campaign themes
 const themes = {
@@ -52,7 +52,6 @@ const themes = {
   }
 };
 
-// Steps for the create-template flow
 const steps = [
   { name: 'Internal Name' },
   { name: 'Captions' },
@@ -85,6 +84,10 @@ export default function CreateTemplate() {
   const [loadingModal, setLoadingModal] = useState({ isOpen: false, status: 'loading', error: null });
   const [successModal, setSuccessModal] = useState({ isOpen: false, templateName: '', templateId: null });
   const [saveDraftSuccess, setSaveDraftSuccess] = useState(null);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [isPhonePreviewLoading, setIsPhonePreviewLoading] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
 
   // Use cached form state
   const initialFormData = {
@@ -100,7 +103,6 @@ export default function CreateTemplate() {
   const [formData, setFormData, clearFormCache] = useFormCache(initialFormData, 'template-form');
   const draftsRef = useRef(null);
 
-  // ========= Drafts Handling =========
   useEffect(() => {
     fetchDrafts();
   }, []);
@@ -110,15 +112,12 @@ export default function CreateTemplate() {
     try {
       const user = auth.currentUser;
       if (!user) throw new Error('You must be logged in to view drafts');
-
       const response = await fetch(`${SERVER_URL}/draftTemplates/drafts`, {
         headers: {
           'Authorization': `Bearer ${await user.getIdToken()}`
         }
       });
-
       if (!response.ok) throw new Error('Failed to fetch drafts');
-      
       const draftsData = await response.json();
       setDrafts(draftsData);
     } catch (err) {
@@ -142,12 +141,10 @@ export default function CreateTemplate() {
       setTimeout(() => setError(null), 3000);
       return;
     }
-
     setIsSavingDraft(true);
     try {
       const user = auth.currentUser;
       if (!user) throw new Error('You must be logged in to save a draft');
-
       const draftData = {
         name: formData.name,
         captionType: typeof selectedCaptionStyle === 'object' ? selectedCaptionStyle.style : selectedCaptionStyle,
@@ -155,7 +152,6 @@ export default function CreateTemplate() {
         outtroBackgroundColors: showOutro ? (selectedOutroTheme === 'custom' ? customOutroColor : selectedOutroTheme) : 'none',
         outtroFontColor: showOutro ? outroTextColor : '',
         image: outroLogo,
-        // Additional data for our app's functionality
         additionalData: JSON.stringify({
           formData,
           selectedTheme,
@@ -171,9 +167,7 @@ export default function CreateTemplate() {
       };
 
       let response;
-      
       if (isEditingDraft && selectedDraftId) {
-        // Update existing draft
         response = await fetch(`${SERVER_URL}/draftTemplates/drafts/${selectedDraftId}`, {
           method: 'PUT',
           headers: {
@@ -183,7 +177,6 @@ export default function CreateTemplate() {
           body: JSON.stringify(draftData)
         });
       } else {
-        // Create new draft
         response = await fetch(`${SERVER_URL}/draftTemplates/drafts`, {
           method: 'POST',
           headers: {
@@ -195,18 +188,12 @@ export default function CreateTemplate() {
       }
 
       if (!response.ok) throw new Error('Failed to save draft');
-      
       const savedDraft = await response.json();
-      
-      // Update drafts list and selected draft ID
       await fetchDrafts();
       setSelectedDraftId(savedDraft.id);
       setIsEditingDraft(true);
-      
-      // Show success message at the bottom
       setSaveDraftSuccess(isEditingDraft ? 'Draft updated successfully!' : 'Draft saved successfully!');
       setTimeout(() => setSaveDraftSuccess(null), 3000);
-      
     } catch (err) {
       console.error('Error saving draft:', err);
       setError({
@@ -222,30 +209,22 @@ export default function CreateTemplate() {
   async function handleLoadDraft(draftId) {
     setIsLoadingDrafts(false);
     setIsDraftsOpen(false);
-    
     try {
       const user = auth.currentUser;
       if (!user) throw new Error('You must be logged in to load a draft');
-
       const response = await fetch(`${SERVER_URL}/draftTemplates/drafts/${draftId}`, {
         headers: {
           'Authorization': `Bearer ${await user.getIdToken()}`
         }
       });
-
       if (!response.ok) throw new Error('Failed to load draft');
-      
       const draft = await response.json();
-      
-      // Parse the additional data
       let additionalData = {};
       try {
         additionalData = JSON.parse(draft.additionalData || '{}');
       } catch (e) {
         console.warn('Could not parse additional data', e);
       }
-      
-      // Update form state with draft data
       setFormData(additionalData.formData || {
         name: draft.name || '',
         title: '',
@@ -256,11 +235,10 @@ export default function CreateTemplate() {
         email: '',
         phone: ''
       });
-      
       setSelectedTheme(additionalData.selectedTheme || 'sunset');
-      setSelectedCaptionStyle(additionalData.selectedCaptionStyle || { 
-        style: draft.captionType || 'standard', 
-        position: draft.captionPosition || 'bottom' 
+      setSelectedCaptionStyle(additionalData.selectedCaptionStyle || {
+        style: draft.captionType || 'standard',
+        position: draft.captionPosition || 'bottom'
       });
       setSelectedOutroTheme(additionalData.selectedOutroTheme || draft.outtroBackgroundColors || 'sunset');
       setOutroLogo(additionalData.outroLogo || draft.image || null);
@@ -269,11 +247,8 @@ export default function CreateTemplate() {
       setOutroTextColor(additionalData.outroTextColor || draft.outtroFontColor || '#FFFFFF');
       setShowOutro(additionalData.showOutro !== undefined ? additionalData.showOutro : true);
       setPreviewImage(additionalData.previewImage || null);
-      
       setSelectedDraftId(draftId);
       setIsEditingDraft(true);
-      
-      // Show success message
       setDeleteMessage({
         type: 'success',
         message: 'Draft loaded successfully!'
@@ -292,33 +267,22 @@ export default function CreateTemplate() {
   async function handleDeleteDraft(draftId) {
     setIsDeletingDraft(true);
     setSelectedDraftId(draftId);
-    
     try {
       const user = auth.currentUser;
       if (!user) throw new Error('You must be logged in to delete a draft');
-
       const response = await fetch(`${SERVER_URL}/draftTemplates/drafts/${draftId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${await user.getIdToken()}`
         }
       });
-
       if (!response.ok) throw new Error('Failed to delete draft');
-      
-      // If we're currently editing this draft, reset the form
       if (selectedDraftId === draftId) {
         setIsEditingDraft(false);
         setSelectedDraftId(null);
       }
-      
-      // Refresh drafts list
       await fetchDrafts();
-      
-      // Always close the dropdown when a draft is deleted
       setIsDraftsOpen(false);
-      
-      // Show success message at the top
       setDeleteMessage({
         type: 'success',
         message: 'Draft deleted successfully!'
@@ -326,10 +290,7 @@ export default function CreateTemplate() {
       setTimeout(() => setDeleteMessage(null), 3000);
     } catch (err) {
       console.error('Error deleting draft:', err);
-      
-      // Always close the dropdown when there's an error
       setIsDraftsOpen(false);
-      
       setError({
         type: 'error',
         message: 'Failed to delete draft. Please try again.'
@@ -340,14 +301,15 @@ export default function CreateTemplate() {
     }
   }
 
-  // ========= Form Input Handlers =========
   function handleInputChange(e) {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
   }
+
   function handleSelectChange(id, value) {
     setFormData(prev => ({ ...prev, [id]: value }));
   }
+
   function handleImageChange(e) {
     const file = e.target.files[0];
     if (file) {
@@ -356,40 +318,39 @@ export default function CreateTemplate() {
       reader.readAsDataURL(file);
     }
   }
+
   function handleRemoveImage() {
     setPreviewImage(null);
   }
 
-  // ========= Navigation & Submission =========
   function isStepValid() {
     switch (currentStep) {
       case 0:
         return Boolean(formData.name?.trim());
       case 1:
-        // Caption step is always valid, even with "none" selected
         return true;
       case 2:
-        // Outro step is always valid, no required fields
         return true;
       default:
         return false;
     }
   }
+
   function handleNext(e) {
-    e?.preventDefault();
+    e.preventDefault();
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       handleSubmit(e);
     }
   }
+
   function handlePrevious() {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
   }
+
   async function handleSubmit(e) {
     e.preventDefault();
-    
-    // Only require the template name to be filled in
     if (!formData.name?.trim()) {
       setError({
         type: 'error',
@@ -398,14 +359,11 @@ export default function CreateTemplate() {
       setTimeout(() => setError(null), 3000);
       return;
     }
-    
     setIsSubmitting(true);
     setLoadingModal({ isOpen: true, status: 'loading', error: null });
-    
     try {
       const user = auth.currentUser;
       if (!user) throw new Error('You must be logged in to create a template');
-      
       const templateData = {
         name: formData.name,
         captionType: typeof selectedCaptionStyle === 'object' ? selectedCaptionStyle.style : selectedCaptionStyle,
@@ -413,7 +371,6 @@ export default function CreateTemplate() {
         outtroBackgroundColors: showOutro ? (selectedOutroTheme === 'custom' ? customOutroColor : selectedOutroTheme) : 'none',
         outtroFontColor: showOutro ? outroTextColor : '',
         image: showOutro ? outroLogo : null,
-        // Additional data for our app's functionality
         additionalData: JSON.stringify({
           formData,
           selectedTheme,
@@ -427,8 +384,7 @@ export default function CreateTemplate() {
           previewImage
         })
       };
-      
-      // Create the template
+
       const response = await fetch(`${SERVER_URL}/templates`, {
         method: 'POST',
         headers: {
@@ -437,12 +393,8 @@ export default function CreateTemplate() {
         },
         body: JSON.stringify(templateData)
       });
-      
       if (!response.ok) throw new Error('Failed to create template');
-      
       const createdTemplate = await response.json();
-      
-      // If we were editing a draft, delete it
       if (isEditingDraft && selectedDraftId) {
         try {
           await fetch(`${SERVER_URL}/draftTemplates/drafts/${selectedDraftId}`, {
@@ -453,16 +405,8 @@ export default function CreateTemplate() {
           console.warn('Failed to delete draft after template creation', err);
         }
       }
-      
-      // Show success modal
       setLoadingModal({ isOpen: false, status: 'success', error: null });
-      setSuccessModal({ 
-        isOpen: true, 
-        templateName: formData.name,
-        templateId: createdTemplate.id
-      });
-      
-      // Reset form
+      setSuccessModal({ isOpen: true, templateName: formData.name, templateId: createdTemplate.id });
       clearFormCache();
       setCurrentStep(0);
       setSelectedTheme('sunset');
@@ -475,20 +419,25 @@ export default function CreateTemplate() {
       setPreviewImage(null);
       setIsEditingDraft(false);
       setSelectedDraftId(null);
-      
     } catch (err) {
       console.error('Error creating template:', err);
-      setLoadingModal({ 
-        isOpen: true, 
-        status: 'error', 
-        error: err.message || 'Failed to create template. Please try again.' 
+      setLoadingModal({
+        isOpen: true,
+        status: 'error',
+        error: err.message || 'Failed to create template. Please try again.'
       });
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  // ========= Close Drafts Dropdown on Outside Click =========
+  // Reset video loading state when step changes
+  useEffect(() => {
+    if (currentStep === 1) {
+      setIsVideoLoading(true);
+    }
+  }, [currentStep]);
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (draftsRef.current && !draftsRef.current.contains(event.target)) {
@@ -499,24 +448,137 @@ export default function CreateTemplate() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [draftsRef]);
 
-  // ========= JSX Rendering =========
+  const handleSelectTemplate = (templateData) => {
+    setSelectedTemplate(templateData);
+    
+    // Update form data and settings based on the template
+    if (templateData.name) {
+      setFormData(prev => ({ ...prev, name: templateData.name }));
+    }
+    
+    // Apply caption settings
+    if (templateData.captionType) {
+      setSelectedCaptionStyle({
+        style: templateData.captionType || 'standard',
+        position: templateData.captionPosition || 'bottom'
+      });
+    }
+    
+    // Apply outro settings
+    if (templateData.outroTheme) {
+      setSelectedOutroTheme(templateData.outroTheme);
+    } else if (templateData.outtroBackgroundColors && templateData.outtroBackgroundColors !== 'none') {
+      if (Object.keys(themes).includes(templateData.outtroBackgroundColors)) {
+        setSelectedOutroTheme(templateData.outtroBackgroundColors);
+      } else {
+        setSelectedOutroTheme('custom');
+        setCustomOutroColor(templateData.outtroBackgroundColors);
+      }
+    }
+    
+    // Apply font color
+    if (templateData.outtroFontColor) {
+      setOutroTextColor(templateData.outtroFontColor);
+    }
+    
+    // Apply theme
+    if (templateData.theme) {
+      setSelectedTheme(templateData.theme);
+    }
+    
+    // Apply outro text
+    if (templateData.outroText) {
+      setOutroText(templateData.outroText);
+    }
+    
+    // Set outro visibility
+    if (templateData.showOutro !== undefined) {
+      setShowOutro(templateData.showOutro);
+    } else if (templateData.outroTheme || (templateData.outtroBackgroundColors && templateData.outtroBackgroundColors !== 'none')) {
+      setShowOutro(true);
+    } else {
+      setShowOutro(false);
+    }
+    
+    // Apply logo if available
+    if (templateData.image) {
+      setOutroLogo(templateData.image);
+    }
+    
+    // Apply additional data if available
+    if (templateData.additionalData) {
+      try {
+        const additionalData = JSON.parse(templateData.additionalData);
+        
+        // Apply any additional settings from additionalData
+        if (additionalData.outroText && !templateData.outroText) {
+          setOutroText(additionalData.outroText);
+        }
+        
+        if (additionalData.outroLogo && !templateData.image) {
+          setOutroLogo(additionalData.outroLogo);
+        }
+      } catch (e) {
+        console.error('Error parsing template additional data', e);
+      }
+    }
+    
+    // Show success message
+    setError({
+      type: 'success',
+      message: 'Template applied successfully!'
+    });
+    setTimeout(() => setError(null), 3000);
+  };
+
   return (
     <div className="p-6">
       <div className="space-y-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Template</h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Design and save reusable templates for your campaigns
-          </p>
-          <div className="relative max-w-[800px] h-1 bg-gray-200 dark:bg-gray-800 mt-4">
-            <div
-              className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-400 transition-all duration-500"
-              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-            />
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Template</h1>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Create a reusable template for your videos. Templates can be applied to any video in your library.
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <button
+              type="button"
+              onClick={() => setIsDraftsOpen(!isDraftsOpen)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              <FileText className="h-4 w-4" />
+              Drafts
+              <ChevronDown className={`h-4 w-4 transition-transform ${isDraftsOpen ? 'rotate-180' : ''}`} />
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isSavingDraft}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              {isSavingDraft ? (
+                <>Saving...</>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save Draft
+                </>
+              )}
+            </button>
           </div>
         </div>
 
-        <div className={`relative max-w-[800px] mt-4`} ref={draftsRef}>
+        {/* Progress Bar */}
+        <div className="relative max-w-[800px] h-1 bg-gray-200 dark:bg-gray-800 mt-4">
+          <div
+            className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-400 transition-all duration-500"
+            style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+          />
+        </div>
+
+        {/* Drafts Section */}
+        <div className="relative max-w-[800px] mt-4" ref={draftsRef}>
           {isLoadingDrafts ? (
             <div className="w-full flex items-center gap-2 p-3 text-sm text-gray-600 bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
               <div className="animate-pulse flex items-center gap-2 w-full">
@@ -549,8 +611,6 @@ export default function CreateTemplate() {
               </span>
             </div>
           )}
-
-          {/* Drafts Dropdown */}
           <DraftsDropdown
             isOpen={isDraftsOpen}
             drafts={drafts}
@@ -562,24 +622,13 @@ export default function CreateTemplate() {
             setIsEditingDraft={setIsEditingDraft}
           />
         </div>
-
-        {/* Error / Success Messages at the top */}
-        {error && error.type === 'error' && (
-          <ErrorMessage message={error.message} />
-        )}
-        {deleteMessage && deleteMessage.type === 'success' && (
-          <SuccessMessage message={deleteMessage.message} />
-        )}
-        {deleteMessage && deleteMessage.type === 'error' && (
-          <ErrorMessage message={deleteMessage.message} />
-        )}
-
-        {/* Main content area with form and preview */}
+        {error && error.type === 'error' && <ErrorMessage message={error.message} />}
+        {deleteMessage && deleteMessage.type === 'success' && <SuccessMessage message={deleteMessage.message} />}
+        {deleteMessage && deleteMessage.type === 'error' && <ErrorMessage message={deleteMessage.message} />}
         <div className={`grid grid-cols-1 ${showPreview ? 'lg:grid-cols-[800px,auto]' : ''} gap-6 items-start ${!showPreview ? 'w-full' : ''}`}>
           <Card className="w-full">
             <CardContent>
               <form onSubmit={(e) => {
-                // Only allow form submission from the last step
                 if (currentStep !== steps.length - 1) {
                   e.preventDefault();
                   handleNext(e);
@@ -588,7 +637,56 @@ export default function CreateTemplate() {
                 }
               }} className="space-y-8">
                 {currentStep === 0 && (
-                  <InternalName formData={formData} handleInputChange={handleInputChange} />
+                  <>
+                    <InternalName formData={formData} handleInputChange={handleInputChange} />
+                    
+                    <div className="mt-6">
+                      <button
+                        type="button"
+                        onClick={() => setIsTemplateModalOpen(true)}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                      >
+                        <FileText className="h-4 w-4" />
+                        {selectedTemplate ? 'Change Template' : 'Use Template'}
+                      </button>
+                      {selectedTemplate ? (
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-md dark:bg-blue-900/20 dark:border-blue-800">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+                              selectedTemplate.theme ? themes[selectedTemplate.theme]?.background : 
+                              (selectedTemplate.outroTheme ? themes[selectedTemplate.outroTheme]?.background : 'bg-blue-500')
+                            }`}>
+                              <FileText className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{selectedTemplate.name || 'Unnamed Template'}</p>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {selectedTemplate.captionType && (
+                                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                    {selectedTemplate.captionType} captions {selectedTemplate.captionPosition && `(${selectedTemplate.captionPosition})`}
+                                  </span>
+                                )}
+                                {selectedTemplate.theme && (
+                                  <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                                    {themes[selectedTemplate.theme]?.name || selectedTemplate.theme} theme
+                                  </span>
+                                )}
+                                {selectedTemplate.outroTheme && (
+                                  <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                    {themes[selectedTemplate.outroTheme]?.name || selectedTemplate.outroTheme} outro
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          Select a template to use its caption and outro settings.
+                        </p>
+                      )}
+                    </div>
+                  </>
                 )}
                 {currentStep === 1 && (
                   <Captions
@@ -602,8 +700,6 @@ export default function CreateTemplate() {
                     setSelectedOutroTheme={setSelectedOutroTheme}
                     outroLogo={outroLogo}
                     setOutroLogo={setOutroLogo}
-                    handleImageChange={handleImageChange}
-                    handleRemoveImage={handleRemoveImage}
                     customOutroColor={customOutroColor}
                     setCustomOutroColor={setCustomOutroColor}
                     outroText={outroText}
@@ -614,12 +710,7 @@ export default function CreateTemplate() {
                     setShowOutro={setShowOutro}
                   />
                 )}
-
-                {/* Success message for saving draft */}
-                {saveDraftSuccess && (
-                  <SuccessMessage message={saveDraftSuccess} />
-                )}
-
+                {saveDraftSuccess && <SuccessMessage message={saveDraftSuccess} />}
                 <div className="mt-8">
                   <StepNavigation
                     currentStep={currentStep}
@@ -637,8 +728,6 @@ export default function CreateTemplate() {
               </form>
             </CardContent>
           </Card>
-
-          {/* Preview section */}
           {showPreview && (
             <PhonePreview
               selectedTheme={selectedTheme}
@@ -652,22 +741,34 @@ export default function CreateTemplate() {
               outroText={outroText}
               outroTextColor={outroTextColor}
               showOutro={showOutro}
+              videoUrl={previewImage}
+              isVideoLoading={isVideoLoading}
+              setIsVideoLoading={setIsVideoLoading}
+              isPhonePreviewLoading={isPhonePreviewLoading}
+              setIsPhonePreviewLoading={setIsPhonePreviewLoading}
             />
           )}
         </div>
       </div>
 
-      {/* Modals */}
-      {loadingModal.isOpen && (
-        <LoadingModal
-          isOpen={loadingModal.isOpen}
-          status={loadingModal.status}
-          error={loadingModal.error}
-          onClose={() => setLoadingModal({ ...loadingModal, isOpen: false })}
-          entityName={formData.name}
-          entityType="template"
-        />
-      )}
+      {/* Template Modal */}
+      <TemplateModal 
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onSelectTemplate={handleSelectTemplate}
+      />
+
+      {/* Loading Modal */}
+      <LoadingModal
+        isOpen={loadingModal.isOpen}
+        status={loadingModal.status}
+        error={loadingModal.error}
+        onClose={() => setLoadingModal({ ...loadingModal, isOpen: false })}
+        entityName={formData.name}
+        entityType="template"
+      />
+
+      {/* Success Modal */}
       <TemplateSuccessModal
         isOpen={successModal.isOpen}
         onClose={() => setSuccessModal({ ...successModal, isOpen: false })}

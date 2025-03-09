@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet, useNavigationType, useNavigate } from 'react-router-dom';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ServerStatusProvider, useServerStatus } from './context/ServerStatusContext';
 import { ToastProvider } from './components/ui/toast-notification';
+import ServerDownBanner from './components/ui/ServerDownBanner';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
 import { CookieConsent } from './components/ui/cookie-consent';
@@ -77,20 +79,55 @@ function RequireUnauth({ children }) {
   return children;
 }
 
+// Banner component that uses the ServerStatusContext
+function ServerStatusBanner() {
+  // Get server status context safely
+  const serverStatus = useServerStatus();
+  
+  // If context is not available, don't render anything
+  if (!serverStatus) {
+    console.warn('ServerStatusContext not available');
+    return null;
+  }
+  
+  const { isServerDown, bannerDismissed, dismissBanner } = serverStatus;
+  
+  // Debug log to help troubleshoot visibility issues
+  React.useEffect(() => {
+    console.log('ServerStatusBanner state:', { isServerDown, bannerDismissed });
+  }, [isServerDown, bannerDismissed]);
+  
+  // Don't memoize to ensure it always renders when state changes
+  return (
+    <ServerDownBanner 
+      isVisible={isServerDown && !bannerDismissed} 
+      onClose={dismissBanner} 
+    />
+  );
+}
+
 function AppLayout() {
   const location = useLocation();
   if (location.pathname === '/pricing') {
-    return <Outlet />;
+    return (
+      <>
+        <ServerStatusBanner />
+        <Outlet />
+      </>
+    );
   }
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-        <Sidebar />
-        <div className="flex-1 flex flex-col h-screen overflow-hidden">
-          <Header />
-          <Backdrop />
-          <div className="flex-1 overflow-y-auto">
-            <Outlet />
+      <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+        <ServerStatusBanner />
+        <div className="flex flex-1 h-screen overflow-hidden">
+          <Sidebar />
+          <div className="flex-1 flex flex-col h-screen overflow-hidden">
+            <Header />
+            <Backdrop />
+            <div className="flex-1 overflow-y-auto">
+              <Outlet />
+            </div>
           </div>
         </div>
       </div>
@@ -130,49 +167,91 @@ function AppContent() {
     return <Navigate to="/app/dashboard" replace />;
   }
 
-  return <Landing />;
+  return (
+    <>
+      <ServerStatusBanner />
+      <Landing />
+    </>
+  );
 }
 
 function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <BrowserRouter>
-          <ScrollToTop />
-          <CookieConsent />
-          <Routes>
-            <Route path="/survey/:id" element={<Survey />} />
-            <Route path="/" element={<AppContent />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/login" element={<RequireUnauth><SignIn /></RequireUnauth>} />
-            <Route path="/signup" element={<RequireUnauth><SignUp /></RequireUnauth>} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/success" element={<RequireAuth><CheckoutSuccess /></RequireAuth>} />
-            <Route path="/cancel" element={<RequireAuth><CheckoutCancel /></RequireAuth>} />
-            <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
-              <Route index element={<Dashboard />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="campaigns/new" element={<CreateCampaign />} />
-              <Route path="campaigns/:id/ai-videos" element={<AIVideos />} />
-              <Route path="campaigns/:id/responses" element={<Responses />} />
-              <Route path="campaigns/:campaignId/responses/:id/polish" element={<VideoPolisher />} />
-              <Route path="campaigns/:id/settings" element={<CampaignSettings />} />
-              <Route path="campaigns/:id" element={<CampaignDetails />} />
-              <Route path="campaigns" element={<ManageCampaigns />} />
-              <Route path="templates/new" element={<CreateTemplate />} />
-              <Route path="templates/:id" element={<TemplateDetails />} />
-              <Route path="templates" element={<ManageTemplates />} />
-              <Route path="video-enhancer" element={<VideoEnhancer />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="profile" element={<EditProfile />} />
-              <Route path="account" element={<Account />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="support" element={<Support />} />
-              <Route path="pricing" element={<PricingPage />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
+        <ServerStatusProvider>
+          <BrowserRouter>
+            <ScrollToTop />
+            <CookieConsent />
+            <Routes>
+              <Route path="/survey/:id" element={
+                <>
+                  <ServerStatusBanner />
+                  <Survey />
+                </>
+              } />
+              <Route path="/" element={<AppContent />} />
+              <Route path="/about" element={
+                <>
+                  <ServerStatusBanner />
+                  <About />
+                </>
+              } />
+              <Route path="/login" element={<RequireUnauth>
+                <>
+                  <ServerStatusBanner />
+                  <SignIn />
+                </>
+              </RequireUnauth>} />
+              <Route path="/signup" element={<RequireUnauth>
+                <>
+                  <ServerStatusBanner />
+                  <SignUp />
+                </>
+              </RequireUnauth>} />
+              <Route path="/pricing" element={
+                <>
+                  <ServerStatusBanner />
+                  <PricingPage />
+                </>
+              } />
+              <Route path="/success" element={<RequireAuth>
+                <>
+                  <ServerStatusBanner />
+                  <CheckoutSuccess />
+                </>
+              </RequireAuth>} />
+              <Route path="/cancel" element={<RequireAuth>
+                <>
+                  <ServerStatusBanner />
+                  <CheckoutCancel />
+                </>
+              </RequireAuth>} />
+              <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
+                <Route index element={<Dashboard />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="campaigns/new" element={<CreateCampaign />} />
+                <Route path="campaigns/:id/ai-videos" element={<AIVideos />} />
+                <Route path="campaigns/:id/responses" element={<Responses />} />
+                <Route path="campaigns/:campaignId/responses/:id/polish" element={<VideoPolisher />} />
+                <Route path="campaigns/:id/settings" element={<CampaignSettings />} />
+                <Route path="campaigns/:id" element={<CampaignDetails />} />
+                <Route path="campaigns" element={<ManageCampaigns />} />
+                <Route path="templates/new" element={<CreateTemplate />} />
+                <Route path="templates/:id" element={<TemplateDetails />} />
+                <Route path="templates" element={<ManageTemplates />} />
+                <Route path="video-enhancer" element={<VideoEnhancer />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="profile" element={<EditProfile />} />
+                <Route path="account" element={<Account />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="support" element={<Support />} />
+                <Route path="pricing" element={<PricingPage />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </ServerStatusProvider>
       </ToastProvider>
     </AuthProvider>
   );

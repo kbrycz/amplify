@@ -138,7 +138,7 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
       case 'totalCampaigns':
         setModalInfo({
           title: 'Total Campaigns',
-          content: 'You have created ' + metrics.campaigns + ' campaigns out of ' + (user?.plan?.campaigns || 10) + ' total in your plan.'
+          content: 'You have created ' + (metrics.campaigns || 0) + ' campaigns out of ' + (user?.plan?.campaigns || 10) + ' total in your plan.'
         });
         setShowModal(true);
         break;
@@ -152,28 +152,28 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
       case 'totalReach':
         setModalInfo({
           title: 'Total Reach',
-          content: 'Your campaigns have reached a total of ' + metrics.users + ' unique users. This represents the total number of people who have viewed your campaigns.'
+          content: 'Your campaigns have reached a total of ' + (metrics.users || 0) + ' unique users. This represents the total number of people who have viewed your campaigns.'
         });
         setShowModal(true);
         break;
       case 'videosGenerated':
         setModalInfo({
           title: 'Videos Generated',
-          content: 'You have generated a total of ' + metrics.videos + ' AI videos from your responses. Each video uses 1 credit from your account.'
+          content: 'You have generated a total of ' + (metrics.videos || 0) + ' AI videos from your responses. Each video uses 1 credit from your account.'
         });
         setShowModal(true);
         break;
       case 'unreadResponses':
         setModalInfo({
           title: 'Unread Responses',
-          content: 'You have ' + metrics.unread + ' unread responses across all your campaigns.'
+          content: 'You have ' + (metrics.unread || 0) + ' unread responses across all your campaigns.'
         });
         setShowModal(true);
         break;
       case 'totalResponses':
         setModalInfo({
           title: 'Total Responses',
-          content: 'You have collected a total of ' + metrics.collected + ' responses across all your campaigns.'
+          content: 'You have collected a total of ' + (metrics.collected || 0) + ' responses across all your campaigns.'
         });
         setShowModal(true);
         break;
@@ -223,7 +223,7 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
   const creditsUsed = planCredits - creditsRemaining;
   const campaignsUsed = metrics.campaigns || 0;
   
-  // Mock templates count (would come from API in a real app)
+  // Get templates count from metrics
   const templates = metrics.templates || 15;
 
   return (
@@ -238,7 +238,7 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
             {/* Unread Responses */}
             <MetricCard
               title="Unread Responses"
-              value={metrics.unread}
+              value={metrics.unread || 0}
               icon={Bell}
               description="Responses awaiting review"
               onClick={() => handleCardClick('unreadResponses')}
@@ -247,7 +247,7 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
             {/* Total Responses */}
             <MetricCard
               title="Total Responses"
-              value={metrics.collected}
+              value={metrics.collected || 0}
               icon={BarChart3}
               description="Total responses collected"
               onClick={() => handleCardClick('totalResponses')}
@@ -283,7 +283,7 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
             {/* Total Reach */}
             <MetricCard
               title="Total Reach"
-              value={metrics.users.toLocaleString()}
+              value={(metrics.users || 0).toLocaleString()}
               icon={Users}
               description="Total users reached"
               onClick={() => handleCardClick('totalReach')}
@@ -292,7 +292,7 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
             {/* Videos Generated */}
             <MetricCard
               title="Videos Generated"
-              value={metrics.videos.toLocaleString()}
+              value={(metrics.videos || 0).toLocaleString()}
               icon={Film}
               description="AI videos created"
               onClick={() => handleCardClick('videosGenerated')}

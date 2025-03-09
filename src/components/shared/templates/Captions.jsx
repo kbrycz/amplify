@@ -2,67 +2,41 @@ import React, { useState, useEffect } from 'react';
 import { Label } from '../../ui/label';
 
 const captionStyles = [
-  {
-    id: 'none',
-    name: 'No Subtitles',
-    description: 'Video without any subtitles',
-    preview: null
-  },
-  {
-    id: 'standard',
-    name: 'Standard',
-    description: 'Clean white text with dark background',
-    preview: 'bg-black/70 text-white px-4 py-2 rounded-md text-center'
-  },
-  {
-    id: 'minimal',
-    name: 'Minimal',
-    description: 'Simple white text with no background',
-    preview: 'text-white px-3 py-1.5 text-shadow-sm rounded-md text-center'
-  },
-  {
-    id: 'outlined',
-    name: 'Outlined',
-    description: 'White text with black outline',
-    preview: 'text-white px-4 py-2 rounded-md text-center text-shadow-outline'
-  },
-  {
-    id: 'bold',
-    name: 'Bold',
-    description: 'Large, impactful text with background',
-    preview: 'bg-indigo-600 text-white px-4 py-2 font-bold rounded-md text-center'
-  },
-  {
-    id: 'gradient',
-    name: 'Gradient',
-    description: 'Eye-catching gradient background',
-    preview: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-md text-center'
-  }
+  { id: 'none', name: 'No Subtitles', description: 'Video without any subtitles', preview: null },
+  { id: 'standard', name: 'Standard', description: 'Clean white text with dark background', preview: 'bg-black/70 text-white px-4 py-2 rounded-md text-center' },
+  { id: 'minimal', name: 'Minimal', description: 'Simple white text with no background', preview: 'text-white px-3 py-1.5 text-shadow-sm rounded-md text-center' },
+  { id: 'outlined', name: 'Outlined', description: 'White text with black outline', preview: 'text-white px-4 py-2 rounded-md text-center text-shadow-outline' },
+  { id: 'bold', name: 'Bold', description: 'Large, impactful text with background', preview: 'bg-indigo-600 text-white px-4 py-2 font-bold rounded-md text-center' },
+  { id: 'gradient', name: 'Gradient', description: 'Eye-catching gradient background', preview: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-md text-center' }
 ];
 
 const captionPositions = [
-  {
-    id: 'top',
-    name: 'Top',
-    description: 'Display captions at the top of the video'
-  },
-  {
-    id: 'middle',
-    name: 'Middle',
-    description: 'Display captions in the middle of the video'
-  },
-  {
-    id: 'bottom',
-    name: 'Bottom',
-    description: 'Display captions at the bottom of the video'
-  }
+  { id: 'top', name: 'Top', description: 'Display captions at the top of the video' },
+  { id: 'middle', name: 'Middle', description: 'Display captions in the middle of the video' },
+  { id: 'bottom', name: 'Bottom', description: 'Display captions at the bottom of the video' }
 ];
 
 export function Captions({ selectedCaptionStyle, setSelectedCaptionStyle }) {
-  const [captionPosition, setCaptionPosition] = useState('bottom');
+  console.log("Captions component received selectedCaptionStyle:", selectedCaptionStyle);
+  
+  // Initialize captionPosition from selectedCaptionStyle if it exists
+  const initialPosition = typeof selectedCaptionStyle === 'object' && selectedCaptionStyle.position
+    ? selectedCaptionStyle.position
+    : 'bottom';
+    
+  console.log("Initializing captionPosition to:", initialPosition);
+  
+  const [captionPosition, setCaptionPosition] = useState(initialPosition);
   const [isSubtitlesDisabled, setIsSubtitlesDisabled] = useState(false);
 
-  // Check if subtitles are disabled (none selected)
+  // Update captionPosition when selectedCaptionStyle changes
+  useEffect(() => {
+    if (typeof selectedCaptionStyle === 'object' && selectedCaptionStyle.position) {
+      console.log("Updating captionPosition to:", selectedCaptionStyle.position);
+      setCaptionPosition(selectedCaptionStyle.position);
+    }
+  }, [selectedCaptionStyle]);
+
   useEffect(() => {
     if (typeof selectedCaptionStyle === 'object') {
       setIsSubtitlesDisabled(selectedCaptionStyle.style === 'none');
@@ -71,18 +45,12 @@ export function Captions({ selectedCaptionStyle, setSelectedCaptionStyle }) {
     }
   }, [selectedCaptionStyle]);
 
-  // Update the parent component with both style and position
   const handleStyleChange = (styleId) => {
-    if (styleId === 'none') {
-      setSelectedCaptionStyle({ style: styleId, position: captionPosition });
-    } else {
-      setSelectedCaptionStyle({ style: styleId, position: captionPosition });
-    }
+    setSelectedCaptionStyle({ style: styleId, position: captionPosition });
   };
 
   const handlePositionChange = (positionId) => {
     if (isSubtitlesDisabled) return;
-    
     setCaptionPosition(positionId);
     if (selectedCaptionStyle && typeof selectedCaptionStyle === 'object') {
       setSelectedCaptionStyle({ ...selectedCaptionStyle, position: positionId });
@@ -91,7 +59,6 @@ export function Captions({ selectedCaptionStyle, setSelectedCaptionStyle }) {
     }
   };
 
-  // Extract style from selectedCaptionStyle if it's an object
   const currentStyle = typeof selectedCaptionStyle === 'object' 
     ? selectedCaptionStyle.style 
     : selectedCaptionStyle;
@@ -137,7 +104,6 @@ export function Captions({ selectedCaptionStyle, setSelectedCaptionStyle }) {
           ))}
         </div>
       </div>
-
       <div className={`pb-8 transition-all duration-200 ${isSubtitlesDisabled ? 'opacity-50 pointer-events-none filter blur-[0.5px]' : ''}`}>
         <Label className="text-lg font-medium">Caption Position</Label>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">

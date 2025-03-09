@@ -3,6 +3,29 @@ import { auth } from './firebase';
 // Direct server URL
 export const SERVER_URL = "https://amplify-dev-6b1c7.uc.r.appspot.com";
 
+// Custom error class for server errors
+export class ServerError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = 'ServerError';
+    this.status = status;
+  }
+}
+
+// Global flag to track if we've detected a server issue
+let serverIssueDetected = false;
+
+// Function to notify about server issues
+export function notifyServerIssue() {
+  serverIssueDetected = true;
+  
+  // Dispatch a custom event that the ServerStatusContext can listen for
+  const event = new CustomEvent('server-issue-detected');
+  window.dispatchEvent(event);
+  
+  console.error('Server issue detected and notification sent');
+}
+
 /**
  * Makes an authenticated API request to the server
  * @param {string} endpoint - The API endpoint (without the base URL)
@@ -23,7 +46,7 @@ export async function apiRequest(endpoint, options = {}) {
     
     // Create an AbortController to handle timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout (reduced from 15s)
     
     // Make the request directly to the server URL
     const response = await fetch(`${SERVER_URL}${endpoint}`, {
@@ -39,8 +62,17 @@ export async function apiRequest(endpoint, options = {}) {
   } catch (error) {
     if (error.name === 'AbortError') {
       console.error(`API request timeout for ${endpoint}`);
-      throw new Error(`Request timeout: The server took too long to respond. Please try again.`);
+      notifyServerIssue();
+      throw new ServerError('Request timeout: The server took too long to respond. Please try again.', 408);
     }
+    
+    // Network errors (like CORS, server down, etc.)
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      console.error(`Server connection error for ${endpoint}`);
+      notifyServerIssue();
+      throw new ServerError('Unable to connect to the server. Please check your internet connection or try again later.', 503);
+    }
+    
     console.error(`API request error for ${endpoint}:`, error);
     throw error;
   }
@@ -53,19 +85,41 @@ export async function apiRequest(endpoint, options = {}) {
  * @returns {Promise<any>} - The parsed JSON response
  */
 export async function get(endpoint, options = {}) {
-  const response = await apiRequest(endpoint, {
-    method: 'GET',
-    ...options
-  });
-  
-  if (!response.ok) {
-    if (response.status === 404) {
-      return null; // Return null for 404 responses
+  try {
+    const response = await apiRequest(endpoint, {
+      method: 'GET',
+      ...options
+    });
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null; // Return null for 404 responses
+      }
+      
+      // Handle server errors
+      if (response.status >= 500) {
+        notifyServerIssue();
+        throw new ServerError(`Server error: ${response.status} ${response.statusText}`, response.status);
+      }
+      
+      throw new Error(`API GET error: ${response.status} ${response.statusText}`);
     }
-    throw new Error(`API GET error: ${response.status} ${response.statusText}`);
+    
+    return response.json();
+  } catch (error) {
+    // Rethrow ServerError instances
+    if (error instanceof ServerError) {
+      throw error;
+    }
+    
+    // Handle JSON parsing errors
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      notifyServerIssue();
+      throw new ServerError('Invalid response from server', 500);
+    }
+    
+    throw error;
   }
-  
-  return response.json();
 }
 
 /**
@@ -89,6 +143,13 @@ export async function post(endpoint, data, options = {}) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`API POST error: ${response.status} ${response.statusText}`, errorText);
+      
+      // Handle server errors
+      if (response.status >= 500) {
+        notifyServerIssue();
+        throw new ServerError(`Server error: ${response.status} ${response.statusText}`, response.status);
+      }
+      
       throw new Error(`API POST error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
@@ -97,6 +158,18 @@ export async function post(endpoint, data, options = {}) {
     return responseData;
   } catch (error) {
     console.error(`POST request to ${endpoint} failed:`, error);
+    
+    // Rethrow ServerError instances
+    if (error instanceof ServerError) {
+      throw error;
+    }
+    
+    // Handle JSON parsing errors
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      notifyServerIssue();
+      throw new ServerError('Invalid response from server', 500);
+    }
+    
     throw error;
   }
 }
@@ -109,17 +182,38 @@ export async function post(endpoint, data, options = {}) {
  * @returns {Promise<any>} - The parsed JSON response
  */
 export async function put(endpoint, data, options = {}) {
-  const response = await apiRequest(endpoint, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-    ...options
-  });
-  
-  if (!response.ok) {
-    throw new Error(`API PUT error: ${response.status} ${response.statusText}`);
+  try {
+    const response = await apiRequest(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      ...options
+    });
+    
+    if (!response.ok) {
+      // Handle server errors
+      if (response.status >= 500) {
+        notifyServerIssue();
+        throw new ServerError(`Server error: ${response.status} ${response.statusText}`, response.status);
+      }
+      
+      throw new Error(`API PUT error: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    // Rethrow ServerError instances
+    if (error instanceof ServerError) {
+      throw error;
+    }
+    
+    // Handle JSON parsing errors
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      notifyServerIssue();
+      throw new ServerError('Invalid response from server', 500);
+    }
+    
+    throw error;
   }
-  
-  return response.json();
 }
 
 /**
@@ -129,14 +223,35 @@ export async function put(endpoint, data, options = {}) {
  * @returns {Promise<any>} - The parsed JSON response
  */
 export async function del(endpoint, options = {}) {
-  const response = await apiRequest(endpoint, {
-    method: 'DELETE',
-    ...options
-  });
-  
-  if (!response.ok) {
-    throw new Error(`API DELETE error: ${response.status} ${response.statusText}`);
+  try {
+    const response = await apiRequest(endpoint, {
+      method: 'DELETE',
+      ...options
+    });
+    
+    if (!response.ok) {
+      // Handle server errors
+      if (response.status >= 500) {
+        notifyServerIssue();
+        throw new ServerError(`Server error: ${response.status} ${response.statusText}`, response.status);
+      }
+      
+      throw new Error(`API DELETE error: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    // Rethrow ServerError instances
+    if (error instanceof ServerError) {
+      throw error;
+    }
+    
+    // Handle JSON parsing errors
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      notifyServerIssue();
+      throw new ServerError('Invalid response from server', 500);
+    }
+    
+    throw error;
   }
-  
-  return response.json();
 } 

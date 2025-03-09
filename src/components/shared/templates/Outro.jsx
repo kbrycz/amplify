@@ -1,41 +1,15 @@
 import React, { useState, useRef } from 'react';
 import { Label } from '../../ui/label';
-import { Upload, X, Image } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { ToggleSwitch } from '../../ui/toggle-switch';
 
 const outroThemes = [
-  {
-    id: 'sunset',
-    name: 'Sunset Vibes',
-    background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
-    text: 'text-white'
-  },
-  {
-    id: 'midnight',
-    name: 'Midnight Blue',
-    background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
-    text: 'text-white'
-  },
-  {
-    id: 'nature',
-    name: 'Nature Fresh',
-    background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
-    text: 'text-white'
-  },
-  {
-    id: 'ocean',
-    name: 'Ocean Depths',
-    background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600',
-    text: 'text-white'
-  },
-  {
-    id: 'custom',
-    name: 'Custom Color',
-    background: 'bg-gray-200 dark:bg-gray-700',
-    text: 'text-gray-800 dark:text-white',
-    isCustom: true
-  }
+  { id: 'sunset', name: 'Sunset Vibes', background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600', text: 'text-white' },
+  { id: 'midnight', name: 'Midnight Blue', background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900', text: 'text-white' },
+  { id: 'nature', name: 'Nature Fresh', background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600', text: 'text-white' },
+  { id: 'ocean', name: 'Ocean Depths', background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600', text: 'text-white' },
+  { id: 'custom', name: 'Custom Color', background: 'bg-gray-200 dark:bg-gray-700', text: 'text-gray-800 dark:text-white', isCustom: true }
 ];
 
 export function Outro({ 
@@ -76,7 +50,6 @@ export function Outro({
 
   const handleLogoUpload = (file) => {
     if (file) {
-      // Create a URL for the file
       const objectUrl = URL.createObjectURL(file);
       setOutroLogo(objectUrl);
     }
@@ -90,32 +63,24 @@ export function Outro({
 
   const handleRemoveLogo = () => {
     setOutroLogo(null);
-    // Reset the file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   const handleTextChange = (e) => {
-    // Limit text to 60 characters
     if (e.target.value.length <= 60) {
       setOutroText(e.target.value);
     }
   };
 
-  // Ensure hex color format
   const validateHexColor = (color) => {
-    // If it's already a valid hex color, return it
     if (/^#[0-9A-F]{6}$/i.test(color)) {
       return color;
     }
-    
-    // If it's a hex color without #, add it
     if (/^[0-9A-F]{6}$/i.test(color)) {
       return `#${color}`;
     }
-    
-    // Default to white if invalid
     return '#FFFFFF';
   };
 
@@ -127,7 +92,6 @@ export function Outro({
   const handleToggleOutro = (checked) => {
     setShowOutro(checked);
     if (!checked) {
-      // If turning off outro, reset to default theme
       setSelectedOutroTheme('sunset');
     }
   };

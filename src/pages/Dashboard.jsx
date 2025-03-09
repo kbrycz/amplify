@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useServerStatus } from '../context/ServerStatusContext';
 import { auth } from '../lib/firebase';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import QuickStats from '../components/dashboard/QuickStats';
@@ -12,6 +13,7 @@ import { MetricCardSkeleton, RecentCampaignSkeleton } from '../components/ui/ske
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, fetchUserProfile } = useAuth();
+  const { checkServerStatus } = useServerStatus();
   const [isLoading, setIsLoading] = useState(true);
   const [metrics, setMetrics] = useState({
     recentCampaigns: [],
@@ -54,43 +56,36 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.warn('Campaign fetch warning:', err.message);
+      // Check if server is down
+      checkServerStatus();
     }
   };
 
-  const fetchCampaignCount = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const data = await get('/campaign/campaigns/count');
-      setMetrics((prev) => ({
-        ...prev,
-        campaigns: data.count,
-      }));
+      const data = await get('/dashboard');
+      
+      if (data && data.metrics) {
+        setMetrics((prev) => ({
+          ...prev,
+          campaigns: data.metrics.campaigns || 0,
+          videos: data.metrics.videos || 0,
+          users: data.metrics.users || 0,
+          unread: data.metrics.unread || 0,
+          collected: data.metrics.collected || 0,
+          templates: data.metrics.templates || 0,
+          // Keep any other metrics that aren't provided by the dashboard endpoint
+          waiting: prev.waiting,
+          drafts: prev.drafts,
+        }));
+      }
+      
+      return data;
     } catch (err) {
-      console.error('Error fetching campaign count:', err);
-    }
-  };
-
-  const fetchResponseCounts = async () => {
-    try {
-      // This is a placeholder - in a real app, you would fetch this data from your API
-      setMetrics((prev) => ({
-        ...prev,
-        unread: Math.floor(Math.random() * 100),
-        collected: Math.floor(Math.random() * 2000),
-      }));
-    } catch (err) {
-      console.error('Error fetching response counts:', err);
-    }
-  };
-
-  const fetchTemplatesCount = async () => {
-    try {
-      const data = await get('/templates/count');
-      setMetrics((prev) => ({
-        ...prev,
-        templates: data.count,
-      }));
-    } catch (err) {
-      console.error('Error fetching templates count:', err);
+      console.error('Error fetching dashboard data:', err);
+      // Check if server is down
+      checkServerStatus();
+      throw err;
     }
   };
 
@@ -103,19 +98,15 @@ export default function Dashboard() {
     
     // Fetch all required metrics
     Promise.all([
-      fetchCampaignCount(),
-      fetchResponseCounts(),
-      fetchRecentCampaigns(),
-      fetchTemplatesCount(),
+      fetchDashboardData().catch(err => {
+        console.error('Dashboard data fetch failed:', err);
+        return null;
+      }),
+      fetchRecentCampaigns().catch(err => {
+        console.error('Recent campaigns fetch failed:', err);
+        return null;
+      }),
     ]).then(() => {
-      // Simulate additional metric values for demo purposes
-      setMetrics((prev) => ({
-        ...prev,
-        videos: Math.floor(Math.random() * 1000),
-        users: Math.floor(Math.random() * 5000),
-        waiting: Math.floor(Math.random() * 200),
-      }));
-      
       // Set loading to false when all data is fetched
       setIsLoading(false);
     }).catch(err => {

@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from 'react';
-import { ChevronLeft as SafariBack, ChevronRight as SafariForward, Share2, MoreVertical, Image, Upload } from 'lucide-react';
-import { Iphone15Pro } from '../ui/iphone';
+import React, { useRef, useEffect, useState } from 'react';
+import { Upload } from 'lucide-react';
+import { Iphone15Pro } from '../../ui/iphone';
 
 export function PhonePreview({ 
   selectedTheme, 
@@ -15,10 +15,12 @@ export function PhonePreview({
   outroTextColor,
   showOutro = true,
   videoRef,
-  previewMode // New optional prop for TemplateDetails
+  previewMode, // optional prop for TemplateDetails
+  videoUrl // NEW: if provided, use this URL instead of stock video
 }) {
   const internalVideoRef = useRef(null);
   const actualVideoRef = videoRef || internalVideoRef;
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
 
   useEffect(() => {
     if (actualVideoRef.current && (previewMode === 'video' || (!previewMode && currentStep === 1))) {
@@ -29,6 +31,22 @@ export function PhonePreview({
       actualVideoRef.current.pause();
     }
   }, [currentStep, actualVideoRef, previewMode]);
+
+  // Reset video loading state when video URL or step changes
+  useEffect(() => {
+    if (currentStep === 1 || previewMode === 'video') {
+      setIsVideoLoading(true);
+    }
+  }, [videoUrl, currentStep, previewMode]);
+
+  const handleVideoLoaded = () => {
+    setIsVideoLoading(false);
+  };
+
+  const handleVideoError = () => {
+    console.error("Video failed to load");
+    setIsVideoLoading(false); // Still set to false to avoid infinite loading
+  };
 
   const theme = themes[selectedTheme] || themes.sunset;
 
@@ -83,39 +101,33 @@ export function PhonePreview({
   const renderCaptionsByPosition = () => {
     const position = getCaptionPosition();
     const captionStyle = getCaptionStyle();
-    
-    if (!captionStyle) {
-      return (
-        <video 
-          ref={actualVideoRef}
-          className="w-full h-full object-cover"
-          muted
-          loop
-          playsInline
-          src="/videos/template.mp4"
-        />
-      );
-    }
-    
     const captionContent = (
       <div className={`${captionStyle} mx-auto max-w-[90%]`}>
         {formData.title || 'This is the subtitle text'}
       </div>
     );
+    const videoSrc = videoUrl || "/videos/template.mp4";
 
     switch (position) {
       case 'top':
         return (
           <>
+            {isVideoLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
+                <div className="animate-pulse rounded-md bg-gray-200 dark:bg-gray-700 h-40 w-40" />
+              </div>
+            )}
             <video 
               ref={actualVideoRef}
               className="w-full h-full object-cover"
               muted
               loop
               playsInline
-              src="/videos/template.mp4"
+              src={videoSrc}
+              onLoadedData={handleVideoLoaded}
+              onError={handleVideoError}
             />
-            <div className="absolute top-[140px] left-0 right-0 z-10 flex justify-center">
+            <div className="absolute top-[140px] left-0 right-0 z-20 flex justify-center">
               {captionContent}
             </div>
           </>
@@ -123,15 +135,22 @@ export function PhonePreview({
       case 'middle':
         return (
           <>
+            {isVideoLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
+                <div className="animate-pulse rounded-md bg-gray-200 dark:bg-gray-700 h-40 w-40" />
+              </div>
+            )}
             <video 
               ref={actualVideoRef}
               className="w-full h-full object-cover"
               muted
               loop
               playsInline
-              src="/videos/template.mp4"
+              src={videoSrc}
+              onLoadedData={handleVideoLoaded}
+              onError={handleVideoError}
             />
-            <div className="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 z-10 flex justify-center">
+            <div className="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 z-20 flex justify-center">
               {captionContent}
             </div>
           </>
@@ -140,15 +159,22 @@ export function PhonePreview({
       default:
         return (
           <>
+            {isVideoLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10">
+                <div className="animate-pulse rounded-md bg-gray-200 dark:bg-gray-700 h-40 w-40" />
+              </div>
+            )}
             <video 
               ref={actualVideoRef}
               className="w-full h-full object-cover"
               muted
               loop
               playsInline
-              src="/videos/template.mp4"
+              src={videoSrc}
+              onLoadedData={handleVideoLoaded}
+              onError={handleVideoError}
             />
-            <div className="absolute bottom-8 left-0 right-0 z-10 flex justify-center">
+            <div className="absolute bottom-8 left-0 right-0 z-20 flex justify-center">
               {captionContent}
             </div>
           </>
@@ -199,7 +225,6 @@ export function PhonePreview({
   };
 
   const renderContent = () => {
-    // If previewMode is provided (from TemplateDetails), use it
     if (previewMode) {
       if (previewMode === 'video') {
         return (
@@ -211,7 +236,6 @@ export function PhonePreview({
         return renderOutroScreen();
       }
     }
-    // Otherwise, use currentStep (for CreateTemplate)
     if (currentStep === 0) {
       return (
         <div className="flex flex-col h-full bg-gray-100 dark:bg-gray-800">
