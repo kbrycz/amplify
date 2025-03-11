@@ -53,11 +53,6 @@ const navItems = [
     ]
   },
   {
-    icon: <Wand2 className="w-5 h-5" />,
-    name: 'Video Enhancer',
-    path: '/app/video-enhancer'
-  },
-  {
     icon: <BarChart3 className="w-5 h-5" />,
     name: 'Analytics',
     path: '/app/analytics'

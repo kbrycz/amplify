@@ -27,7 +27,6 @@ import Support from './pages/Support';
 import Survey from './pages/Survey.jsx';
 import Responses from './pages/Responses';
 import AIVideos from './pages/AIVideos';
-import VideoEnhancer from './pages/VideoEnhancer';
 import VideoPolisher from './pages/VideoPolisher';
 import CampaignSettings from './pages/CampaignSettings';
 import PricingPage from './pages/PricingPage';
@@ -240,7 +239,6 @@ function App() {
                 <Route path="templates/new" element={<CreateTemplate />} />
                 <Route path="templates/:id" element={<TemplateDetails />} />
                 <Route path="templates" element={<ManageTemplates />} />
-                <Route path="video-enhancer" element={<VideoEnhancer />} />
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="profile" element={<EditProfile />} />
                 <Route path="account" element={<Account />} />
