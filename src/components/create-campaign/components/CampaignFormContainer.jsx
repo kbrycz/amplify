@@ -7,7 +7,7 @@ import { DesignPage } from '../steps/DesignPage';
 import { BasicInfo } from '../steps/BasicInfo';
 import { CampaignDetails } from '../steps/CampaignDetails';
 import { ReviewCampaign } from '../steps/ReviewCampaign';
-import { StepNavigation } from '../StepNavigation';
+import { StepNavigation } from '../navigation/StepNavigation';
 import { ErrorMessage } from './ErrorMessage';
 
 export const CampaignFormContainer = ({
@@ -199,7 +199,11 @@ export const CampaignFormContainer = ({
               isSavingDraft={isSavingDraft}
               handleSaveDraft={handleSaveDraft}
               isEditingDraft={isEditingDraft}
-              formData={formData}
+              formData={{
+                ...formData,
+                hasExplainerVideo,
+                explainerVideo
+              }}
               surveyQuestions={surveyQuestions}
               setIsAIModalOpen={setIsAIModalOpen}
               onUseTemplate={handleUseTemplate}

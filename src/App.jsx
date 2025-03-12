@@ -26,7 +26,6 @@ import Account from './pages/Account';
 import Support from './pages/Support';
 import Survey from './pages/Survey.jsx';
 import Responses from './pages/Responses';
-import AIVideos from './pages/AIVideos';
 import VideoPolisher from './pages/VideoPolisher';
 import CampaignSettings from './pages/CampaignSettings';
 import PricingPage from './pages/PricingPage';
@@ -230,7 +229,6 @@ function App() {
                 <Route index element={<Dashboard />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="campaigns/new" element={<CreateCampaign />} />
-                <Route path="campaigns/:id/ai-videos" element={<AIVideos />} />
                 <Route path="campaigns/:id/responses" element={<Responses />} />
                 <Route path="campaigns/:campaignId/responses/:id/polish" element={<VideoPolisher />} />
                 <Route path="campaigns/:id/settings" element={<CampaignSettings />} />

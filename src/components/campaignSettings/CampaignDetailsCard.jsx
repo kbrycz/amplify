@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { Label } from '../ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
-import { SurveyQuestions } from '../create-campaign/SurveyQuestions';
+import { SurveyQuestions } from '../create-campaign/components/SurveyQuestions';
 
 const categorySubcategories = {
   political: [

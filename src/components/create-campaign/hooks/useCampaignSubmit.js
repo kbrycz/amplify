@@ -22,7 +22,9 @@ export const useCampaignSubmit = (
     status: 'loading', 
     error: null, 
     campaignId: null, 
-    campaignName: '' 
+    campaignName: '', 
+    videoUploadError: null,
+    videoUploadWarning: null
   });
 
   const handleSubmit = async (e, currentStep, totalSteps) => {
@@ -35,6 +37,7 @@ export const useCampaignSubmit = (
     }
     
     setLoadingModal({ isOpen: true, status: 'loading', error: null });
+    setIsSubmitting(true);
 
     // Validate required fields
     const requiredFields = {
@@ -56,24 +59,32 @@ export const useCampaignSubmit = (
     
     // Validate survey questions
     const hasValidQuestions = surveyQuestions.length > 0 && 
-      surveyQuestions.every(q => q.question && q.question.trim());
+      surveyQuestions.some(q => q.question && q.question.trim());
     
-    if (emptyFields.length > 0 || !hasValidQuestions) {
+    if (emptyFields.length > 0 || (!hasValidQuestions && !hasExplainerVideo)) {
       let errorMessage = 'Please fill in the following required fields: ';
       
       if (emptyFields.length > 0) {
         errorMessage += emptyFields.join(', ');
       }
       
-      if (!hasValidQuestions) {
-        errorMessage += emptyFields.length > 0 ? ', and add at least one valid survey question' : 'Add at least one valid survey question';
+      if (!hasValidQuestions && !hasExplainerVideo) {
+        errorMessage += emptyFields.length > 0 ? ', and add at least one valid survey question or an explainer video' : 'Add at least one valid survey question or an explainer video';
       }
       
       setLoadingModal({ isOpen: true, status: 'error', error: errorMessage });
+      setIsSubmitting(false);
       return;
     }
     
     try {
+      // Update loading modal to show campaign creation step
+      setLoadingModal(prev => ({ 
+        ...prev, 
+        status: 'loading', 
+        message: 'Creating campaign...' 
+      }));
+      
       const idToken = await auth.currentUser.getIdToken();
       
       // Get custom colors if the theme is 'custom'
@@ -97,42 +108,142 @@ export const useCampaignSubmit = (
         subcategory = null;
       }
       
+      // Create campaign data without the explainer video
+      const campaignData = {
+        name: formData.name,
+        title: formData.title,
+        description: formData.description,
+        category: category,
+        theme: selectedTheme,
+        customColors: customColors ? JSON.stringify(customColors) : '',
+        campaignImage: previewImage,
+        subcategory: subcategory,
+        surveyQuestions: JSON.stringify(surveyQuestions.map(q => q.question)),
+        hasExplainerVideo: hasExplainerVideo
+      };
+      
+      // STEP 1: Create the campaign without the large video
+      console.log('Step 1: Creating campaign without large video');
       const response = await fetch(`${SERVER_URL}/campaign/campaigns`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          name: formData.name,
-          title: formData.title,
-          description: formData.description,
-          category: category,
-          theme: selectedTheme,
-          customColors: customColors,
-          campaignImage: previewImage,
-          subcategory: subcategory,
-          surveyQuestions: surveyQuestions.map(q => q.question),
-          hasExplainerVideo: hasExplainerVideo,
-          explainerVideo: explainerVideo
-        })
+        body: JSON.stringify(campaignData)
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create campaign. Please try again.');
+        const errorData = await response.json().catch(() => ({ message: `Server error: ${response.status}` }));
+        throw new Error(errorData.message || `Failed to create campaign. Server returned ${response.status}`);
+      }
+
+      const campaign = await response.json().catch(() => {
+        throw new Error('Failed to parse campaign data from server');
+      });
+      
+      console.log('Campaign created successfully:', campaign.id);
+      
+      // STEP 2 & 3: Upload explainer video if present
+      if (hasExplainerVideo && explainerVideo) {
+        try {
+          // Update loading modal to show video upload step
+          setLoadingModal(prev => ({ 
+            ...prev, 
+            status: 'loading', 
+            message: 'Uploading explainer video...' 
+          }));
+          
+          console.log('Step 2: Getting signed URL for video upload');
+          // STEP 2: Get the signed URL for uploading the video
+          const urlResponse = await fetch(`${SERVER_URL}/campaign/campaigns/${campaign.id}/explainer-upload-url`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${idToken}`
+            }
+          });
+          
+          if (!urlResponse.ok) {
+            console.error(`Failed to get upload URL for explainer video. Server returned ${urlResponse.status}`);
+            throw new Error(`Failed to get upload URL for video. Server returned ${urlResponse.status}`);
+          }
+          
+          const { uploadUrl, filePath } = await urlResponse.json();
+          
+          if (!uploadUrl) {
+            throw new Error('No valid upload URL received from server');
+          }
+          
+          console.log('Received signed URL for video upload');
+          
+          // STEP 3: Convert video to blob and upload directly to Cloud Storage
+          console.log('Step 3: Uploading video directly to Cloud Storage');
+          
+          // Convert data URL to blob
+          let blob;
+          if (explainerVideo.startsWith('data:')) {
+            // For data URLs
+            blob = await fetch(explainerVideo).then(r => r.blob());
+          } else {
+            // Fallback if it's just base64 content
+            const base64Data = explainerVideo.split(',')[1] || explainerVideo;
+            const byteCharacters = atob(base64Data);
+            const byteArrays = [];
+            
+            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+              const slice = byteCharacters.slice(offset, offset + 512);
+              
+              const byteNumbers = new Array(slice.length);
+              for (let i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+              }
+              
+              const byteArray = new Uint8Array(byteNumbers);
+              byteArrays.push(byteArray);
+            }
+            
+            blob = new Blob(byteArrays, { type: 'video/mp4' });
+          }
+          
+          // Upload the video directly to the signed URL
+          console.log('Uploading video to signed URL...');
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'video/mp4'
+            },
+            body: blob
+          });
+          
+          if (!uploadResponse.ok) {
+            console.error(`Failed to upload explainer video. Status: ${uploadResponse.status}`);
+            throw new Error(`Failed to upload video. Status: ${uploadResponse.status}`);
+          }
+          
+          console.log('Explainer video uploaded successfully');
+          
+        } catch (videoError) {
+          console.error('Error in video upload process:', videoError);
+          // Show warning but don't fail the whole campaign creation
+          setLoadingModal(prev => ({ 
+            ...prev, 
+            videoUploadError: `Video upload failed: ${videoError.message}. You can upload it later from the campaign settings.` 
+          }));
+        }
       }
 
       // Clear form cache after successful submission
       clearFormCache();
 
-      const campaign = await response.json();
+      // Show success message
       setLoadingModal({ 
         isOpen: true, 
         status: 'success', 
         error: null,
         campaignId: campaign.id,
-        campaignName: formData.title
+        campaignName: formData.title,
+        // Include any video upload error as a warning
+        videoUploadWarning: loadingModal.videoUploadError
       });
       
       // Reset form state

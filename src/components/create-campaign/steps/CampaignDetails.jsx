@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Label } from '../../ui/label';
-import { SurveyQuestions } from '../SurveyQuestions';
+import { SurveyQuestions } from '../components/SurveyQuestions';
 import { Video, HelpCircle, Upload, X } from 'lucide-react';
 import { Switch } from '../../ui/switch';
-import { ExplainerVideoHelpModal } from '../ExplainerVideoHelpModal';
+import { ExplainerVideoHelpModal } from '../modals/ExplainerVideoHelpModal';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../ui/select';
 
 export function CampaignDetails({
   formData,

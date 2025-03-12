@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { Card, CardContent } from '../components/ui/card'; 
-import { PhonePreview } from '../components/create-campaign/PhonePreview';
-import { LoadingModal } from '../components/create-campaign/loading-modal';
-import { AIModal } from '../components/create-campaign/AIModal';
-import { HelpModal } from '../components/create-campaign/HelpModal';
-import { CampaignTemplateModal } from '../components/create-campaign/CampaignTemplateModal';
+import { PhonePreview } from '../components/create-campaign/preview/PhonePreview';
+import { LoadingModal } from '../components/create-campaign/modals/loading-modal';
+import { AIModal } from '../components/create-campaign/modals/AIModal';
+import { HelpModal } from '../components/create-campaign/modals/HelpModal';
+import { CampaignTemplateModal } from '../components/create-campaign/modals/CampaignTemplateModal';
 import { DraftSection } from '../components/create-campaign/components/DraftSection';
 import { CampaignFormContainer } from '../components/create-campaign/components/CampaignFormContainer';
 import { themes } from '../components/create-campaign/utils/campaignThemes';
@@ -181,6 +181,9 @@ export default function CreateCampaign() {
         error={submit.loadingModal.error}
         campaignId={submit.loadingModal.campaignId}
         campaignName={submit.loadingModal.campaignName}
+        message={submit.loadingModal.message}
+        videoUploadError={submit.loadingModal.videoUploadError}
+        videoUploadWarning={submit.loadingModal.videoUploadWarning}
         onClose={() => submit.setLoadingModal({ ...submit.loadingModal, isOpen: false })}
       />
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Rewind, Sparkles } from 'lucide-react';
 
 // Helper function to convert Firebase Storage gs:// URLs to HTTPS URLs
 const convertGsUrlToHttps = (url) => {
@@ -29,8 +29,20 @@ const convertGsUrlToHttps = (url) => {
 export function VideoModal({ testimonial, onClose }) {
   if (!testimonial) return null;
 
-  // Convert the video URL if needed
-  const videoUrl = convertGsUrlToHttps(testimonial.videoUrl);
+  // Determine if we're showing the original version
+  const isOriginalVersion = testimonial.isOriginalVersion === true;
+  
+  // Determine if this is an AI enhanced video
+  const isEnhanced = testimonial.isVideoEnhanced === true;
+
+  // Choose the appropriate video URL
+  // If it's marked as original version, use videoUrl
+  // Otherwise, use processedVideoUrl if available, falling back to videoUrl
+  const videoUrl = convertGsUrlToHttps(
+    isOriginalVersion 
+      ? testimonial.videoUrl 
+      : (testimonial.processedVideoUrl || testimonial.videoUrl)
+  );
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
@@ -50,6 +62,22 @@ export function VideoModal({ testimonial, onClose }) {
       
       {/* Modal */}
       <div className="relative w-full max-w-4xl mx-4">
+        {/* Original version badge */}
+        {isOriginalVersion && (
+          <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 rounded-full bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-lg">
+            <Rewind className="h-4 w-4" />
+            <span>Original Version</span>
+          </div>
+        )}
+        
+        {/* AI Enhanced badge */}
+        {!isOriginalVersion && isEnhanced && (
+          <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 rounded-full bg-purple-600 px-3 py-1.5 text-sm font-medium text-white shadow-lg">
+            <Sparkles className="h-4 w-4" />
+            <span>AI Enhanced</span>
+          </div>
+        )}
+        
         <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
           <video
             src={videoUrl}

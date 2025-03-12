@@ -18,7 +18,6 @@ export default function CampaignDetails() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [metrics, setMetrics] = useState({
     responses: 0,
-    videos: 0,
     audience: 0,
     avgResponseTime: 0,
   });
@@ -45,7 +44,6 @@ export default function CampaignDetails() {
       
       // Set metrics using counts included in campaign data (or fallback values)
       setMetrics({
-        videos: data.aiVideoCount || 0,
         responses: data.responsesCount || 0,
         audience: data.audience || Math.floor(Math.random() * 5000) + 1000,
         avgResponseTime: data.avgResponseTime || Math.floor(Math.random() * 60) + 30,

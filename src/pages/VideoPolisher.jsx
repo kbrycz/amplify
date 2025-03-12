@@ -187,10 +187,10 @@ export default function VideoPolisher() {
             <div className="flex flex-col space-y-3">
               <p className="font-semibold text-base">Success! Your enhanced video is ready.</p>
               <button 
-                onClick={() => navigate(campaignId ? `/app/campaigns/${campaignId}/ai-videos` : '/app/ai-videos')}
+                onClick={() => navigate(campaignId ? `/app/campaigns/${campaignId}/responses` : '/app/campaigns')}
                 className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm font-medium mt-1 w-full text-center"
               >
-                View in AI Videos
+                Go to Responses
               </button>
             </div>,
             "success",

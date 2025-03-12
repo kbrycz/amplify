@@ -1,8 +1,8 @@
 import React from 'react';
 import { Upload, ChevronRight, ChevronLeft, ChevronLeft as SafariBack, ChevronRight as SafariForward, Share2, MoreVertical, Video } from 'lucide-react';
-import { Iphone15Pro } from '../ui/iphone';
-import { getQuestionsForSubcategory, getSubcategoryName, debugCampaignQuestions } from '../survey/campaignQuestions';
-import { themes as sharedThemes } from '../survey/themes';
+import { Iphone15Pro } from '../../ui/iphone';
+import { getQuestionsForSubcategory, getSubcategoryName, debugCampaignQuestions } from '../../survey/campaignQuestions';
+import { themes as sharedThemes } from '../../survey/themes';
 
 const steps = [
   { id: 'intro', title: 'Welcome' },

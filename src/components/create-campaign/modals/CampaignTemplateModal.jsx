@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, FileText, Check, Loader2, Clock, FolderX } from 'lucide-react';
-import { SERVER_URL, auth } from '../../lib/firebase';
+import { SERVER_URL, auth } from '../../../lib/firebase';
 
 export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
   const [campaigns, setCampaigns] = useState([]);

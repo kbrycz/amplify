@@ -1,21 +1,16 @@
 import React, { useEffect } from 'react';
 import { Card } from '../../ui/card';
 import { Building2, Users, GraduationCap, LandmarkIcon, Church, Vote, CheckCircle2 } from 'lucide-react';
+import { Label } from '../../ui/label';
 
 export function CategorySelection({ formData, setFormData, handleNext }) {
   // Add a useEffect to log the current category when the component mounts or formData changes
   useEffect(() => {
     console.log('CategorySelection rendered with category:', formData.category);
     
-    // If we're coming back to this step and category is 'other', reset it to null
-    // This ensures the button shows "Continue without template"
-    if (formData.category === 'other') {
-      setFormData(prev => ({
-        ...prev,
-        category: null
-      }));
-    }
-  }, [formData.category, setFormData]);
+    // We no longer reset the category to null when it's 'other'
+    // This helps preserve the subcategory selection when navigating back and forth
+  }, [formData.category]);
 
   const categories = [
     {
@@ -70,10 +65,19 @@ export function CategorySelection({ formData, setFormData, handleNext }) {
         category: null
       }));
     } else {
+      // If selecting a different category, reset the subcategory
+      const shouldResetSubcategory = formData.category !== null && formData.category !== categoryId;
+      
       setFormData(prev => ({
         ...prev,
-        category: categoryId
+        category: categoryId,
+        // Only reset subcategory if changing to a different category
+        ...(shouldResetSubcategory ? { subcategory: null } : {})
       }));
+      
+      if (shouldResetSubcategory) {
+        console.log('Category changed, resetting subcategory');
+      }
     }
   };
 

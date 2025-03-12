@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Card } from '../../ui/card';
 import { MessageSquare, Users, Award, FileText, CheckCircle2 } from 'lucide-react';
+import { Label } from '../../ui/label';
 
 export function SubcategorySelection({ formData, setFormData, handleNext }) {
   // Add a useEffect to log the current subcategory when the component mounts or formData changes

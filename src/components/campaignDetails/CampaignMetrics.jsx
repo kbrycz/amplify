@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MetricCard } from '../ui/metric-card';
-import { MessageSquareText, Video, Sparkles, Clock } from 'lucide-react';
+import { Video, Clock, Sparkles } from 'lucide-react';
+import CampaignAgeModal from './CampaignAgeModal';
 
 export default function CampaignMetrics({ metrics, campaignId, navigate, campaign }) {
+  const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
+
   // Calculate campaign age based on createdAt timestamp
   const calculateCampaignAge = () => {
     if (!campaign || !campaign.createdAt) {
@@ -45,35 +48,35 @@ export default function CampaignMetrics({ metrics, campaignId, navigate, campaig
     return ageString;
   };
 
-  // Fake data for unread responses (approximately 20-40% of total responses)
-  const unreadResponses = Math.floor((metrics.responses || 0) * (Math.random() * 0.2 + 0.2));
-
   return (
-    <div className="mt-8 grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-      <MetricCard
-        title="Unread Responses"
-        value={unreadResponses}
-        icon={MessageSquareText}
-        onClick={() => navigate(`/app/campaigns/${campaignId}/responses`)}
-      />
-      <MetricCard
-        title="Total Responses"
-        value={metrics.responses}
-        icon={Video}
-        onClick={() => navigate(`/app/campaigns/${campaignId}/responses`)}
-      />
-      <MetricCard
-        title="AI Generated Videos"
-        value={metrics.videos}
-        icon={Sparkles}
-        onClick={() => navigate(`/app/campaigns/${campaignId}/ai-videos`)}
-      />
-      <MetricCard
-        title="Campaign Age"
-        value={calculateCampaignAge()}
-        icon={Clock}
-        onClick={() => console.log('Campaign Age clicked')}
-      />
-    </div>
+    <>
+      <div className="mt-8 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+        <MetricCard
+          title="Campaign Responses"
+          value={metrics.responses}
+          icon={Video}
+          onClick={() => navigate(`/app/campaigns/${campaignId}/responses`)}
+        />
+        <MetricCard
+          title="AI Videos"
+          value={campaign.aiVideoCount || 0}
+          icon={Sparkles}
+          onClick={() => navigate(`/app/campaigns/${campaignId}/responses?ai=true`)}
+        />
+        <MetricCard
+          title="Campaign Age"
+          value={calculateCampaignAge()}
+          icon={Clock}
+          onClick={() => setIsAgeModalOpen(true)}
+        />
+      </div>
+      
+      {isAgeModalOpen && (
+        <CampaignAgeModal 
+          campaign={campaign} 
+          onClose={() => setIsAgeModalOpen(false)} 
+        />
+      )}
+    </>
   );
 }

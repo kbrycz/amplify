@@ -1,6 +1,7 @@
 import React from 'react';
 import { Video, Image } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
+import { Label } from '../../ui/label';
 
 export function ReviewCampaign({ 
   formData, 

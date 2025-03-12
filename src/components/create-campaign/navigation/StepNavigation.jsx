@@ -2,7 +2,7 @@ import React from 'react';
 import { ChevronLeft, ChevronRight, Sparkles, Copy } from 'lucide-react';
 
 // Updated validation for each step
-const isStepValid = (currentStep, formData) => {
+const isStepValid = (currentStep, formData, surveyQuestions) => {
   switch (currentStep) {
     case 0: // Internal Name: always valid since we want to allow saving drafts
       return Boolean(formData.name?.trim());
@@ -14,15 +14,25 @@ const isStepValid = (currentStep, formData) => {
       return true; // Theme selection is always valid since it has a default value
     case 4: // Basic Info: require name and description
       return Boolean(formData.title?.trim() && formData.description?.trim());
-    case 5: // Campaign Details: require category (and subcategory if political) and at least one non-empty survey question
+    case 5: // Campaign Details: require category (and subcategory if political) and EITHER at least one non-empty survey question OR an explainer video
+      const hasValidSurveyQuestions = surveyQuestions?.length > 0 && surveyQuestions.some(q => q.question && q.question.trim());
+      const hasExplainerVideo = formData.hasExplainerVideo && formData.explainerVideo;
+      
+      console.log('Campaign Details validation:', {
+        hasValidSurveyQuestions,
+        hasExplainerVideo,
+        surveyQuestions: surveyQuestions || [],
+        hasExplainerVideoFlag: formData.hasExplainerVideo,
+        explainerVideoExists: Boolean(formData.explainerVideo)
+      });
+      
       return Boolean(
         formData.category &&
         (formData.category === 'political' ? formData.subcategory?.trim() : true) &&
-        formData.surveyQuestions?.length > 0 &&
-        formData.surveyQuestions.every(q => q.question.trim())
+        (hasValidSurveyQuestions || hasExplainerVideo)
       );
-    case 6: // Business Info: require Business Name and Business Email
-      return Boolean(formData.businessName?.trim() && formData.email?.trim());
+    case 6: // Review: always valid since it's the last step
+      return true;
     default:
       return false;
   }
@@ -43,8 +53,9 @@ export function StepNavigation({
   setIsAIModalOpen,
   onUseTemplate
 }) {
-  const canProceed = isStepValid(currentStep, { ...formData, surveyQuestions });
+  const canProceed = isStepValid(currentStep, formData, surveyQuestions);
   const isFirstStep = currentStep === 0;
+  const isLastStep = currentStep === totalSteps - 1;
   
   // Debug logging
   React.useEffect(() => {
@@ -52,17 +63,40 @@ export function StepNavigation({
       currentStep, 
       hasCategory: Boolean(formData.category),
       hasSubcategory: Boolean(formData.subcategory),
-      buttonText: getCorrectButtonText()
+      buttonText: getCorrectButtonText(),
+      canProceed,
+      hasExplainerVideo: formData.hasExplainerVideo,
+      explainerVideoExists: Boolean(formData.explainerVideo)
     });
-  }, [currentStep, formData.category, formData.subcategory, totalSteps]);
+  }, [currentStep, formData, surveyQuestions, canProceed]);
   
-  // Ensure button is always enabled on steps 1 and 2
+  // Ensure button is always enabled on steps 1, 2, and the last step (review)
   const isButtonDisabled = React.useMemo(() => {
+    // Always enable the button on the last step (review page)
+    if (isLastStep) {
+      console.log('Button on last step (review) - should be enabled');
+      return isSubmitting;
+    }
+    
+    // Enable the button on steps 1 and 2
     if (currentStep === 1 || currentStep === 2) {
       return isSubmitting;
     }
+    
+    // For other steps, check if the step is valid
     return isSubmitting || !canProceed;
-  }, [currentStep, isSubmitting, canProceed]);
+  }, [currentStep, isSubmitting, canProceed, isLastStep]);
+  
+  // Debug logging for button state
+  React.useEffect(() => {
+    console.log('Button state:', { 
+      currentStep, 
+      isLastStep,
+      isButtonDisabled,
+      isSubmitting,
+      canProceed
+    });
+  }, [currentStep, isLastStep, isButtonDisabled, isSubmitting, canProceed]);
   
   // Get the correct button text based on current state
   const getCorrectButtonText = () => {

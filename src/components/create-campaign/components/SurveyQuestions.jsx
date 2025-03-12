@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, X, Sparkles } from 'lucide-react';
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
+import { Label } from '../../ui/label';
+import { Input } from '../../ui/input';
 
 export function SurveyQuestions({
   surveyQuestions,

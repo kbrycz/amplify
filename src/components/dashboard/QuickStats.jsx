@@ -198,9 +198,7 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
           <CardDescription>Your account and campaign statistics</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <MetricCardSkeleton />
-            <MetricCardSkeleton />
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <MetricCardSkeleton />
             <MetricCardSkeleton />
             <MetricCardSkeleton />
@@ -234,16 +232,7 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
           <CardDescription>Your account and campaign statistics</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {/* Unread Responses */}
-            <MetricCard
-              title="Unread Responses"
-              value={metrics.unread || 0}
-              icon={Bell}
-              description="Responses awaiting review"
-              onClick={() => handleCardClick('unreadResponses')}
-            />
-            
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {/* Total Responses */}
             <MetricCard
               title="Total Responses"
@@ -251,6 +240,24 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
               icon={BarChart3}
               description="Total responses collected"
               onClick={() => handleCardClick('totalResponses')}
+            />
+            
+            {/* Total Templates */}
+            <MetricCard
+              title="Total Templates"
+              value={templates}
+              icon={FileText}
+              description="Available campaign templates"
+              onClick={() => handleCardClick('totalTemplates')}
+            />
+            
+            {/* Videos Generated */}
+            <MetricCard
+              title="Videos Generated"
+              value={(metrics.videos || 0).toLocaleString()}
+              icon={Film}
+              description="AI videos created"
+              onClick={() => handleCardClick('videosGenerated')}
             />
             
             {/* Credits Used */}
@@ -278,33 +285,6 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
               icon={Clock}
               description="Time since account creation"
               onClick={() => handleCardClick('accountAge')}
-            />
-            
-            {/* Total Reach */}
-            <MetricCard
-              title="Total Reach"
-              value={(metrics.users || 0).toLocaleString()}
-              icon={Users}
-              description="Total users reached"
-              onClick={() => handleCardClick('totalReach')}
-            />
-            
-            {/* Videos Generated */}
-            <MetricCard
-              title="Videos Generated"
-              value={(metrics.videos || 0).toLocaleString()}
-              icon={Film}
-              description="AI videos created"
-              onClick={() => handleCardClick('videosGenerated')}
-            />
-            
-            {/* Total Templates */}
-            <MetricCard
-              title="Total Templates"
-              value={templates}
-              icon={FileText}
-              description="Available campaign templates"
-              onClick={() => handleCardClick('totalTemplates')}
             />
           </div>
         </CardContent>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Clock, Circle, ChevronDown, Pencil, Trash2, Wand2, Star, Video } from 'lucide-react';
+import { Play, Clock, Circle, ChevronDown, Pencil, Trash2, Wand2, Star, Video, Sparkles, Download, Rewind } from 'lucide-react';
 import { SERVER_URL, auth } from '../../lib/firebase';
 
 /**
@@ -55,6 +55,9 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
   const [error, setError] = useState(null);
   const errorTimeoutRef = useRef(null);
   const [thumbnailError, setThumbnailError] = useState(false);
+  
+  // Check if this is an AI enhanced video
+  const isEnhanced = response.isVideoEnhanced === true;
   
   // Parse the createdAt timestamp and compute the "time ago" string.
   const createdAtDate = parseFirestoreTimestamp(response.createdAt);
@@ -125,12 +128,68 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
     setThumbnailError(true);
   };
 
+  const handleDownload = async (e) => {
+    e.stopPropagation();
+    
+    // Get the video URL from the response
+    const videoUrl = response.processedVideoUrl || response.videoUrl;
+    
+    if (!videoUrl) {
+      setError('Video URL not available for download');
+      return;
+    }
+    
+    try {
+      // Create a temporary anchor element
+      const a = document.createElement('a');
+      a.href = videoUrl;
+      a.download = `enhanced-video-${response.id}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Error downloading video:', err);
+      setError('Failed to download video. Please try again.');
+    }
+  };
+  
+  // Function to view the original non-AI version of the video
+  const handleViewOriginal = (e) => {
+    e.stopPropagation();
+    
+    // Check if there's an original video URL
+    if (!response.videoUrl) {
+      setError('Original video not available');
+      return;
+    }
+    
+    // Create a temporary response object with the original video URL
+    const originalResponse = {
+      ...response,
+      // Use the original video URL instead of the processed one
+      processedVideoUrl: null,
+      // Add a flag to indicate this is the original version
+      isOriginalVersion: true
+    };
+    
+    // Use the existing onVideoClick handler to show the video
+    onVideoClick(originalResponse);
+  };
+
   return (
     <div
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex flex-col rounded-lg border border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-800/50 h-full"
+      className={`group relative flex flex-col rounded-lg border ${
+        isEnhanced 
+          ? 'border-purple-300 bg-purple-50/30 dark:border-purple-800 dark:bg-purple-900/10' 
+          : 'border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900'
+      } transition-all duration-300 ease-in-out overflow-hidden cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] ${
+        isEnhanced 
+          ? 'hover:bg-purple-50/50 dark:hover:border-purple-700 dark:hover:bg-purple-900/20' 
+          : 'hover:bg-gray-50/50 dark:hover:border-gray-700 dark:hover:bg-gray-800/50'
+      } h-full`}
     >
       <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:p-4">
         {/* Thumbnail section */}
@@ -148,6 +207,14 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
             </div>
           )}
           
+          {/* AI Enhanced Badge */}
+          {isEnhanced && (
+            <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 rounded-full bg-purple-500 px-2 py-1 text-xs font-medium text-white">
+              <Sparkles className="h-2.5 w-2.5" />
+              <span>AI Enhanced</span>
+            </div>
+          )}
+          
           {thumbnailSrc && !thumbnailError ? (
             <>
               <img
@@ -158,16 +225,28 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
                 onError={handleThumbnailError}
               />
-              <div className="absolute inset-0 bg-black/40 transition-opacity group-hover:bg-black/50" />
+              <div className={`absolute inset-0 ${
+                isEnhanced 
+                  ? 'bg-purple-900/40 transition-opacity group-hover:bg-purple-900/50' 
+                  : 'bg-black/40 transition-opacity group-hover:bg-black/50'
+              }`} />
             </>
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-900 dark:to-black flex items-center justify-center">
+            <div className={`absolute inset-0 ${
+              isEnhanced 
+                ? 'bg-gradient-to-br from-purple-800 to-indigo-900 dark:from-purple-900 dark:to-indigo-950' 
+                : 'bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-900 dark:to-black'
+            } flex items-center justify-center`}>
               <Video className="h-12 w-12 text-gray-400 dark:text-gray-600 opacity-50" />
             </div>
           )}
           
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="rounded-full bg-white/10 p-3 backdrop-blur-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-white/20">
+            <div className={`rounded-full ${
+              isEnhanced 
+                ? 'bg-purple-500/20 p-3 backdrop-blur-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-purple-500/30' 
+                : 'bg-white/10 p-3 backdrop-blur-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-white/20'
+            }`}>
               <Play className="h-6 w-6 text-white" />
             </div>
           </div>
@@ -231,22 +310,40 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
 
       {/* Expandable Content */}
       <div className={`overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-[280px] md:max-h-[320px]' : 'max-h-0'}`}>
-        <div className="border-t border-gray-200 dark:border-gray-800 p-4">
+        <div className={`border-t ${
+          isEnhanced 
+            ? 'border-purple-200 dark:border-purple-800' 
+            : 'border-gray-200 dark:border-gray-800'
+        } p-4`}>
           <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
-            {onTransform && (
+            {/* Show download button for enhanced videos, transform button for non-enhanced */}
+            {isEnhanced ? (
+              <>
+                <button
+                  className="action-button inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium w-full sm:w-auto justify-center transition-all bg-purple-600 text-white hover:bg-purple-700 hover:scale-105"
+                  onClick={handleDownload}
+                >
+                  <Download className="w-4 h-4" />
+                  Download Enhanced Video
+                </button>
+                <button
+                  className="action-button inline-flex items-center gap-2 rounded-lg border border-purple-300 bg-white px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50 hover:scale-105 transition-transform dark:border-purple-800 dark:bg-gray-900 dark:text-purple-400 dark:hover:bg-purple-900/20 w-full sm:w-auto justify-center"
+                  onClick={handleViewOriginal}
+                >
+                  <Rewind className="w-4 h-4" />
+                  View Original Video
+                </button>
+              </>
+            ) : onTransform && (
               <button
-                className={`action-button inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium w-full sm:w-auto justify-center transition-all ${
-                  'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105'
-                }`}
+                className="action-button inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium w-full sm:w-auto justify-center transition-all bg-blue-600 text-white hover:bg-blue-700 hover:scale-105"
                 onClick={(e) => {
                   e.stopPropagation();
                   onTransform(response);
                 }}
               >
-                <>
-                  <Wand2 className="w-4 h-4" />
-                  Transform into Polished Short
-                </>
+                <Wand2 className="w-4 h-4" />
+                Transform into Polished Short
               </button>
             )}
             <button

@@ -175,11 +175,11 @@ export default function VideoPolisherFlow() {
               <p className="font-semibold text-base">Success! Your enhanced video is ready.</p>
               <button 
                 onClick={() => {
-                  navigate(campaignId ? `/app/campaigns/${campaignId}/ai-videos` : '/app/ai-videos');
+                  navigate(campaignId ? `/app/campaigns/${campaignId}/responses` : '/app/campaigns');
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm font-medium mt-1 w-full text-center"
               >
-                View in AI Videos
+                Go to Responses
               </button>
             </div>,
             "success",
@@ -216,7 +216,7 @@ export default function VideoPolisherFlow() {
       if (!user) throw new Error("You must be logged in to enhance a video");
       const idToken = await user.getIdToken();
       const payload = {
-        videoId: video.id, // using the fetched video’s id
+        videoId: video.id, // using the fetched video's id
         name: formData.name,
         captionType: typeof selectedCaptionStyle === 'object' ? selectedCaptionStyle.style : selectedCaptionStyle,
         captionPosition: typeof selectedCaptionStyle === 'object' ? selectedCaptionStyle.position : 'bottom',

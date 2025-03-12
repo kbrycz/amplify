@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '../components/ui/page-header';
-import { ArrowLeft, Star, Share2, Video } from 'lucide-react';
+import { ArrowLeft, Star, Share2, Video, Sparkles } from 'lucide-react';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { ListViewResponse } from '../components/responses/ListViewResponse';
@@ -15,6 +15,7 @@ import { useToast } from '../components/ui/toast-notification';
 export default function Responses() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [responses, setResponses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,9 +25,19 @@ export default function Responses() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [starredResponses, setStarredResponses] = useState(new Set());
   const [showStarredOnly, setShowStarredOnly] = useState(false);
+  const [showAIVideosOnly, setShowAIVideosOnly] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedResponse, setSelectedResponse] = useState(null);
   const { addToast } = useToast();
+
+  // Check for AI filter in URL query params
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const aiParam = searchParams.get('ai');
+    if (aiParam === 'true') {
+      setShowAIVideosOnly(true);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     fetchResponses();
@@ -87,9 +98,19 @@ export default function Responses() {
     setStarredResponses(newStarred);
   };
 
-  const filteredResponses = showStarredOnly
-    ? responses.filter(response => starredResponses.has(response.id))
-    : responses;
+  // Apply filters based on selected options
+  let filteredResponses = responses;
+  
+  // Apply starred filter if enabled
+  if (showStarredOnly) {
+    filteredResponses = filteredResponses.filter(response => starredResponses.has(response.id));
+  }
+  
+  // Apply AI videos filter if enabled
+  if (showAIVideosOnly) {
+    // Filter for responses that have isVideoEnhanced set to true
+    filteredResponses = filteredResponses.filter(response => response.isVideoEnhanced === true);
+  }
 
   const handleTransform = (response) => {
     navigate(`/app/campaigns/${id}/responses/${response.id}/polish`);
@@ -110,16 +131,43 @@ export default function Responses() {
         description="View and manage video testimonials for this campaign."
         className="mb-6"
       >
-        <div
-          onClick={() => setShowStarredOnly(!showStarredOnly)}
-          className={`inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium transition-colors ${
-            showStarredOnly
-              ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800'
-              : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-800'
-          } cursor-pointer`}
-        >
-          <Star className={`h-4 w-4 ${showStarredOnly ? 'fill-current' : ''}`} />
-          Starred
+        <div className="flex gap-2">
+          <div
+            onClick={() => setShowStarredOnly(!showStarredOnly)}
+            className={`inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium transition-colors ${
+              showStarredOnly
+                ? 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800'
+                : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-800'
+            } cursor-pointer`}
+          >
+            <Star className={`h-4 w-4 ${showStarredOnly ? 'fill-current' : ''}`} />
+            Starred
+          </div>
+          <div
+            onClick={() => {
+              const newState = !showAIVideosOnly;
+              setShowAIVideosOnly(newState);
+              
+              // Update URL to reflect the AI filter state
+              const searchParams = new URLSearchParams(location.search);
+              if (newState) {
+                searchParams.set('ai', 'true');
+              } else {
+                searchParams.delete('ai');
+              }
+              
+              // Replace the current URL without reloading the page
+              navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+            }}
+            className={`inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium transition-colors ${
+              showAIVideosOnly
+                ? 'bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800'
+                : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-800'
+            } cursor-pointer`}
+          >
+            <Sparkles className={`h-4 w-4 ${showAIVideosOnly ? 'fill-current' : ''}`} />
+            AI Videos
+          </div>
         </div>
       </PageHeader>
 
@@ -142,6 +190,12 @@ export default function Responses() {
           title="No starred responses"
           description="Star your favorite responses to find them quickly later."
           icon={Star}
+        />
+      ) : filteredResponses.length === 0 && showAIVideosOnly ? (
+        <EmptyState
+          title="No enhanced videos available"
+          description="No videos with AI enhancements were found. Transform your videos using our AI tools to see them here."
+          icon={Sparkles}
         />
       ) : (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { FileText, ChevronDown, X } from 'lucide-react';
-import { DraftsDropdown } from '../DraftsDropdown';
+import { DraftsDropdown } from './DraftsDropdown';
 
 export const DraftSection = ({ 
   drafts, 

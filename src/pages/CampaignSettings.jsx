@@ -4,7 +4,7 @@ import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { SERVER_URL, auth } from '../lib/firebase';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { ConfirmationModal } from '../components/ui/confirmation-modal';
-import { PhonePreview } from '../components/create-campaign/PhonePreview';
+import { PhonePreview } from '../components/create-campaign/preview/PhonePreview';
 import CampaignSettingsHeader from '../components/campaignSettings/CampaignSettingsHeader';
 import CampaignSettingsForm from '../components/campaignSettings/CampaignSettingsForm';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Sparkles } from 'lucide-react';
-import { Label } from '../ui/label';
+import { Label } from '../../ui/label';
 
 export function AIModal({ isOpen, onClose, aiPrompt, setAiPrompt, handleAIGenerate, isGenerating, aiError }) {
   if (!isOpen) return null;
