@@ -1,6 +1,6 @@
 import React from 'react';
 import { campaignQuestions } from '../../components/survey/campaignQuestions';
-import { Tag, FileText, Type, AlignLeft } from 'lucide-react';
+import { Tag, FileText, Type, AlignLeft, User, Clock, Calendar } from 'lucide-react';
 
 export default function CampaignInfo({ campaign }) {
   // Only render if title, description, category, or subcategory exists
@@ -17,6 +17,23 @@ export default function CampaignInfo({ campaign }) {
   const getSubcategoryName = (categoryKey, subcategoryKey) => {
     if (!categoryKey || !subcategoryKey) return 'Not specified';
     return campaignQuestions.categories[categoryKey]?.subcategories[subcategoryKey]?.name || subcategoryKey;
+  };
+
+  // Format date from timestamp
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    
+    const seconds = timestamp._seconds || timestamp.seconds;
+    if (!seconds) return 'N/A';
+    
+    const date = new Date(seconds * 1000);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -73,6 +90,43 @@ export default function CampaignInfo({ campaign }) {
             </div>
           </div>
         )}
+        
+        {/* Creator and Updater Information */}
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+          <div className="flex flex-col md:flex-row md:gap-8">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">Created By</h2>
+              </div>
+              <div className="mt-1">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {campaign.createdByName || 'Unknown'}
+                </p>
+                <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-500">
+                  <Calendar className="h-3 w-3" />
+                  <span>{formatDate(campaign.createdAt)}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex-1 mt-3 md:mt-0">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated By</h2>
+              </div>
+              <div className="mt-1">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {campaign.lastUpdatedByName || 'Unknown'}
+                </p>
+                <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-500">
+                  <Calendar className="h-3 w-3" />
+                  <span>{formatDate(campaign.dateModified)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

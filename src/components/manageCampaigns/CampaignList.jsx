@@ -11,7 +11,8 @@ export default function CampaignList({
   onDelete, 
   onUpdate, 
   onCampaignClick, 
-  onNewCampaign 
+  onNewCampaign,
+  currentNamespaceId
 }) {
   // When loading, show a skeleton
   if (isLoading) {
@@ -29,6 +30,7 @@ export default function CampaignList({
             onDelete={onDelete}
             onUpdate={onUpdate}
             isEditMode={isEditMode}
+            currentNamespaceId={currentNamespaceId}
             // onCampaignClick is already handled inside CampaignRow via navigate
           />
         ))}

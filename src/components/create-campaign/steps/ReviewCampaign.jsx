@@ -1,5 +1,5 @@
 import React from 'react';
-import { Video, Image } from 'lucide-react';
+import { Video, Image, Building, Users, Info, Shield } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
 import { Label } from '../../ui/label';
 
@@ -11,7 +11,9 @@ export function ReviewCampaign({
   hasExplainerVideo,
   explainerVideo,
   themes,
-  className = ''
+  className = '',
+  currentNamespace,
+  userPermission
 }) {
   // Get theme name for display
   const getThemeName = () => {
@@ -60,6 +62,22 @@ export function ReviewCampaign({
            subcategory.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
+  // Helper function to display permission in a user-friendly way
+  const formatPermission = (permission) => {
+    if (!permission) return 'No Access';
+    
+    switch(permission) {
+      case 'admin':
+        return 'Admin (Full Access)';
+      case 'read/write':
+        return 'Editor (Read/Write)';
+      case 'readonly':
+        return 'Viewer (Read Only)';
+      default:
+        return permission;
+    }
+  };
+
   return (
     <div className={`space-y-6 ${className}`}>
       <div>
@@ -68,6 +86,34 @@ export function ReviewCampaign({
           Please review all information before creating your campaign.
         </p>
       </div>
+
+      {/* Namespace Information */}
+      {currentNamespace && (
+        <div>
+          <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Namespace</h4>
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Building className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{currentNamespace}</span>
+              </div>
+              {userPermission && (
+                <div className="flex items-center gap-2 px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 rounded-md">
+                  <Shield className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">{formatPermission(userPermission)}</span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-start gap-2 mt-2 text-xs text-gray-600 dark:text-gray-400">
+              <Info className="h-4 w-4 flex-shrink-0 mt-0.5 text-blue-500" />
+              <p>
+                This campaign will be created in the <strong>{currentNamespace}</strong> namespace and will be visible to all members of this namespace. 
+                Members with appropriate permissions will be able to view, edit, or delete this campaign based on their role.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Campaign Information */}
       <div className="space-y-6">
@@ -154,17 +200,18 @@ export function ReviewCampaign({
 
         <div>
           <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Survey Questions</h4>
-          {surveyQuestions.length > 0 ? (
-            <ol className="list-decimal pl-5 space-y-2">
-              {surveyQuestions.map((question, index) => (
-                <li key={index} className="text-sm text-gray-900 dark:text-white">
-                  {question.question || 'Empty question'}
-                </li>
+          {surveyQuestions && surveyQuestions.length > 0 ? (
+            <div className="space-y-4">
+              {surveyQuestions.map((q, index) => (
+                <div key={q.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Question {index + 1}</span>
+                  <span className="text-sm text-gray-900 dark:text-white">{q.question || 'Empty question'}</span>
+                </div>
               ))}
-            </ol>
+            </div>
           ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              No survey questions added
+            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <span className="text-sm text-gray-500 dark:text-gray-400">No survey questions added</span>
             </div>
           )}
         </div>

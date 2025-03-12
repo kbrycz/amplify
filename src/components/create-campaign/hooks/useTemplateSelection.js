@@ -10,12 +10,22 @@ export const useTemplateSelection = (
   setPreviewImage,
   setSurveyQuestions,
   setCurrentStep,
-  setError
+  setError,
+  namespaceId
 ) => {
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
 
   const handleUseTemplate = () => {
+    if (!namespaceId) {
+      setError({
+        type: 'error',
+        message: 'No namespace selected. Please select a namespace before using templates.',
+        icon: 'alert'
+      });
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
     setIsTemplateModalOpen(true);
   };
   
@@ -77,7 +87,8 @@ export const useTemplateSelection = (
     // Store the selected template info
     setSelectedTemplate({
       id: campaignData.id,
-      title: campaignData.title || 'Untitled Campaign'
+      title: campaignData.title || 'Untitled Campaign',
+      namespaceId: campaignData.namespaceId || namespaceId // Store the namespace ID
     });
     
     // Show a success message with the template name

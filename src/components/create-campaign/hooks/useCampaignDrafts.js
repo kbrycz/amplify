@@ -18,7 +18,8 @@ export const useCampaignDrafts = (
   hasExplainerVideo,
   explainerVideo,
   setCurrentStep,
-  setIsDraftsOpen
+  setIsDraftsOpen,
+  namespaceId
 ) => {
   const [drafts, setDrafts] = useState([]);
   const [isLoadingDrafts, setIsLoadingDrafts] = useState(true);
@@ -31,12 +32,18 @@ export const useCampaignDrafts = (
 
   useEffect(() => {
     fetchDrafts();
-  }, []);
+  }, [namespaceId]);
 
   const fetchDrafts = async () => {
+    if (!namespaceId) {
+      setIsLoadingDrafts(false);
+      setDrafts([]);
+      return;
+    }
+    
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts`, {
+      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts?namespaceId=${namespaceId}`, {
         headers: {
           'Authorization': `Bearer ${idToken}`
         }
@@ -58,6 +65,15 @@ export const useCampaignDrafts = (
   const handleSaveDraft = async () => {
     if (!formData.name.trim()) {
       setError('Please enter a campaign name to save as draft');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+    
+    if (!namespaceId) {
+      setError({
+        type: 'error',
+        message: 'No namespace selected. Please select a namespace before saving a draft.'
+      });
       setTimeout(() => setError(null), 3000);
       return;
     }
@@ -100,12 +116,13 @@ export const useCampaignDrafts = (
         subcategory: subcategory,
         surveyQuestions: surveyQuestions.map(q => q.question),
         hasExplainerVideo: hasExplainerVideo,
-        explainerVideo: explainerVideo
+        explainerVideo: explainerVideo,
+        namespaceId: namespaceId // Add namespace ID to draft data
       };
 
       const response = await fetch(isEditingDraft 
-        ? `${SERVER_URL}/draftCampaign/drafts/${selectedDraftId}`
-        : `${SERVER_URL}/draftCampaign/drafts`, {
+        ? `${SERVER_URL}/draftCampaign/drafts/${selectedDraftId}?namespaceId=${namespaceId}`
+        : `${SERVER_URL}/draftCampaign/drafts?namespaceId=${namespaceId}`, {
         method: isEditingDraft ? 'PUT' : 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -115,8 +132,12 @@ export const useCampaignDrafts = (
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save draft');
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 403) {
+          throw new Error(errorData.error || 'You do not have permission to save drafts in this namespace.');
+        } else {
+          throw new Error(errorData.message || errorData.error || 'Failed to save draft');
+        }
       }
 
       await fetchDrafts();
@@ -144,14 +165,19 @@ export const useCampaignDrafts = (
       setSelectedDraftId(draftId);
       setIsEditingDraft(true);
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts/${draftId}`, {
+      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts/${draftId}?namespaceId=${namespaceId}`, {
         headers: {
           'Authorization': `Bearer ${idToken}`
         }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load draft');
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 403) {
+          throw new Error(errorData.error || 'You do not have permission to access this draft.');
+        } else {
+          throw new Error(errorData.error || 'Failed to load draft');
+        }
       }
 
       const draft = await response.json();
@@ -216,7 +242,7 @@ export const useCampaignDrafts = (
 
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts/${draftId}`, {
+      const response = await fetch(`${SERVER_URL}/draftCampaign/drafts/${draftId}?namespaceId=${namespaceId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${idToken}`
@@ -224,7 +250,12 @@ export const useCampaignDrafts = (
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete draft');
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 403) {
+          throw new Error(errorData.error || 'You do not have permission to delete this draft. Admin access required.');
+        } else {
+          throw new Error(errorData.error || 'Failed to delete draft');
+        }
       }
 
       await fetchDrafts();

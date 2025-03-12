@@ -3,8 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet, useNavigat
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ServerStatusProvider, useServerStatus } from './context/ServerStatusContext';
+import { NamespaceProvider } from './context/NamespaceContext';
 import { ToastProvider } from './components/ui/toast-notification';
 import ServerDownBanner from './components/ui/ServerDownBanner';
+import NamespaceModal from './components/namespace/NamespaceModal';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
 import { CookieConsent } from './components/ui/cookie-consent';
@@ -32,6 +34,9 @@ import PricingPage from './pages/PricingPage';
 import CheckoutSuccess from './pages/CheckoutSuccess';
 import CheckoutCancel from './pages/CheckoutCancel';
 import TemplateDetails from './pages/TemplateDetails';
+import CreateNamespace from './pages/CreateNamespace';
+import ManageNamespaces from './pages/ManageNamespaces';
+import EditNamespace from './pages/EditNamespace';
 
 function ScrollToTop() {
   const location = useLocation();
@@ -116,19 +121,22 @@ function AppLayout() {
   }
   return (
     <SidebarProvider>
-      <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
-        <ServerStatusBanner />
-        <div className="flex flex-1 h-screen overflow-hidden">
-          <Sidebar />
-          <div className="flex-1 flex flex-col h-screen overflow-hidden">
-            <Header />
-            <Backdrop />
-            <div className="flex-1 overflow-y-auto">
-              <Outlet />
+      <NamespaceProvider>
+        <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+          <ServerStatusBanner />
+          <div className="flex flex-1 h-screen overflow-hidden">
+            <Sidebar />
+            <div className="flex-1 flex flex-col h-screen overflow-hidden">
+              <Header />
+              <Backdrop />
+              <div className="flex-1 overflow-y-auto">
+                <Outlet />
+              </div>
             </div>
           </div>
+          <NamespaceModal />
         </div>
-      </div>
+      </NamespaceProvider>
     </SidebarProvider>
   );
 }
@@ -243,6 +251,9 @@ function App() {
                 <Route path="settings" element={<Settings />} />
                 <Route path="support" element={<Support />} />
                 <Route path="pricing" element={<PricingPage />} />
+                <Route path="namespaces/create" element={<CreateNamespace />} />
+                <Route path="namespaces/manage" element={<ManageNamespaces />} />
+                <Route path="namespaces/edit/:id" element={<EditNamespace />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

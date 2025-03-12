@@ -7,10 +7,18 @@ import CampaignHeader from '../components/campaignDetails/CampaignHeader';
 import CampaignInfo from '../components/campaignDetails/CampaignInfo';
 import CampaignMetrics from '../components/campaignDetails/CampaignMetrics';
 import CampaignCharts from '../components/campaignDetails/CampaignCharts';
+import { useNamespace } from '../context/NamespaceContext';
 
 export default function CampaignDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  
+  // Get the current namespace from context
+  const { currentNamespace, namespaces, userPermission } = useNamespace();
+  
+  // Find the current namespace ID
+  const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
+  const currentNamespaceId = currentNamespaceObj?.id;
   
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,20 +31,26 @@ export default function CampaignDetails() {
   });
   
   useEffect(() => {
-    fetchCampaignData();
-  }, [id]);
+    if (currentNamespaceId) {
+      fetchCampaignData();
+    } else {
+      setError('No namespace selected. Please select a namespace to view campaign details.');
+      setIsLoading(false);
+    }
+  }, [id, currentNamespaceId]);
   
   const fetchCampaignData = async () => {
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/campaign/campaigns/${id}`, {
+      const response = await fetch(`${SERVER_URL}/campaign/campaigns/${id}?namespaceId=${currentNamespaceId}`, {
         headers: {
           'Authorization': `Bearer ${idToken}`,
         },
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch campaign');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch campaign');
       }
       
       const data = await response.json();
@@ -50,6 +64,7 @@ export default function CampaignDetails() {
       });
       
     } catch (err) {
+      console.error('Error fetching campaign:', err);
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -96,11 +111,23 @@ export default function CampaignDetails() {
         campaign={campaign}
         navigate={navigate}
         openShareModal={() => setIsShareModalOpen(true)}
+        currentNamespace={currentNamespace}
+        userPermission={userPermission}
       />
       
-      <CampaignInfo campaign={campaign} />
+      <CampaignInfo 
+        campaign={campaign} 
+        currentNamespace={currentNamespace}
+        userPermission={userPermission}
+      />
       
-      <CampaignMetrics metrics={metrics} campaignId={id} navigate={navigate} campaign={campaign} />
+      <CampaignMetrics 
+        metrics={metrics} 
+        campaignId={id} 
+        navigate={navigate} 
+        campaign={campaign}
+        currentNamespaceId={currentNamespaceId}
+      />
       
       <CampaignCharts />
       
@@ -113,6 +140,7 @@ export default function CampaignDetails() {
         onClose={() => setIsShareModalOpen(false)}
         campaignId={campaign.id}
         campaignName={campaign.name}
+        namespaceId={currentNamespaceId}
       />
     </div>
   );

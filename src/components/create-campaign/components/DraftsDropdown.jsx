@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, ChevronDown, Trash2, Check, X, Info } from 'lucide-react';
+import { FileText, ChevronDown, Trash2, Check, X, Info, Shield } from 'lucide-react';
 
 export function DraftsDropdown({ 
   isOpen, 
@@ -38,6 +38,16 @@ export function DraftsDropdown({
     });
   };
 
+  // Check if user can delete a draft based on their permission
+  const canDeleteDraft = (draft) => {
+    return draft.userPermission === 'admin';
+  };
+
+  // Check if user can edit a draft based on their permission
+  const canEditDraft = (draft) => {
+    return draft.userPermission === 'admin' || draft.userPermission === 'read/write';
+  };
+
   return (
     <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-white rounded-lg border border-gray-200 shadow-lg z-10 dark:bg-gray-900 dark:border-gray-800">
       {/* Info message */}
@@ -59,8 +69,10 @@ export function DraftsDropdown({
                 selectedDraftId === draft.id && !isDeletingDraft
                   ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                   : 'text-gray-700 dark:text-gray-300'
-              }`}
-              onClick={() => handleDraftClick(draft.id)}
+              } ${!canEditDraft(draft) ? 'opacity-70 cursor-not-allowed' : ''}`}
+              onClick={() => canEditDraft(draft) && handleDraftClick(draft.id)}
+              disabled={!canEditDraft(draft)}
+              title={!canEditDraft(draft) ? "You don't have permission to edit this draft" : ""}
             >
               <div className="mt-0.5">
                 {selectedDraftId === draft.id && !isDeletingDraft ? (
@@ -76,9 +88,20 @@ export function DraftsDropdown({
                     Title: {draft.title}
                   </div>
                 )}
-                {draft.dateModified && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <div className="flex items-center justify-between mt-0.5">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
                     Last modified: {formatDate(draft.dateModified)}
+                  </div>
+                  {draft.userPermission && (
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs text-gray-600 dark:text-gray-400">
+                      <Shield className="w-3 h-3" />
+                      <span>{draft.userPermission}</span>
+                    </div>
+                  )}
+                </div>
+                {draft.createdByName && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Created by: {draft.createdByName}
                   </div>
                 )}
               </div>
@@ -89,9 +112,11 @@ export function DraftsDropdown({
                 handleDeleteDraft(draft.id);
               }}
               className={`p-2 text-gray-500 hover:text-red-500 rounded hover:bg-gray-100 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-gray-800 ${
-                isDeletingDraft && selectedDraftId === draft.id ? 'opacity-50 cursor-not-allowed' : ''
+                (isDeletingDraft && selectedDraftId === draft.id) ? 'opacity-50 cursor-not-allowed' : 
+                !canDeleteDraft(draft) ? 'opacity-50 cursor-not-allowed' : ''
               }`}
-              disabled={isDeletingDraft}
+              disabled={isDeletingDraft || !canDeleteDraft(draft)}
+              title={!canDeleteDraft(draft) ? "Only admins can delete drafts" : "Delete draft"}
             >
               {isDeletingDraft && selectedDraftId === draft.id ? (
                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">

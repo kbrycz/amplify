@@ -3,7 +3,7 @@ import { MetricCard } from '../ui/metric-card';
 import { Video, Clock, Sparkles } from 'lucide-react';
 import CampaignAgeModal from './CampaignAgeModal';
 
-export default function CampaignMetrics({ metrics, campaignId, navigate, campaign }) {
+export default function CampaignMetrics({ metrics, campaignId, navigate, campaign, currentNamespaceId }) {
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
 
   // Calculate campaign age based on createdAt timestamp
@@ -48,6 +48,13 @@ export default function CampaignMetrics({ metrics, campaignId, navigate, campaig
     return ageString;
   };
 
+  // Helper function to add namespace ID to navigation URLs
+  const navigateWithNamespace = (path) => {
+    // Append namespace ID as a query parameter if available
+    const queryParam = currentNamespaceId ? `?namespaceId=${currentNamespaceId}` : '';
+    navigate(`${path}${queryParam}`);
+  };
+
   return (
     <>
       <div className="mt-8 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
@@ -55,13 +62,13 @@ export default function CampaignMetrics({ metrics, campaignId, navigate, campaig
           title="Campaign Responses"
           value={metrics.responses}
           icon={Video}
-          onClick={() => navigate(`/app/campaigns/${campaignId}/responses`)}
+          onClick={() => navigateWithNamespace(`/app/campaigns/${campaignId}/responses`)}
         />
         <MetricCard
           title="AI Videos"
           value={campaign.aiVideoCount || 0}
           icon={Sparkles}
-          onClick={() => navigate(`/app/campaigns/${campaignId}/responses?ai=true`)}
+          onClick={() => navigateWithNamespace(`/app/campaigns/${campaignId}/responses${currentNamespaceId ? '?' : '&'}ai=true`)}
         />
         <MetricCard
           title="Campaign Age"
@@ -75,6 +82,7 @@ export default function CampaignMetrics({ metrics, campaignId, navigate, campaig
         <CampaignAgeModal 
           campaign={campaign} 
           onClose={() => setIsAgeModalOpen(false)} 
+          currentNamespaceId={currentNamespaceId}
         />
       )}
     </>

@@ -1,7 +1,8 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useSidebar } from '../../context/SidebarContext';
-import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings, HelpCircle, FileText } from 'lucide-react';
+import { Home, BarChart3, Users, ChevronDown, X, Wand2, Settings, HelpCircle, FileText, Building } from 'lucide-react';
+import NamespaceSelector from '../namespace/NamespaceSelector';
 
 // Hook to detect dark mode
 function useDarkMode() {
@@ -182,11 +183,14 @@ function Sidebar() {
                   {isOpen && <span className="ml-3">{item.name}</span>}
                 </Link>
               ))}
+              
+              {/* Add NamespaceSelector to mobile navigation */}
+              {isOpen && <NamespaceSelector />}
             </li>
           </ul>
         </nav>
 
-        <div className="mt-auto pb-8 hidden lg:flex lg:flex-col lg:gap-1">
+        <div className="mt-auto pb-4 hidden lg:flex lg:flex-col">
           <Link
             to="/app/settings"
             onClick={handleItemClick}
@@ -203,6 +207,9 @@ function Sidebar() {
             <HelpCircle className="w-5 h-5 flex-shrink-0" />
             {isOpen && <span className="ml-3">Support</span>}
           </Link>
+          
+          {/* Namespace Selector for desktop */}
+          {isOpen && <NamespaceSelector />}
         </div>
       </div>
     </aside>

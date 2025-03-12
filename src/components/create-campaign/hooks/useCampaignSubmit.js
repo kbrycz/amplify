@@ -14,7 +14,8 @@ export const useCampaignSubmit = (
   hasExplainerVideo,
   explainerVideo,
   clearFormCache,
-  resetForm
+  resetForm,
+  namespaceId
 ) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingModal, setLoadingModal] = useState({ 
@@ -33,6 +34,16 @@ export const useCampaignSubmit = (
     // Only allow form submission from the last step (Review)
     if (currentStep !== totalSteps - 1) {
       console.log("Form submission prevented: Not on the last step");
+      return;
+    }
+    
+    // Check if namespace ID is available
+    if (!namespaceId) {
+      setLoadingModal({ 
+        isOpen: true, 
+        status: 'error', 
+        error: 'No namespace selected. Please select a namespace before creating a campaign.' 
+      });
       return;
     }
     
@@ -119,7 +130,8 @@ export const useCampaignSubmit = (
         campaignImage: previewImage,
         subcategory: subcategory,
         surveyQuestions: JSON.stringify(surveyQuestions.map(q => q.question)),
-        hasExplainerVideo: hasExplainerVideo
+        hasExplainerVideo: hasExplainerVideo,
+        namespaceId: namespaceId // Add the namespace ID to the request
       };
       
       // STEP 1: Create the campaign without the large video
@@ -156,7 +168,7 @@ export const useCampaignSubmit = (
           
           console.log('Step 2: Getting signed URL for video upload');
           // STEP 2: Get the signed URL for uploading the video
-          const urlResponse = await fetch(`${SERVER_URL}/campaign/campaigns/${campaign.id}/explainer-upload-url`, {
+          const urlResponse = await fetch(`${SERVER_URL}/campaign/campaigns/${campaign.id}/explainer-upload-url?namespaceId=${namespaceId}`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${idToken}`

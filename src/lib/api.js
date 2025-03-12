@@ -254,4 +254,54 @@ export async function del(endpoint, options = {}) {
     
     throw error;
   }
+}
+
+/**
+ * Fetches all namespaces for the current user
+ * @returns {Promise<Array>} - Array of namespace objects
+ */
+export async function fetchUserNamespaces() {
+  // Get the current user ID
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    throw new Error('User not authenticated');
+  }
+  return get(`/namespaces/account/${userId}`);
+}
+
+/**
+ * Fetches a specific namespace by ID
+ * @param {string} namespaceId - The ID of the namespace to fetch
+ * @returns {Promise<Object>} - The namespace object
+ */
+export async function fetchNamespaceById(namespaceId) {
+  return get(`/namespaces/${namespaceId}`);
+}
+
+/**
+ * Creates a new namespace
+ * @param {Object} namespaceData - The namespace data
+ * @returns {Promise<Object>} - The created namespace object
+ */
+export async function createNamespace(namespaceData) {
+  return post('/namespaces', namespaceData);
+}
+
+/**
+ * Updates an existing namespace
+ * @param {string} namespaceId - The ID of the namespace to update
+ * @param {Object} namespaceData - The updated namespace data
+ * @returns {Promise<Object>} - The updated namespace object
+ */
+export async function updateNamespace(namespaceId, namespaceData) {
+  return put(`/namespaces/${namespaceId}`, namespaceData);
+}
+
+/**
+ * Deletes a namespace
+ * @param {string} namespaceId - The ID of the namespace to delete
+ * @returns {Promise<Object>} - The response object
+ */
+export async function deleteNamespace(namespaceId) {
+  return del(`/namespaces/${namespaceId}`);
 } 

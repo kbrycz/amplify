@@ -1,7 +1,23 @@
 import React from 'react';
-import { ArrowLeft, Settings, Share2 } from 'lucide-react';
+import { ArrowLeft, Settings, Share2, Shield } from 'lucide-react';
 
-export default function CampaignHeader({ campaign, navigate, openShareModal }) {
+export default function CampaignHeader({ campaign, navigate, openShareModal, userPermission }) {
+  // Helper function to display permission in a user-friendly way
+  const formatPermission = (permission) => {
+    if (!permission) return 'No Access';
+    
+    switch(permission) {
+      case 'admin':
+        return 'Admin (Full Access)';
+      case 'read/write':
+        return 'Editor (Read/Write)';
+      case 'readonly':
+        return 'Viewer (Read Only)';
+      default:
+        return permission;
+    }
+  };
+
   return (
     <>
       <button
@@ -13,7 +29,17 @@ export default function CampaignHeader({ campaign, navigate, openShareModal }) {
       </button>
       
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{campaign.name}</h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{campaign.name}</h1>
+          {userPermission && (
+            <div className="mt-1 flex items-center gap-1.5">
+              <Shield className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                Your access: <span className="text-indigo-600 dark:text-indigo-400">{formatPermission(userPermission)}</span>
+              </span>
+            </div>
+          )}
+        </div>
         
         <div className="flex flex-wrap items-center gap-3">
           <button 

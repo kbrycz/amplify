@@ -9,6 +9,7 @@ import { CampaignDetails } from '../steps/CampaignDetails';
 import { ReviewCampaign } from '../steps/ReviewCampaign';
 import { StepNavigation } from '../navigation/StepNavigation';
 import { ErrorMessage } from './ErrorMessage';
+import { Building, Info, Users, Shield } from 'lucide-react';
 
 export const CampaignFormContainer = ({
   currentStep,
@@ -46,11 +47,31 @@ export const CampaignFormContainer = ({
   setHasExplainerVideo,
   explainerVideo,
   setExplainerVideo,
-  error
+  error,
+  currentNamespace,
+  userPermission
 }) => {
+  // Helper function to display permission in a user-friendly way
+  const formatPermission = (permission) => {
+    if (!permission) return 'No Access';
+    
+    switch(permission) {
+      case 'admin':
+        return 'Admin (Full Access)';
+      case 'read/write':
+        return 'Editor (Read/Write)';
+      case 'readonly':
+        return 'Viewer (Read Only)';
+      default:
+        return permission;
+    }
+  };
+
   return (
     <Card className="w-full">
       <CardContent>
+        {/* Only display namespace information on the review page (step 6) */}
+        
         <form onSubmit={(e) => {
           // Only allow form submission from the last step (Review)
           if (currentStep !== 6) { // 6 is the last step index
@@ -186,6 +207,8 @@ export const CampaignFormContainer = ({
               themes={themes}
               hasExplainerVideo={hasExplainerVideo}
               explainerVideo={explainerVideo}
+              currentNamespace={currentNamespace}
+              userPermission={userPermission}
             />
           )}
 

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Pencil, Trash2, ChevronRight, Clock, Users, Video, Sparkles 
+  Pencil, Trash2, ChevronRight, Clock, Users, Video, Sparkles, AlertCircle, Shield
 } from 'lucide-react';
 import { ConfirmationModal } from '../../components/ui/confirmation-modal';
 import { EditCampaignModal } from './edit-campaign-modal';
 import { NumberTicker } from '../../components/ui/number-ticker';
+import { useNamespace } from '../../context/NamespaceContext';
 
 /**
  * Helper function to parse a Firestore timestamp or date-like object.
@@ -49,10 +50,28 @@ function timeAgo(date) {
   return 'just now';
 }
 
-export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }) {
+/**
+ * Helper function to check if user has edit permission
+ */
+function canEdit(userPermission) {
+  return userPermission === 'admin' || userPermission === 'read/write';
+}
+
+/**
+ * Helper function to check if user has delete permission
+ */
+function canDelete(userPermission) {
+  return userPermission === 'admin';
+}
+
+export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode, currentNamespaceId }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  
+  // Get user permission from context
+  const { userPermission } = useNamespace();
 
   const responseCount = campaign.responsesCount || 0;
   const aiVideosCount = campaign.aiVideoCount || 0;
@@ -65,19 +84,31 @@ export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }
 
   const handleDelete = async () => {
     try {
+      if (!canDelete(userPermission)) {
+        setError("You don't have permission to delete campaigns");
+        setIsDeleteModalOpen(false);
+        return;
+      }
+      
       await onDelete(campaign.id);
       setIsDeleteModalOpen(false);
     } catch (error) {
       console.error('Error deleting campaign:', error);
+      setError(error.message || "Failed to delete campaign");
     }
   };
 
   const handleSave = async (formData) => {
     try {
+      if (!canEdit(userPermission)) {
+        throw new Error("You don't have permission to edit campaigns");
+      }
+      
       const updatedCampaign = await onUpdate(campaign.id, formData);
       setIsEditModalOpen(false);
       return updatedCampaign;
     } catch (err) {
+      setError(err.message || "Failed to update campaign");
       throw new Error('Failed to update campaign: ' + err.message);
     }
   };
@@ -92,6 +123,13 @@ export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }
         ${!isEditMode ? 'cursor-pointer hover:border-gray-300 hover:shadow-lg hover:scale-[1.01] hover:bg-gray-50/50' : ''}
         dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-800/50`}
     >
+      {error && (
+        <div className="absolute top-0 left-0 right-0 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-2 text-sm flex items-center justify-center rounded-t-lg">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          {error}
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr,1fr,1fr,auto] gap-4 p-4 pb-3 lg:pb-4">
         <div className="self-center">
           <div className="flex items-center flex-wrap gap-2">
@@ -144,18 +182,36 @@ export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsEditModalOpen(true);
+                  if (canEdit(userPermission)) {
+                    setIsEditModalOpen(true);
+                  } else {
+                    setError("You don't have permission to edit campaigns");
+                  }
                 }}
-                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600"
+                disabled={!canEdit(userPermission)}
+                className={`rounded-lg p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600
+                  ${canEdit(userPermission) 
+                    ? 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800' 
+                    : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'}`}
+                title={canEdit(userPermission) ? "Edit campaign" : "You don't have permission to edit"}
               >
                 <Pencil className="h-5 w-5" />
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsDeleteModalOpen(true);
+                  if (canDelete(userPermission)) {
+                    setIsDeleteModalOpen(true);
+                  } else {
+                    setError("You don't have permission to delete campaigns");
+                  }
                 }}
-                className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 dark:focus:ring-red-600"
+                disabled={!canDelete(userPermission)}
+                className={`rounded-lg p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 dark:focus:ring-red-600
+                  ${canDelete(userPermission) 
+                    ? 'text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50' 
+                    : 'text-red-200 dark:text-red-900 cursor-not-allowed'}`}
+                title={canDelete(userPermission) ? "Delete campaign" : "You don't have permission to delete"}
               >
                 <Trash2 className="h-5 w-5" />
               </button>
@@ -172,18 +228,36 @@ export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsEditModalOpen(true);
+                  if (canEdit(userPermission)) {
+                    setIsEditModalOpen(true);
+                  } else {
+                    setError("You don't have permission to edit campaigns");
+                  }
                 }}
-                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600"
+                disabled={!canEdit(userPermission)}
+                className={`rounded-lg p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600
+                  ${canEdit(userPermission) 
+                    ? 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800' 
+                    : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'}`}
+                title={canEdit(userPermission) ? "Edit campaign" : "You don't have permission to edit"}
               >
                 <Pencil className="h-5 w-5" />
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsDeleteModalOpen(true);
+                  if (canDelete(userPermission)) {
+                    setIsDeleteModalOpen(true);
+                  } else {
+                    setError("You don't have permission to delete campaigns");
+                  }
                 }}
-                className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 dark:focus:ring-red-600"
+                disabled={!canDelete(userPermission)}
+                className={`rounded-lg p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 dark:focus:ring-red-600
+                  ${canDelete(userPermission) 
+                    ? 'text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/50' 
+                    : 'text-red-200 dark:text-red-900 cursor-not-allowed'}`}
+                title={canDelete(userPermission) ? "Delete campaign" : "You don't have permission to delete"}
               >
                 <Trash2 className="h-5 w-5" />
               </button>
@@ -212,6 +286,13 @@ export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode }
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Last Update</div>
         </div>
       </div>
+      
+      {/* Display user permission badge */}
+      <div className="absolute top-2 right-2 flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-0.5">
+        <Shield className="h-3 w-3" />
+        {userPermission || 'viewer'}
+      </div>
+      
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

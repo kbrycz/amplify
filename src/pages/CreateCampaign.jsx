@@ -16,12 +16,24 @@ import { useCampaignDrafts } from '../components/create-campaign/hooks/useCampai
 import { useAIGeneration } from '../components/create-campaign/hooks/useAIGeneration';
 import { useCampaignSubmit } from '../components/create-campaign/hooks/useCampaignSubmit';
 import { useTemplateSelection } from '../components/create-campaign/hooks/useTemplateSelection';
+import { useNamespace } from '../context/NamespaceContext';
+import { ReviewCampaign } from '../components/create-campaign/steps/ReviewCampaign';
 
 export default function CreateCampaign() {
   const navigate = useNavigate();
   const [isDraftsOpen, setIsDraftsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  
+  // Get the current namespace from context
+  const { namespaces, currentNamespace } = useNamespace();
+  
+  // Find the current namespace ID and user permission
+  const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
+  const currentNamespaceId = currentNamespaceObj?.id;
+  
+  // Get the user's permission for the current namespace
+  const userPermission = currentNamespaceObj?.userPermission || null;
   
   // Use the form hook
   const form = useCampaignForm();
@@ -42,7 +54,8 @@ export default function CreateCampaign() {
     form.hasExplainerVideo,
     form.explainerVideo,
     form.setCurrentStep,
-    setIsDraftsOpen
+    setIsDraftsOpen,
+    currentNamespaceId
   );
   
   // Use the AI generation hook
@@ -52,10 +65,11 @@ export default function CreateCampaign() {
     form.setSurveyQuestions,
     form.setAiGeneratedFields,
     setIsAIModalOpen,
-    form.setCurrentStep
+    form.setCurrentStep,
+    currentNamespaceId
   );
   
-  // Use the campaign submission hook
+  // Use the campaign submission hook with namespace ID
   const submit = useCampaignSubmit(
     form.formData,
     form.surveyQuestions,
@@ -67,7 +81,8 @@ export default function CreateCampaign() {
     form.hasExplainerVideo,
     form.explainerVideo,
     form.clearFormCache,
-    form.resetForm
+    form.resetForm,
+    currentNamespaceId
   );
   
   // Use the template selection hook
@@ -81,7 +96,8 @@ export default function CreateCampaign() {
     form.setPreviewImage,
     form.setSurveyQuestions,
     form.setCurrentStep,
-    drafts.setError
+    drafts.setError,
+    currentNamespaceId
   );
   
   // Wrap the handleImageChange to pass setError
@@ -155,6 +171,8 @@ export default function CreateCampaign() {
             explainerVideo={form.explainerVideo}
             setExplainerVideo={form.setExplainerVideo}
             error={drafts.error}
+            currentNamespace={currentNamespace}
+            userPermission={userPermission}
           />
 
           <PhonePreview

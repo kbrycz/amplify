@@ -74,7 +74,7 @@ export function SelectContent({ children }) {
   if (!open) return null;
   
   return (
-    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto dark:bg-gray-800 dark:border-gray-700">
+    <div className="absolute z-[999] w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto dark:bg-gray-800 dark:border-gray-700">
       <ul className="py-1" role="listbox">
         {children}
       </ul>

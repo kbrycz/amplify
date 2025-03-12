@@ -7,7 +7,8 @@ export const useAIGeneration = (
   setSurveyQuestions, 
   setAiGeneratedFields, 
   setIsAIModalOpen, 
-  setCurrentStep
+  setCurrentStep,
+  namespaceId
 ) => {
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -15,13 +16,18 @@ export const useAIGeneration = (
 
   const handleAIGenerate = async () => {
     if (!aiPrompt.trim()) return;
+    
+    if (!namespaceId) {
+      setAiError('No namespace selected. Please select a namespace before generating AI content.');
+      return;
+    }
 
     setIsGenerating(true);
     setAiError('');
     
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/campaign/generate-campaign`, {
+      const response = await fetch(`${SERVER_URL}/campaign/generate-campaign?namespaceId=${namespaceId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -58,35 +64,40 @@ export const useAIGeneration = (
       if (data.campaignData.description) newAiGeneratedFields.description = true;
       if (data.campaignData.category) newAiGeneratedFields.category = true;
       if (data.campaignData.subcategory) newAiGeneratedFields.subcategory = true;
-      
-      // For business fields, only mark as AI-generated if they contain content
       if (data.campaignData.businessName) newAiGeneratedFields.businessName = true;
       if (data.campaignData.website) newAiGeneratedFields.website = true;
       if (data.campaignData.email) newAiGeneratedFields.email = true;
       if (data.campaignData.phone) newAiGeneratedFields.phone = true;
-
-      // Update survey questions from AI
-      const newQuestions = data.campaignData.surveyQuestions.map((question, index) => ({
-        id: index + 1,
-        question,
-      }));
-      
-      setSurveyQuestions(newQuestions);
-      
-      // Mark questions as AI generated
-      data.campaignData.surveyQuestions.forEach((question, index) => {
-        if (question.trim()) newAiGeneratedFields[`question_${index}`] = true;
-      });
       
       setAiGeneratedFields(newAiGeneratedFields);
-      setIsAIModalOpen(false);
-      setAiPrompt('');
       
-      // Move to the Design step after AI generation (now step 3 instead of 1)
-      setCurrentStep(3);
+      // Set survey questions if provided
+      if (data.campaignData.surveyQuestions && data.campaignData.surveyQuestions.length > 0) {
+        const formattedQuestions = data.campaignData.surveyQuestions.map((question, index) => ({
+          id: index + 1,
+          question: question
+        }));
+        
+        setSurveyQuestions(formattedQuestions);
+        
+        // Mark survey questions as AI-generated
+        formattedQuestions.forEach((_, index) => {
+          newAiGeneratedFields[`question_${index}`] = true;
+        });
+        
+        setAiGeneratedFields(newAiGeneratedFields);
+      }
+      
+      // Close the AI modal
+      setIsAIModalOpen(false);
+      
+      // Move to the next step if we're on the first step
+      if (formData.name) {
+        setCurrentStep(1); // Move to category selection
+      }
     } catch (error) {
-      console.error('Fetch error:', error);
-      setAiError('Failed to connect to server. Please try again.');
+      console.error('Error generating campaign with AI:', error);
+      setAiError('Failed to generate campaign. Please try again.');
     } finally {
       setIsGenerating(false);
     }
