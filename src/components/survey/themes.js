@@ -18,7 +18,7 @@ export const themes = {
   nature: {
     background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
     text: 'text-white',
-    subtext: 'emerald-100',
+    subtext: 'text-emerald-100',
     border: 'border-white/20',
     input: 'bg-white/20',
     name: 'Nature Fresh'

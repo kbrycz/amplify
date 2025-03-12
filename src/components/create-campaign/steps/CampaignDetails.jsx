@@ -1,48 +1,9 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Label } from '../../ui/label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../ui/select';
 import { SurveyQuestions } from '../SurveyQuestions';
-import { Sparkles } from 'lucide-react';
-
-const categorySubcategories = {
-  political: [
-    { value: 'federal', label: 'Federal' },
-    { value: 'state', label: 'State' },
-    { value: 'local', label: 'Local' }
-  ],
-  business: [
-    { value: 'retail', label: 'Retail' },
-    { value: 'service', label: 'Service' },
-    { value: 'tech', label: 'Technology' },
-    { value: 'hospitality', label: 'Hospitality' },
-    { value: 'healthcare', label: 'Healthcare' },
-    { value: 'other', label: 'Other' }
-  ],
-  nonprofit: [
-    { value: 'environment', label: 'Environment' },
-    { value: 'education', label: 'Education' },
-    { value: 'health', label: 'Healthcare' },
-    { value: 'social', label: 'Social Services' },
-    { value: 'arts', label: 'Arts & Culture' },
-    { value: 'other', label: 'Other' }
-  ],
-  education: [
-    { value: 'k12', label: 'K-12 School' },
-    { value: 'university', label: 'University' },
-    { value: 'college', label: 'College' },
-    { value: 'vocational', label: 'Vocational School' },
-    { value: 'other', label: 'Other' }
-  ],
-  social: [
-    { value: 'lifestyle', label: 'Lifestyle' },
-    { value: 'tech', label: 'Technology' },
-    { value: 'fashion', label: 'Fashion' },
-    { value: 'food', label: 'Food' },
-    { value: 'travel', label: 'Travel' },
-    { value: 'fitness', label: 'Fitness' },
-    { value: 'other', label: 'Other' }
-  ]
-};
+import { Video, HelpCircle, Upload, X } from 'lucide-react';
+import { Switch } from '../../ui/switch';
+import { ExplainerVideoHelpModal } from '../ExplainerVideoHelpModal';
 
 export function CampaignDetails({
   formData,
@@ -52,93 +13,170 @@ export function CampaignDetails({
   handleRemoveQuestion,
   handleQuestionChange,
   setIsHelpOpen,
-  aiGeneratedFields
+  aiGeneratedFields,
+  explainerVideo,
+  setExplainerVideo,
+  hasExplainerVideo,
+  setHasExplainerVideo
 }) {
-  const subcategories = formData.category ? categorySubcategories[formData.category] : null;
+  const [isExplainerHelpOpen, setIsExplainerHelpOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
 
-  const handleCategoryChange = (value) => {
-    const event = {
-      target: {
-        id: 'category',
-        value: value
-      }
-    };
-    handleInputChange(event);
+  const handleExplainerToggle = (checked) => {
+    setHasExplainerVideo(checked);
+    // If toggling off, clear the video
+    if (!checked) {
+      setExplainerVideo(null);
+    }
   };
 
-  const handleSubcategoryChange = (value) => {
-    const event = {
-      target: {
-        id: 'subcategory',
-        value: value
-      }
+  const handleExplainerVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      processVideoFile(file);
+    }
+  };
+
+  const processVideoFile = (file) => {
+    // Check file size (limit to 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      alert('Video size should be less than 50MB');
+      return;
+    }
+    
+    // Check file type
+    if (!file.type.match('video/mp4|video/quicktime|video/webm')) {
+      alert('Please upload a video file in MP4, MOV, or WebM format');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setExplainerVideo(reader.result);
     };
-    handleInputChange(event);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveExplainerVideo = () => {
+    setExplainerVideo(null);
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      processVideoFile(file);
+      e.dataTransfer.clearData();
+    }
+  };
+
+  const handleBoxClick = () => {
+    fileInputRef.current.click();
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <Label htmlFor="category">Campaign Category *</Label>
-        <div className="relative mt-2">
-          <Select 
-            id="category" 
-            value={formData.category} 
-            onValueChange={handleCategoryChange}
-          >
-            <SelectTrigger className={aiGeneratedFields?.category ? "border-purple-300 dark:border-purple-500" : ""}>
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Select a category</SelectItem>
-              <SelectItem value="political">Political Campaign</SelectItem>
-              <SelectItem value="social">Social Media Influencer</SelectItem>
-              <SelectItem value="nonprofit">Non-Profit Organization</SelectItem>
-              <SelectItem value="business">Business Marketing</SelectItem>
-              <SelectItem value="education">Educational Institution</SelectItem>
-            </SelectContent>
-          </Select>
-          {aiGeneratedFields?.category && (
-            <div className="absolute right-8 top-1/2 -translate-y-1/2 text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-xs font-medium">AI</span>
-            </div>
-          )}
+    <div className="space-y-6">
+      {/* Explainer Video Section with adjusted height to prevent layout shifts */}
+      <div className="space-y-4" style={{ minHeight: hasExplainerVideo ? '200px' : '60px' }}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="has-explainer-video" className="cursor-pointer flex items-center">
+              Add Explainer Video
+              <button 
+                onClick={() => setIsExplainerHelpOpen(true)}
+                className="ml-2 inline-flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                aria-label="Learn more about explainer videos"
+              >
+                <HelpCircle className="h-4 w-4" />
+              </button>
+            </Label>
+          </div>
+          <Switch 
+            id="has-explainer-video" 
+            checked={hasExplainerVideo}
+            onCheckedChange={handleExplainerToggle}
+          />
         </div>
-      </div>
-
-      <div>
-        <Label htmlFor="subcategory">{formData.category === 'political' ? 'Representative Level' : 'Category Type'}</Label>
-        <div className="relative mt-2">
-          <Select 
-            id="subcategory" 
-            value={formData.subcategory}
-            onValueChange={handleSubcategoryChange}
-            disabled={!formData.category}
-          >
-            <SelectTrigger className={aiGeneratedFields?.subcategory ? "border-purple-300 dark:border-purple-500" : ""}>
-              <SelectValue placeholder={formData.category ? "Select a level" : "Choose a category first"} />
-            </SelectTrigger>
-            <SelectContent>
-              {!subcategories ? (
-                <SelectItem value="">Choose a category first</SelectItem>
-              ) : (
-                <>
-                  <SelectItem value="">Select a level</SelectItem>
-                  {subcategories.map(({ value, label }) => (
-                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                  ))}
-                </>
-              )}
-            </SelectContent>
-          </Select>
-          {aiGeneratedFields?.subcategory && (
-            <div className="absolute right-8 top-1/2 -translate-y-1/2 text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-xs font-medium">AI</span>
-            </div>
-          )}
-        </div>
+        
+        {hasExplainerVideo && (
+          <div className="mt-2 space-y-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Add a short video (30-90 seconds) to introduce your survey and provide context for participants.
+            </p>
+            
+            {!explainerVideo ? (
+              <div 
+                className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors duration-200 ${
+                  isDragging 
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                    : 'border-gray-300 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10'
+                }`}
+                onClick={handleBoxClick}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="flex flex-col items-center">
+                  <Video className={`h-8 w-8 mb-2 ${isDragging ? 'text-blue-500' : 'text-gray-400 dark:text-gray-300'}`} />
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {isDragging ? 'Drop your video here' : 'Upload your explainer video'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Click or drag and drop your file
+                  </p>
+                  <input 
+                    ref={fileInputRef}
+                    id="explainer-video-upload" 
+                    type="file" 
+                    accept="video/mp4,video/quicktime,video/webm" 
+                    className="hidden" 
+                    onChange={handleExplainerVideoChange}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="relative border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+                <video 
+                  src={explainerVideo} 
+                  controls 
+                  className="w-full h-auto max-h-[300px]"
+                />
+                <button
+                  onClick={handleRemoveExplainerVideo}
+                  className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-black/90"
+                  aria-label="Remove video"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <SurveyQuestions
@@ -148,6 +186,12 @@ export function CampaignDetails({
         handleQuestionChange={handleQuestionChange}
         setIsHelpOpen={setIsHelpOpen}
         aiGeneratedFields={aiGeneratedFields}
+        className={hasExplainerVideo ? "-mt-2" : ""}
+      />
+
+      <ExplainerVideoHelpModal 
+        isOpen={isExplainerHelpOpen} 
+        onClose={() => setIsExplainerHelpOpen(false)} 
       />
     </div>
   );

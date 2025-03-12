@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SERVER_URL, auth } from '../lib/firebase';
+import { CATEGORIES, SUBCATEGORIES, isValidCategory, isValidSubcategory } from '../lib/categoryEnums';
+import { themes as sharedThemes } from '../components/survey/themes';
 import { Card, CardContent } from '../components/ui/card'; 
 import { FileText, ChevronDown, Plus, Upload, X, Save, Sparkles } from 'lucide-react';
 import { AIModal } from '../components/create-campaign/AIModal';
@@ -14,59 +16,15 @@ import { StepNavigation } from '../components/create-campaign/StepNavigation';
 import { BasicInfo } from '../components/create-campaign/steps/BasicInfo';
 import { DesignPage } from '../components/create-campaign/steps/DesignPage';
 import { CampaignDetails } from '../components/create-campaign/steps/CampaignDetails';
-import { BusinessInfo } from '../components/create-campaign/steps/BusinessInfo';
+import { ReviewCampaign } from '../components/create-campaign/steps/ReviewCampaign';
 import { CampaignTemplateModal } from '../components/create-campaign/CampaignTemplateModal';
+import { CategorySelection } from '../components/create-campaign/steps/CategorySelection';
+import { SubcategorySelection } from '../components/create-campaign/steps/SubcategorySelection';
 
-// Theme configuration
+// Extend the shared themes with the custom theme option
 const themes = {
-  sunset: {
-    background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
-    text: 'text-white',
-    subtext: 'text-orange-100',
-    border: 'border-white/20',
-    input: 'bg-white/20',
-    name: 'Sunset Vibes'
-  },
-  midnight: {
-    background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
-    text: 'text-white',
-    subtext: 'text-blue-200',
-    border: 'border-blue-900/50',
-    input: 'bg-blue-950/50',
-    name: 'Midnight Blue'
-  },
-  nature: {
-    background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
-    text: 'text-white',
-    subtext: 'emerald-100',
-    border: 'border-white/20',
-    input: 'bg-white/20',
-    name: 'Nature Fresh'
-  },
-  ocean: {
-    background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600',
-    text: 'text-white',
-    subtext: 'text-cyan-100',
-    border: 'border-white/20',
-    input: 'bg-white/20',
-    name: 'Ocean Depths'
-  },
-  aurora: {
-    background: 'bg-gradient-to-br from-teal-400 via-purple-500 to-pink-500',
-    text: 'text-white',
-    subtext: 'text-teal-100',
-    border: 'border-white/20',
-    input: 'bg-white/20',
-    name: 'Aurora Lights'
-  },
-  desert: {
-    background: 'bg-gradient-to-br from-amber-500 via-red-500 to-rose-600',
-    text: 'text-white',
-    subtext: 'text-amber-100',
-    border: 'border-white/20',
-    input: 'bg-white/20',
-    name: 'Desert Sands'
-  },
+  ...sharedThemes,
+  // Add custom theme which is specific to the campaign creation flow
   custom: {
     background: '', // Will be set dynamically
     text: 'text-white',
@@ -79,10 +37,12 @@ const themes = {
 
 const steps = [
   { name: 'Internal Name' },
+  { name: 'Category' },
+  { name: 'Template' },
   { name: 'Design' },
   { name: 'Campaign Info' },
   { name: 'Campaign Details' },
-  { name: 'Business Info' }
+  { name: 'Review' }
 ];
 
 export default function CreateCampaign() {
@@ -127,13 +87,18 @@ export default function CreateCampaign() {
     email: '',
     phone: ''
   };
-  const [formData, setFormData, clearFormCache] = useFormCache(initialFormData);
+  // Rename setFormData to updateFormData to avoid shadowing issues
+  const [formData, updateFormData, clearFormCache] = useFormCache(initialFormData);
   const [surveyQuestions, setSurveyQuestions] = useState([]);
   const draftsRef = useRef(null);
   
   // Track which fields were AI-generated
   const [aiGeneratedFields, setAiGeneratedFields] = useState({});
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  
+  // Explainer video state
+  const [hasExplainerVideo, setHasExplainerVideo] = useState(false);
+  const [explainerVideo, setExplainerVideo] = useState(null);
 
   useEffect(() => {
     fetchDrafts();
@@ -180,20 +145,33 @@ export default function CreateCampaign() {
         textColor: hexText
       } : null;
       
+      // Validate category and subcategory
+      const category = formData.category;
+      let subcategory = formData.subcategory;
+      
+      if (category && !isValidCategory(category)) {
+        console.warn(`Invalid category: ${category}, defaulting to null`);
+        category = null;
+      }
+      
+      // If subcategory is provided, validate it
+      if (subcategory && category && !isValidSubcategory(category, subcategory)) {
+        console.warn(`Invalid subcategory ${subcategory} for category ${category}, defaulting to null`);
+        subcategory = null;
+      }
+      
       const draftData = {
         name: formData.name,
         title: formData.title,
         description: formData.description,
-        category: formData.category,
-        businessName: formData.businessName,
-        website: formData.website,
-        email: formData.email,
-        phone: formData.phone,
+        category: category,
         theme: selectedTheme,
         customColors: customColors,
         campaignImage: previewImage,
-        subcategory: formData.category === 'political' ? formData.subcategory : null,
-        surveyQuestions: surveyQuestions.map(q => q.question)
+        subcategory: subcategory,
+        surveyQuestions: surveyQuestions.map(q => q.question),
+        hasExplainerVideo: hasExplainerVideo,
+        explainerVideo: explainerVideo
       };
 
       const response = await fetch(isEditingDraft 
@@ -248,17 +226,22 @@ export default function CreateCampaign() {
       }
 
       const draft = await response.json();
-      setFormData({
+      
+      // Load the draft data, including any legacy business fields that might exist
+      // but won't be included in future submissions
+      updateFormData({
         name: draft.name || '',
         title: draft.title || '',
         description: draft.description || '',
         category: draft.category || '',
         subcategory: draft.subcategory || '',
+        // Keep these fields for backward compatibility with existing drafts
         businessName: draft.businessName || '',
         website: draft.website || '',
         email: draft.email || '',
         phone: draft.phone || ''
       });
+      
       setSelectedTheme(draft.theme || 'sunset');
       
       // Load custom colors if available
@@ -277,6 +260,15 @@ export default function CreateCampaign() {
         setPreviewImage(draft.campaignImage);
       }
       
+      // Load explainer video if available
+      if (draft.hasExplainerVideo) {
+        setHasExplainerVideo(true);
+        setExplainerVideo(draft.explainerVideo || null);
+      } else {
+        setHasExplainerVideo(false);
+        setExplainerVideo(null);
+      }
+      
       setSurveyQuestions(draft.surveyQuestions.map((question, index) => ({
         id: index + 1,
         question
@@ -285,6 +277,16 @@ export default function CreateCampaign() {
       
       // Clear AI indicators when loading a draft
       setAiGeneratedFields({});
+      
+      // Set the current step based on the loaded data
+      // If we have a category and subcategory, go to the design step
+      if (draft.category && (draft.category === CATEGORIES.OTHER || draft.subcategory)) {
+        setCurrentStep(3); // Design step
+      } else if (draft.category) {
+        setCurrentStep(2); // Template step
+      } else {
+        setCurrentStep(1); // Category step
+      }
     } catch (err) {
       console.error('Error loading draft:', err);
       setError(err.message);
@@ -342,13 +344,18 @@ export default function CreateCampaign() {
       }));
     }
     
-    setFormData(prev => ({
+    updateFormData(prev => ({
       ...prev,
       [id]: value
     }));
   };
 
   const handleAddQuestion = () => {
+    // Limit to a maximum of 3 questions
+    if (surveyQuestions.length >= 3) {
+      return;
+    }
+    
     setSurveyQuestions([
       ...surveyQuestions,
       { id: surveyQuestions.length + 1, question: '' }
@@ -407,19 +414,23 @@ export default function CreateCampaign() {
     switch (currentStep) {
       case 0: // Internal Name: always valid since we want to allow saving drafts
         return Boolean(formData.name?.trim());
-      case 1: // Design: always valid since theme has a default value
+      case 1: // Category: require a category selection
+        return Boolean(formData.category);
+      case 2: // Template: require a subcategory selection (or skip if category is 'other')
+        return formData.category === 'other' || Boolean(formData.subcategory);
+      case 3: // Design: always valid since theme has a default value
         return true; // Theme selection is always valid since it has a default value
-      case 2: // Basic Info: require title and description
+      case 4: // Basic Info: require title and description
         return Boolean(formData.title?.trim() && formData.description?.trim());
-      case 3: // Campaign Details: require category (and subcategory if political) and at least one non-empty survey question
+      case 5: // Campaign Details: require category (and subcategory if political) and at least one non-empty survey question
         return Boolean(
           formData.category &&
           (formData.category === 'political' ? formData.subcategory?.trim() : true) &&
           surveyQuestions?.length > 0 &&
           surveyQuestions.every(q => q.question.trim())
         );
-      case 4: // Business Info: require Business Name and Business Email
-        return Boolean(formData.businessName?.trim() && formData.email?.trim());
+      case 6: // Review: always valid since it's the last step
+        return true;
       default:
         return false;
     }
@@ -432,6 +443,38 @@ export default function CreateCampaign() {
     }
     
     if (currentStep < steps.length - 1) {
+      // If on category step (step 1) and no category selected, set to 'other' and skip template step
+      if (currentStep === 1 && !formData.category) {
+        updateFormData(prev => ({
+          ...prev,
+          category: CATEGORIES.OTHER
+        }));
+        setCurrentStep(currentStep + 2); // Skip to design step
+        setShowPreview(true);
+        return;
+      }
+      
+      // If moving from category step (step 1) to subcategory step (step 2),
+      // ensure subcategory is explicitly set to null for proper button text
+      if (currentStep === 1 && formData.category !== CATEGORIES.OTHER) {
+        updateFormData(prev => ({
+          ...prev,
+          subcategory: null
+        }));
+      }
+      
+      // If on template step (step 2) and no subcategory selected, set to 'custom'
+      if (currentStep === 2 && !formData.subcategory) {
+        updateFormData(prev => ({
+          ...prev,
+          subcategory: 'custom',
+          // Initialize empty survey questions if none exist
+          surveyQuestions: prev.surveyQuestions?.length > 0 ? prev.surveyQuestions : [
+            { id: 1, question: '' }
+          ]
+        }));
+      }
+      
       setCurrentStep(currentStep + 1);
       // Always show preview
       setShowPreview(true);
@@ -440,7 +483,31 @@ export default function CreateCampaign() {
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      // If going back to category selection from design step (step 3) and category is 'other',
+      // it means the user skipped the subcategory step, so go back directly to step 1
+      if (currentStep === 3 && formData.category === CATEGORIES.OTHER) {
+        // Reset category to null to ensure the button shows "Continue without template"
+        updateFormData(prev => ({
+          ...prev,
+          category: null
+        }));
+        setCurrentStep(1); // Go directly to category selection
+      } 
+      // If going back to step 2 (subcategory) from step 3 (design) and category is not 'other'
+      // but subcategory is 'custom', it means the user clicked "Continue without example questions" on step 2
+      else if (currentStep === 3 && formData.subcategory === 'custom') {
+        // Reset subcategory to null to ensure the button shows "Continue without example questions"
+        updateFormData(prev => ({
+          ...prev,
+          subcategory: null
+        }));
+        setCurrentStep(2); // Go to subcategory selection
+      }
+      // Normal case - go back one step
+      else {
+        setCurrentStep(currentStep - 1);
+      }
+      
       // Always show preview
       setShowPreview(true);
     }
@@ -471,7 +538,7 @@ export default function CreateCampaign() {
       }
 
       // Update form data with AI generated content
-      setFormData({
+      updateFormData({
         ...formData,
         title: data.campaignData.title || data.campaignData.name,
         description: data.campaignData.description,
@@ -515,8 +582,8 @@ export default function CreateCampaign() {
       setIsAIModalOpen(false);
       setAiPrompt('');
       
-      // Move to the next step (Design) after AI generation
-      setCurrentStep(1);
+      // Move to the Design step after AI generation (now step 3 instead of 1)
+      setCurrentStep(3);
     } catch (error) {
       console.error('Fetch error:', error);
       setAiError('Failed to connect to server. Please try again.');
@@ -528,7 +595,7 @@ export default function CreateCampaign() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Only allow form submission from the last step (Business Info)
+    // Only allow form submission from the last step (Review)
     if (currentStep !== steps.length - 1) {
       console.log("Form submission prevented: Not on the last step");
       return;
@@ -541,13 +608,11 @@ export default function CreateCampaign() {
       'Campaign Name': formData.name,
       'Campaign Title': formData.title,
       'Campaign Description': formData.description,
-      'Campaign Category': formData.category,
-      'Business Name': formData.businessName,
-      'Business Email': formData.email
+      'Campaign Category': formData.category
     };
     
     // Add subcategory validation if category is political
-    if (formData.category === 'political') {
+    if (formData.category === CATEGORIES.POLITICAL) {
       requiredFields['Representative Level'] = formData.subcategory;
     }
     
@@ -575,19 +640,6 @@ export default function CreateCampaign() {
       return;
     }
     
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setLoadingModal({ isOpen: true, status: 'error', error: 'Please enter a valid email address' });
-      return;
-    }
-    
-    // Validate website format if provided
-    if (formData.website && !formData.website.startsWith('http')) {
-      setLoadingModal({ isOpen: true, status: 'error', error: 'Website URL must start with http:// or https://' });
-      return;
-    }
-
     try {
       const idToken = await auth.currentUser.getIdToken();
       
@@ -597,6 +649,20 @@ export default function CreateCampaign() {
         gradientDirection,
         textColor: hexText
       } : null;
+      
+      // Validate category and subcategory
+      const category = formData.category;
+      let subcategory = formData.subcategory;
+      
+      if (!isValidCategory(category)) {
+        throw new Error(`Invalid category: ${category}`);
+      }
+      
+      // If subcategory is provided, validate it
+      if (subcategory && !isValidSubcategory(category, subcategory)) {
+        console.warn(`Invalid subcategory ${subcategory} for category ${category}, defaulting to null`);
+        subcategory = null;
+      }
       
       const response = await fetch(`${SERVER_URL}/campaign/campaigns`, {
         method: 'POST',
@@ -608,16 +674,14 @@ export default function CreateCampaign() {
           name: formData.name,
           title: formData.title,
           description: formData.description,
-          category: formData.category,
-          businessName: formData.businessName,
-          website: formData.website,
-          email: formData.email,
-          phone: formData.phone,
+          category: category,
           theme: selectedTheme,
           customColors: customColors,
           campaignImage: previewImage,
-          subcategory: formData.category === 'political' ? formData.subcategory : null,
-          surveyQuestions: surveyQuestions.map(q => q.question)
+          subcategory: subcategory,
+          surveyQuestions: surveyQuestions.map(q => q.question),
+          hasExplainerVideo: hasExplainerVideo,
+          explainerVideo: explainerVideo
         })
       });
 
@@ -639,7 +703,7 @@ export default function CreateCampaign() {
       });
       
       // Reset form state
-      setFormData({
+      updateFormData({
         name: '',
         title: '',
         description: '',
@@ -672,7 +736,7 @@ export default function CreateCampaign() {
     // Keep the current name (or empty string) but copy everything else
     const currentName = formData.name;
     
-    setFormData({
+    updateFormData({
       name: currentName, // Keep the current name
       title: campaignData.title || '',
       description: campaignData.description || '',
@@ -712,6 +776,9 @@ export default function CreateCampaign() {
         question
       })));
     }
+    
+    // Set the current step to the design step (now step 3)
+    setCurrentStep(3);
     
     // Show success message
     setError({
@@ -806,7 +873,7 @@ export default function CreateCampaign() {
           <Card className="w-full">
             <CardContent>
               <form onSubmit={(e) => {
-                // Only allow form submission from the last step (Business Info)
+                // Only allow form submission from the last step (Review)
                 if (currentStep !== steps.length - 1) {
                   e.preventDefault();
                   return;
@@ -821,18 +888,53 @@ export default function CreateCampaign() {
                   />
                 )}
 
-                {currentStep === 2 && (
-                  <BasicInfo
+                {currentStep === 1 && (
+                  <CategorySelection
                     formData={formData}
-                    handleInputChange={handleInputChange}
-                    previewImage={previewImage}
-                    handleImageChange={handleImageChange}
-                    handleRemoveImage={handleRemoveImage}
-                    aiGeneratedFields={aiGeneratedFields}
+                    setFormData={updateFormData}
+                    handleNext={handleNext}
                   />
                 )}
 
-                {currentStep === 1 && (
+                {currentStep === 2 && (
+                  <SubcategorySelection
+                    formData={formData}
+                    setFormData={(newData) => {
+                      console.log('SubcategorySelection setFormData called with:', newData);
+                      
+                      // Handle both regular form data updates and survey question updates
+                      if (newData.surveyQuestions) {
+                        console.log('Setting survey questions:', newData.surveyQuestions);
+                        // First set the survey questions
+                        setSurveyQuestions(newData.surveyQuestions);
+                        
+                        // Then update the form data without the survey questions
+                        const { surveyQuestions: _, ...rest } = newData;
+                        updateFormData(prev => ({ ...prev, ...rest }));
+                      } else {
+                        console.log('Updating form data without survey questions');
+                        updateFormData(prev => ({ ...prev, ...newData }));
+                      }
+                      
+                      // Force a re-render of the StepNavigation component to update button text
+                      setTimeout(() => {
+                        console.log('Forcing re-render after subcategory update');
+                      }, 0);
+                    }}
+                    handleNext={() => {
+                      // If no subcategory is selected, set it to 'custom' before proceeding
+                      if (!formData.subcategory) {
+                        updateFormData(prev => ({
+                          ...prev,
+                          subcategory: 'custom'
+                        }));
+                      }
+                      handleNext();
+                    }}
+                  />
+                )}
+
+                {currentStep === 3 && (
                   <DesignPage
                     selectedTheme={selectedTheme}
                     setSelectedTheme={setSelectedTheme}
@@ -846,7 +948,18 @@ export default function CreateCampaign() {
                   />
                 )}
 
-                {currentStep === 3 && (
+                {currentStep === 4 && (
+                  <BasicInfo
+                    formData={formData}
+                    handleInputChange={handleInputChange}
+                    previewImage={previewImage}
+                    handleImageChange={handleImageChange}
+                    handleRemoveImage={handleRemoveImage}
+                    aiGeneratedFields={aiGeneratedFields}
+                  />
+                )}
+
+                {currentStep === 5 && (
                   <CampaignDetails
                     formData={formData}
                     handleInputChange={handleInputChange}
@@ -856,14 +969,24 @@ export default function CreateCampaign() {
                     handleQuestionChange={handleQuestionChange}
                     setIsHelpOpen={setIsHelpOpen}
                     aiGeneratedFields={aiGeneratedFields}
+                    hasExplainerVideo={hasExplainerVideo}
+                    setHasExplainerVideo={setHasExplainerVideo}
+                    explainerVideo={explainerVideo}
+                    setExplainerVideo={setExplainerVideo}
                   />
                 )}
 
-                {currentStep === 4 && (
-                  <BusinessInfo
+                {currentStep === 6 && (
+                  <ReviewCampaign
                     formData={formData}
                     handleInputChange={handleInputChange}
                     aiGeneratedFields={aiGeneratedFields}
+                    surveyQuestions={surveyQuestions}
+                    previewImage={previewImage}
+                    selectedTheme={selectedTheme}
+                    themes={themes}
+                    hasExplainerVideo={hasExplainerVideo}
+                    explainerVideo={explainerVideo}
                   />
                 )}
 
@@ -914,6 +1037,8 @@ export default function CreateCampaign() {
             gradientColors={gradientColors}
             gradientDirection={gradientDirection}
             hexText={hexText}
+            hasExplainerVideo={hasExplainerVideo}
+            explainerVideo={explainerVideo}
           />
         </div>
       </div>

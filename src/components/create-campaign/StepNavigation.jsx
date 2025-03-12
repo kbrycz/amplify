@@ -6,18 +6,22 @@ const isStepValid = (currentStep, formData) => {
   switch (currentStep) {
     case 0: // Internal Name: always valid since we want to allow saving drafts
       return Boolean(formData.name?.trim());
-    case 1: // Design: always valid since theme has a default value
+    case 1: // Category: require a category selection
+      return Boolean(formData.category);
+    case 2: // Template: require a subcategory selection (or skip if category is 'other')
+      return formData.category === 'other' || Boolean(formData.subcategory);
+    case 3: // Design: always valid since theme has a default value
       return true; // Theme selection is always valid since it has a default value
-    case 2: // Basic Info: require name and description
+    case 4: // Basic Info: require name and description
       return Boolean(formData.title?.trim() && formData.description?.trim());
-    case 3: // Campaign Details: require category (and subcategory if political) and at least one non-empty survey question
+    case 5: // Campaign Details: require category (and subcategory if political) and at least one non-empty survey question
       return Boolean(
         formData.category &&
         (formData.category === 'political' ? formData.subcategory?.trim() : true) &&
         formData.surveyQuestions?.length > 0 &&
         formData.surveyQuestions.every(q => q.question.trim())
       );
-    case 4: // Business Info: require Business Name and Business Email
+    case 6: // Business Info: require Business Name and Business Email
       return Boolean(formData.businessName?.trim() && formData.email?.trim());
     default:
       return false;
@@ -41,6 +45,62 @@ export function StepNavigation({
 }) {
   const canProceed = isStepValid(currentStep, { ...formData, surveyQuestions });
   const isFirstStep = currentStep === 0;
+  
+  // Debug logging
+  React.useEffect(() => {
+    console.log('StepNavigation state:', { 
+      currentStep, 
+      hasCategory: Boolean(formData.category),
+      hasSubcategory: Boolean(formData.subcategory),
+      buttonText: getCorrectButtonText()
+    });
+  }, [currentStep, formData.category, formData.subcategory, totalSteps]);
+  
+  // Ensure button is always enabled on steps 1 and 2
+  const isButtonDisabled = React.useMemo(() => {
+    if (currentStep === 1 || currentStep === 2) {
+      return isSubmitting;
+    }
+    return isSubmitting || !canProceed;
+  }, [currentStep, isSubmitting, canProceed]);
+  
+  // Get the correct button text based on current state
+  const getCorrectButtonText = () => {
+    console.log('getCorrectButtonText called with:', { 
+      currentStep, 
+      hasCategory: Boolean(formData.category),
+      hasSubcategory: Boolean(formData.subcategory)
+    });
+    
+    if (isSubmitting) {
+      return currentStep === totalSteps - 1 ? 'Creating...' : 'Next...';
+    }
+    
+    if (currentStep === totalSteps - 1) {
+      return 'Create Campaign';
+    }
+    
+    // Always show "Continue without template" on step 1 if no category is selected
+    // This is critical for when users navigate back to this step
+    if (currentStep === 1 && !formData.category) {
+      return 'Continue without template';
+    }
+    
+    // Always show "Continue without example questions" on step 2 if no subcategory is selected
+    if (currentStep === 2 && !formData.subcategory) {
+      console.log('Showing "Continue without example questions" button');
+      return 'Continue without example questions';
+    }
+    
+    return 'Next';
+  };
+
+  // Force update when component re-renders
+  React.useEffect(() => {
+    // This will force the component to re-render with the correct button text
+    const buttonText = getCorrectButtonText();
+    console.log('Button text updated:', buttonText);
+  }, [currentStep, formData.category, formData.subcategory, isSubmitting]);
 
   return (
     <div className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-8 w-full ${className}`}>
@@ -142,9 +202,9 @@ export function StepNavigation({
         <button
           type={currentStep === totalSteps - 1 ? 'submit' : 'button'}
           onClick={currentStep < totalSteps - 1 ? onNext : undefined}
-          disabled={isSubmitting || !canProceed}
+          disabled={isButtonDisabled}
           className={`inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600 ${
-            (isSubmitting || !canProceed) ? 'opacity-50 cursor-not-allowed' : ''
+            isButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
           {isSubmitting ? (
@@ -153,11 +213,11 @@ export function StepNavigation({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              {currentStep === totalSteps - 1 ? 'Creating...' : 'Next...'}
+              {getCorrectButtonText()}
             </>
           ) : (
             <>
-              {currentStep === totalSteps - 1 ? 'Create Campaign' : 'Next'}
+              {getCorrectButtonText()}
               {currentStep < totalSteps - 1 && <ChevronRight className="h-4 w-4" />}
             </>
           )}

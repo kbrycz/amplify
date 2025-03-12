@@ -9,10 +9,14 @@ export function SurveyQuestions({
   handleRemoveQuestion,
   handleQuestionChange,
   setIsHelpOpen,
-  aiGeneratedFields
+  aiGeneratedFields,
+  className = ''
 }) {
+  // Maximum number of questions allowed
+  const MAX_QUESTIONS = 3;
+  
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 ${className}`}>
       <div className="flex items-center">
         <div>
           <Label className="flex items-center gap-1.5">
@@ -29,16 +33,25 @@ export function SurveyQuestions({
               </svg>
             </button>
           </Label>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">At least one question required</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            At least one question required (maximum {MAX_QUESTIONS})
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={handleAddQuestion}
-          className="ml-auto inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4" />
-          Add Question
-        </button>
+        {surveyQuestions.length < MAX_QUESTIONS && (
+          <button
+            type="button"
+            onClick={handleAddQuestion}
+            className="ml-auto inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            Add Question
+          </button>
+        )}
+        {surveyQuestions.length >= MAX_QUESTIONS && (
+          <div className="ml-auto text-xs text-gray-500 dark:text-gray-400 italic">
+            Maximum {MAX_QUESTIONS} questions allowed
+          </div>
+        )}
       </div>
       <div className="space-y-4">
         {surveyQuestions.map((q, index) => {

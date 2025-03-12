@@ -1,8 +1,12 @@
 import React from 'react';
 
-export function Card({ className = '', children, ...props }) {
+export function Card({ className = '', children, onClick, ...props }) {
   return (
-    <div className={`rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 ${className}`} {...props}>
+    <div 
+      onClick={onClick}
+      className={`rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      {...props}
+    >
       {children}
     </div>
   );

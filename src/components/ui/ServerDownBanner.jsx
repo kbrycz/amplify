@@ -56,18 +56,18 @@ export default function ServerDownBanner({ isVisible, onClose }) {
 
   return (
     <div 
-      className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-500 ease-in-out ${
+      className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-500 ease-in-out bg-gradient-to-r from-red-600 via-red-500 to-red-600 shadow-lg border-b border-red-700 ${
         isAnimating ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
       }`}
     >
-      <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 shadow-lg border-b border-red-700">
-        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 relative overflow-hidden">
-          {/* Background pattern */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-white"></div>
-            <div className="absolute right-0 bottom-0 h-24 w-24 rounded-full bg-white"></div>
-          </div>
-          
+      <div className="w-full relative overflow-hidden">
+        {/* Background pattern */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-white"></div>
+          <div className="absolute right-0 bottom-0 h-24 w-24 rounded-full bg-white"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 relative">
           <div className="flex items-center justify-between flex-wrap relative">
             <div className="w-0 flex-1 flex items-center">
               <div className="flex-shrink-0 mr-3">
@@ -122,11 +122,12 @@ export default function ServerDownBanner({ isVisible, onClose }) {
               )}
             </div>
           </div>
-          
-          {/* Animated pulse effect */}
-          <div className="absolute right-0 top-0 h-full w-1/3 overflow-hidden pointer-events-none">
-            <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-8 h-32 bg-gradient-to-r from-transparent to-white opacity-10 blur-md animate-pulse"></div>
-          </div>
+        </div>
+        
+        {/* Animated pulse effect */}
+        <div className="absolute right-0 top-0 h-full w-full overflow-hidden pointer-events-none">
+          <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-8 h-32 bg-gradient-to-r from-transparent to-white opacity-10 blur-md animate-pulse"></div>
+          <div className="absolute -left-4 top-1/3 transform -translate-y-1/2 w-8 h-32 bg-gradient-to-r from-white to-transparent opacity-10 blur-md animate-pulse delay-700"></div>
         </div>
       </div>
     </div>

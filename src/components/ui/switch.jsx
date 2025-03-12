@@ -1,43 +1,20 @@
 import React from "react";
 
-export function Switch({ checked = true, onCheckedChange, disabled, className, ...props }) {
-  const handleClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!disabled && onCheckedChange) {
-      onCheckedChange(!checked);
-    }
-  };
-
+export function Switch({ id, checked, onCheckedChange, disabled = false }) {
   return (
-    <div 
-      className={`
-        relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer items-center rounded-full 
-        transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 
-        focus-visible:ring-indigo-500 focus-visible:ring-offset-2 
-        ${disabled ? 'cursor-not-allowed opacity-50' : ''}
-        ${checked ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'}
-        ${className || ''}
-      `}
-      role="switch"
-      aria-checked={checked}
-      tabIndex={disabled ? -1 : 0}
-      onClick={handleClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleClick(e);
-        }
-      }}
-      {...props}
+    <label 
+      htmlFor={id} 
+      className={`relative inline-flex items-center cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
-      <span 
-        className={`
-          pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg 
-          ring-0 transition duration-200 ease-in-out
-          ${checked ? 'translate-x-5' : 'translate-x-0.5'}
-        `}
+      <input 
+        type="checkbox" 
+        id={id} 
+        className="sr-only peer" 
+        checked={checked} 
+        onChange={(e) => onCheckedChange(e.target.checked)}
+        disabled={disabled}
       />
-    </div>
+      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+    </label>
   );
 } 

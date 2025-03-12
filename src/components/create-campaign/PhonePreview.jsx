@@ -1,6 +1,8 @@
 import React from 'react';
 import { Upload, ChevronRight, ChevronLeft, ChevronLeft as SafariBack, ChevronRight as SafariForward, Share2, MoreVertical, Video } from 'lucide-react';
 import { Iphone15Pro } from '../ui/iphone';
+import { getQuestionsForSubcategory, getSubcategoryName, debugCampaignQuestions } from '../survey/campaignQuestions';
+import { themes as sharedThemes } from '../survey/themes';
 
 const steps = [
   { id: 'intro', title: 'Welcome' },
@@ -18,7 +20,9 @@ export function PhonePreview({
   gradientColors,
   gradientDirection,
   hexText,
-  themes
+  themes,
+  hasExplainerVideo = false,
+  explainerVideo = null
 }) {
   const [previewStep, setPreviewStep] = React.useState('intro');
   const [previewFormData, setPreviewFormData] = React.useState({
@@ -28,49 +32,14 @@ export function PhonePreview({
     zipCode: ''
   });
 
-  // Default themes if none are provided
-  const defaultThemes = {
-    sunset: {
-      background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
-      text: 'text-white',
-      subtext: 'text-orange-100',
-      border: 'border-white/20',
-      input: 'bg-white/20',
-      name: 'Sunset Vibes'
-    },
-    midnight: {
-      background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
-      text: 'text-white',
-      subtext: 'text-blue-200',
-      border: 'border-blue-900/50',
-      input: 'bg-blue-950/50',
-      name: 'Midnight Blue'
-    },
-    nature: {
-      background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
-      text: 'text-white',
-      subtext: 'emerald-100',
-      border: 'border-white/20',
-      input: 'bg-white/20',
-      name: 'Nature Fresh'
-    },
-    ocean: {
-      background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600',
-      text: 'text-white',
-      subtext: 'text-cyan-100',
-      border: 'border-white/20',
-      input: 'bg-white/20',
-      name: 'Ocean Depths'
-    }
-  };
-
-  // Use provided themes or fall back to default themes
-  const availableThemes = themes && Object.keys(themes).length > 0 ? themes : defaultThemes;
+  // Use provided themes, or fall back to shared themes
+  const availableThemes = themes && Object.keys(themes).length > 0 ? themes : sharedThemes;
   
-  // Show response screen when on campaign details step (step 3)
+  // Show response screen when on campaign details step (step 5) or review step (step 6)
   React.useEffect(() => {
-    setPreviewStep(currentStep === 3 ? 'response' : 'intro');
-  }, [currentStep]);
+    // Reset to intro step when theme changes
+    setPreviewStep(currentStep === 5 || currentStep === 6 ? 'response' : 'intro');
+  }, [selectedTheme, currentStep]);
 
   const currentStepIndex = steps.findIndex(step => step.id === previewStep);
   const isFirstStep = currentStepIndex === 0;
@@ -94,10 +63,11 @@ export function PhonePreview({
     const direction = gradientDirection === 'br' ? '135deg' :
                      gradientDirection === 'r' ? '90deg' :
                      gradientDirection === 'b' ? '180deg' :
-                     gradientDirection === 'bl' ? '225deg' :
-                     gradientDirection === 'tr' ? '45deg' : '135deg';
-    
-    return `linear-gradient(${direction}, ${gradientColors.from}, ${gradientColors.via}, ${gradientColors.to})`;
+                     gradientDirection === 'bl' ? '225deg' : '135deg';
+                     
+    return {
+      background: `linear-gradient(${direction}, ${gradientColors.from}, ${gradientColors.via}, ${gradientColors.to})`
+    };
   };
   
   // Custom theme object for rendering
@@ -126,35 +96,68 @@ export function PhonePreview({
     return { color: hexText, opacity: 0.8 };
   };
 
+  // Get template questions for the selected subcategory
+  const getTemplateQuestions = () => {
+    if (currentStep === 2 && formData.category && formData.subcategory) {
+      console.log('PhonePreview: Getting template questions for', formData.category, formData.subcategory);
+      
+      // Use the debug function to check if the subcategory exists
+      debugCampaignQuestions(formData.category, formData.subcategory);
+      
+      const questions = getQuestionsForSubcategory(formData.category, formData.subcategory);
+      console.log('PhonePreview: Retrieved questions:', questions);
+      return questions;
+    }
+    return [];
+  };
+
+  // Get subcategory name
+  const getSelectedSubcategoryName = () => {
+    if (currentStep === 2 && formData.category && formData.subcategory) {
+      console.log('PhonePreview: Getting subcategory name for', formData.category, formData.subcategory);
+      const name = getSubcategoryName(formData.category, formData.subcategory);
+      console.log('PhonePreview: Retrieved subcategory name:', name);
+      return name;
+    }
+    return "";
+  };
+
+  // Template questions for the selected subcategory
+  const templateQuestions = getTemplateQuestions();
+  const subcategoryName = getSelectedSubcategoryName();
+  
+  console.log('PhonePreview: Template questions:', templateQuestions);
+  console.log('PhonePreview: Subcategory name:', subcategoryName);
+
   return (
     <div className="hidden lg:block sticky top-0 h-[calc(100vh-1.5rem)] w-[500px] xl:block">
       <div className="flex flex-col items-center">
         <div className="scale-[0.8] origin-top xl:scale-[0.85] -mt-24">
           <Iphone15Pro>
             <div 
-              className={`h-full ${currentStep === 0 ? 'bg-gray-100 dark:bg-gray-800' : selectedTheme === 'custom' ? '' : themeToUse.background} transition-colors duration-200`}
-              style={selectedTheme === 'custom' && currentStep !== 0 ? { background: getCustomGradientStyle() } : {}}
+              className={`h-full ${(currentStep === 0 || currentStep === 1 || currentStep === 2) ? 'bg-gray-100 dark:bg-gray-800' : selectedTheme === 'custom' ? '' : themeToUse.background} transition-colors duration-200`}
+              style={selectedTheme === 'custom' && !(currentStep === 0 || currentStep === 1 || currentStep === 2) ? { background: getCustomGradientStyle() } : {}}
             >
               <div className="flex flex-col h-full">
                 {/* Safari URL Bar */}
                 <div className="h-[120px] flex items-end px-4 pb-4">
-                  <div className="w-full bg-white/10 backdrop-blur-lg rounded-xl p-2 flex items-center gap-2">
+                  <div className={`w-full ${(currentStep === 0 || currentStep === 1 || currentStep === 2) ? 'bg-gray-200/90 dark:bg-gray-700/90' : 'bg-white/10'} backdrop-blur-lg rounded-xl p-2 flex items-center gap-2`}>
                     <div className="flex items-center gap-1">
-                      <button className="p-1 text-white/50">
+                      <button className={`p-1 ${(currentStep === 0 || currentStep === 1 || currentStep === 2) ? 'text-gray-500 dark:text-gray-400' : 'text-white/50'}`}>
                         <SafariBack className="w-4 h-4" />
                       </button>
-                      <button className="p-1 text-white/50">
+                      <button className={`p-1 ${(currentStep === 0 || currentStep === 1 || currentStep === 2) ? 'text-gray-500 dark:text-gray-400' : 'text-white/50'}`}>
                         <SafariForward className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="flex-1 bg-white/10 rounded-lg px-3 py-1.5 text-sm text-white/70 truncate">
+                    <div className={`flex-1 ${(currentStep === 0 || currentStep === 1 || currentStep === 2) ? 'bg-white dark:bg-gray-600' : 'bg-white/10'} rounded-lg px-3 py-1.5 text-sm ${(currentStep === 0 || currentStep === 1 || currentStep === 2) ? 'text-gray-700 dark:text-gray-300' : 'text-white/70'} truncate`}>
                       shoutvideo.io/survey/preview
                     </div>
                     <div className="flex items-center gap-1">
-                      <button className="p-1 text-white/50">
+                      <button className={`p-1 ${(currentStep === 0 || currentStep === 1 || currentStep === 2) ? 'text-gray-500 dark:text-gray-400' : 'text-white/50'}`}>
                         <Share2 className="w-4 h-4" />
                       </button>
-                      <button className="p-1 text-white/50">
+                      <button className={`p-1 ${(currentStep === 0 || currentStep === 1 || currentStep === 2) ? 'text-gray-500 dark:text-gray-400' : 'text-white/50'}`}>
                         <MoreVertical className="w-4 h-4" />
                       </button>
                     </div>
@@ -170,22 +173,59 @@ export function PhonePreview({
                 </div>
 
                 <div className="p-6">
-                  {/* Internal Name Step - Blank Preview */}
-                  {currentStep === 0 && (
+                  {/* Template Questions Preview for Subcategory Selection */}
+                  {currentStep === 2 && formData.subcategory && (
+                    <div className="overflow-y-auto max-h-[500px]">
+                      <div className="text-center mb-6">
+                        <h1 className={`text-xl font-bold tracking-tight text-gray-800 dark:text-white mb-3`}>
+                          Example Questions
+                        </h1>
+                        <p className={`text-sm text-gray-600 dark:text-gray-300 mb-4`}>
+                          {subcategoryName || 'Template Questions'}
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {templateQuestions && templateQuestions.length > 0 ? (
+                          templateQuestions.map((question, index) => (
+                            <div 
+                              key={index} 
+                              className="p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-gray-200 dark:border-gray-700"
+                            >
+                              <p className="text-sm text-gray-800 dark:text-white">
+                                {question}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-gray-200 dark:border-gray-700">
+                            <p className="text-sm text-gray-800 dark:text-white">
+                              Select a template to see example questions here.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Internal Name or Category Step - Blank Preview */}
+                  {(currentStep === 0 || currentStep === 1 || (currentStep === 2 && !formData.subcategory)) && (
                     <div className="text-center flex flex-col items-center justify-center h-[500px] rounded-xl p-8">
                       <div className="max-w-xs">
                         <h1 className={`text-2xl font-bold tracking-tight text-gray-800 dark:text-white mb-3`}>
-                          Preview
+                          {currentStep === 2 ? "Example Questions" : "Preview"}
                         </h1>
                         <p className={`text-gray-600 dark:text-gray-300`}>
-                          Your campaign will appear here as you build it. Continue to the next step to start designing.
+                          {currentStep === 2 
+                            ? "Select a template from the left to see example questions here" 
+                            : "Your campaign will appear here as you build it."}
                         </p>
                       </div>
                     </div>
                   )}
 
                   {/* Design Step - Theme Preview with Dummy Text */}
-                  {currentStep === 1 && (
+                  {currentStep === 3 && (
                     <div className="text-center">
                       <div className="flex justify-center mb-8">
                         <div className={`w-20 h-20 rounded-full flex items-center justify-center ${themeToUse.border} border-2`}>
@@ -216,7 +256,7 @@ export function PhonePreview({
                   )}
 
                   {/* Welcome Screen for other steps */}
-                  {currentStep > 1 && previewStep === 'intro' && (
+                  {currentStep > 3 && previewStep === 'intro' && (
                     <div className="text-center">
                       {previewImage ? (
                         <div className="flex justify-center mb-8">
@@ -345,6 +385,34 @@ export function PhonePreview({
                     <div>
                       {/* Questions Panel */}
                       <div>
+                        {/* Explainer Video (if enabled) */}
+                        {(currentStep === 5 || currentStep === 6) && hasExplainerVideo && (
+                          <div className="mb-6">
+                            <div className="rounded-lg overflow-hidden border border-white/20">
+                              {explainerVideo ? (
+                                <video 
+                                  src={explainerVideo} 
+                                  controls 
+                                  className="w-full h-auto max-h-[150px]"
+                                />
+                              ) : (
+                                <div className="bg-black/20 h-[150px] flex items-center justify-center">
+                                  <div className="text-center">
+                                    <Video className={`h-8 w-8 mx-auto mb-2 ${selectedTheme === 'custom' ? '' : themeToUse.text} opacity-60`}
+                                      style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                                    />
+                                    <p className={`text-xs ${selectedTheme === 'custom' ? '' : themeToUse.text} opacity-60`}
+                                      style={selectedTheme === 'custom' ? getTextStyle() : {}}
+                                    >
+                                      Explainer Video
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
                         <h2 className={`text-2xl font-bold ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
                           style={selectedTheme === 'custom' ? getTextStyle() : {}}
                         >Questions</h2>
@@ -375,13 +443,7 @@ export function PhonePreview({
                         </div>
                         
                         <div className="mt-8">
-                          <button
-                            className={`w-full flex items-center justify-center gap-2 rounded-lg ${themeToUse.border} border-2 px-4 py-3 ${selectedTheme === 'custom' ? '' : themeToUse.text}`}
-                            style={selectedTheme === 'custom' ? getTextStyle() : {}}
-                          >
-                            <Video className="h-5 w-5" />
-                            Record Video Response
-                          </button>
+                          {/* Removed the "Record Video Response" button to keep the preview in place */}
                         </div>
                       </div>
                     </div>
