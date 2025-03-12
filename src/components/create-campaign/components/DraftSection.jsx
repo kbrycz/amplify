@@ -38,7 +38,7 @@ export const DraftSection = ({
           <FileText className="w-4 h-4" />
           <span className="font-medium">{drafts.length} draft{drafts.length !== 1 ? 's' : ''}</span>
           <span className="ml-auto flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
-            <span>Click to view</span>
+            <span>Click to load a draft without changing steps</span>
             <ChevronDown className={`w-4 h-4 transition-transform ${isDraftsOpen ? 'rotate-180' : ''}`} />
           </span>
         </button>

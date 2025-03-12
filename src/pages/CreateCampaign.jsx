@@ -135,6 +135,8 @@ export default function CreateCampaign() {
             isEditingDraft={drafts.isEditingDraft}
             setIsAIModalOpen={setIsAIModalOpen}
             handleUseTemplate={template.handleUseTemplate}
+            clearSelectedTemplate={template.clearSelectedTemplate}
+            selectedTemplate={template.selectedTemplate}
             selectedTheme={form.selectedTheme}
             setSelectedTheme={form.setSelectedTheme}
             gradientColors={form.gradientColors}

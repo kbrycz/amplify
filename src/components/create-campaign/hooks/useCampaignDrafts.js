@@ -195,15 +195,12 @@ export const useCampaignDrafts = (
       // Clear AI indicators when loading a draft
       setAiGeneratedFields({});
       
-      // Set the current step based on the loaded data
-      // If we have a category and subcategory, go to the design step
-      if (draft.category && (draft.category === CATEGORIES.OTHER || draft.subcategory)) {
-        setCurrentStep(3); // Design step
-      } else if (draft.category) {
-        setCurrentStep(2); // Template step
-      } else {
-        setCurrentStep(1); // Category step
-      }
+      // Show success message
+      setError({
+        type: 'success',
+        message: `Draft "${draft.name}" loaded successfully!`
+      });
+      setTimeout(() => setError(null), 3000);
     } catch (err) {
       console.error('Error loading draft:', err);
       setError(err.message);

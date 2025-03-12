@@ -27,6 +27,8 @@ export const CampaignFormContainer = ({
   isEditingDraft,
   setIsAIModalOpen,
   handleUseTemplate,
+  clearSelectedTemplate,
+  selectedTemplate,
   selectedTheme,
   setSelectedTheme,
   gradientColors,
@@ -207,6 +209,8 @@ export const CampaignFormContainer = ({
               surveyQuestions={surveyQuestions}
               setIsAIModalOpen={setIsAIModalOpen}
               onUseTemplate={handleUseTemplate}
+              clearSelectedTemplate={clearSelectedTemplate}
+              selectedTemplate={selectedTemplate}
             />
           </div>
         </form>

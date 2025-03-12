@@ -171,7 +171,7 @@ export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
           {!isLoading && !error && campaigns.length > 0 && (
             <>
               <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-                Select a campaign to use as a template. This will copy all settings except the campaign name.
+                Select a campaign to use as a template. This will copy all settings except the campaign name. After selecting a template, you'll need to enter an internal name and continue through the steps normally.
               </p>
             </>
           )}
@@ -247,7 +247,7 @@ export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
                 Loading...
               </>
             ) : (
-              'Use as Template'
+              'Apply Template'
             )}
           </button>
         </div>

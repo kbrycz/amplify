@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, ChevronDown, Trash2, Check, X } from 'lucide-react';
+import { FileText, ChevronDown, Trash2, Check, X, Info } from 'lucide-react';
 
 export function DraftsDropdown({ 
   isOpen, 
@@ -40,6 +40,14 @@ export function DraftsDropdown({
 
   return (
     <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-white rounded-lg border border-gray-200 shadow-lg z-10 dark:bg-gray-900 dark:border-gray-800">
+      {/* Info message */}
+      <div className="mb-2 p-2 text-xs flex items-start gap-2 bg-blue-50 text-blue-700 rounded dark:bg-blue-900/20 dark:text-blue-400">
+        <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+        <span>
+          Select a draft to load its content. You'll stay on your current step in the form.
+        </span>
+      </div>
+      
       <div className="space-y-1">
         {drafts.slice().reverse().map((draft, index) => (
           <div

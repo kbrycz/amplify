@@ -13,9 +13,20 @@ export const useTemplateSelection = (
   setError
 ) => {
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
 
   const handleUseTemplate = () => {
     setIsTemplateModalOpen(true);
+  };
+  
+  const clearSelectedTemplate = () => {
+    setSelectedTemplate(null);
+    setError({
+      type: 'info',
+      message: 'Template removed. You can now create a campaign from scratch.',
+      icon: 'info'
+    });
+    setTimeout(() => setError(null), 3000);
   };
 
   const handleSelectTemplate = (campaignData) => {
@@ -63,13 +74,17 @@ export const useTemplateSelection = (
       })));
     }
     
-    // Set the current step to the design step (now step 3)
-    setCurrentStep(3);
+    // Store the selected template info
+    setSelectedTemplate({
+      id: campaignData.id,
+      title: campaignData.title || 'Untitled Campaign'
+    });
     
-    // Show success message
+    // Show a success message with the template name
     setError({
       type: 'success',
-      message: 'Campaign template applied successfully! Please enter a new name for this campaign.'
+      message: `Template "${campaignData.title || 'Untitled Campaign'}" applied successfully!`,
+      icon: 'check'
     });
     setTimeout(() => setError(null), 3000);
   };
@@ -78,6 +93,8 @@ export const useTemplateSelection = (
     isTemplateModalOpen,
     setIsTemplateModalOpen,
     handleUseTemplate,
-    handleSelectTemplate
+    handleSelectTemplate,
+    clearSelectedTemplate,
+    selectedTemplate
   };
 }; 

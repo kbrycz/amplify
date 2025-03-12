@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, Copy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Copy, Check, X } from 'lucide-react';
 
 // Updated validation for each step
 const isStepValid = (currentStep, formData, surveyQuestions) => {
@@ -51,7 +51,9 @@ export function StepNavigation({
   formData,
   surveyQuestions,
   setIsAIModalOpen,
-  onUseTemplate
+  onUseTemplate,
+  clearSelectedTemplate,
+  selectedTemplate
 }) {
   const canProceed = isStepValid(currentStep, formData, surveyQuestions);
   const isFirstStep = currentStep === 0;
@@ -136,6 +138,12 @@ export function StepNavigation({
     console.log('Button text updated:', buttonText);
   }, [currentStep, formData.category, formData.subcategory, isSubmitting]);
 
+  // Function to truncate template title
+  const truncateTitle = (title, maxLength = 14) => {
+    if (!title) return '';
+    return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
+  };
+
   return (
     <div className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-8 w-full ${className}`}>
       {/* Left side - Previous button or Template button (desktop only) */}
@@ -144,11 +152,33 @@ export function StepNavigation({
           // Show "Use Previous Campaign as Template" button on first step (desktop only)
           <button
             type="button"
-            onClick={onUseTemplate}
+            onClick={selectedTemplate ? null : onUseTemplate}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-indigo-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-indigo-400 dark:hover:bg-gray-800"
           >
-            <Copy className="h-4 w-4 flex-shrink-0" />
-            <span className="whitespace-normal text-left">Use Previous Campaign as Template</span>
+            {selectedTemplate ? (
+              <>
+                <Check className="h-4 w-4 flex-shrink-0 text-indigo-500" />
+                <span className="whitespace-normal text-left">
+                  {`Using "${truncateTitle(selectedTemplate.title)}" as template`}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearSelectedTemplate && clearSelectedTemplate();
+                  }}
+                  className="ml-2 p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                  aria-label="Remove template"
+                  title="Remove template"
+                >
+                  <X className="h-3.5 w-3.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" />
+                </button>
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4 flex-shrink-0" />
+                <span className="whitespace-normal text-left">Use Previous Campaign as Template</span>
+              </>
+            )}
           </button>
         ) : (
           // Show Previous button on other steps
@@ -172,11 +202,33 @@ export function StepNavigation({
             <div className="sm:hidden w-full">
               <button
                 type="button"
-                onClick={onUseTemplate}
+                onClick={selectedTemplate ? null : onUseTemplate}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-indigo-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-indigo-400 dark:hover:bg-gray-800"
               >
-                <Copy className="h-4 w-4 flex-shrink-0" />
-                <span className="whitespace-normal text-left">Use Previous Campaign as Template</span>
+                {selectedTemplate ? (
+                  <>
+                    <Check className="h-4 w-4 flex-shrink-0 text-indigo-500" />
+                    <span className="whitespace-normal text-left">
+                      {`Using "${truncateTitle(selectedTemplate.title)}" as template`}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearSelectedTemplate && clearSelectedTemplate();
+                      }}
+                      className="ml-2 p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                      aria-label="Remove template"
+                      title="Remove template"
+                    >
+                      <X className="h-3.5 w-3.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 flex-shrink-0" />
+                    <span className="whitespace-normal text-left">Use Previous Campaign as Template</span>
+                  </>
+                )}
               </button>
             </div>
 
