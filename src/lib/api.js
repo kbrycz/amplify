@@ -261,12 +261,13 @@ export async function del(endpoint, options = {}) {
  * @returns {Promise<Array>} - Array of namespace objects
  */
 export async function fetchUserNamespaces() {
-  // Get the current user ID
-  const userId = auth.currentUser?.uid;
-  if (!userId) {
+  // Check if user is authenticated
+  if (!auth.currentUser) {
     throw new Error('User not authenticated');
   }
-  return get(`/namespaces/account/${userId}`);
+  
+  // Use the new endpoint that fetches namespaces based on memberEmails
+  return get('/namespaces/my');
 }
 
 /**

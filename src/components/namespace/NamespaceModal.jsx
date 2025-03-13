@@ -112,14 +112,14 @@ export default function NamespaceModal() {
 
           {/* Error State */}
           {error && !isLoading && (
-            <div className="p-5 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-              <button 
-                onClick={fetchUserNamespaces}
-                className="mt-3 text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-              >
-                Try Again
-              </button>
+            <div className="p-6 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-center">
+              <div className="flex flex-col items-center justify-center">
+                <svg className="h-10 w-10 text-gray-400 dark:text-gray-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unable to Load Namespaces</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
+              </div>
             </div>
           )}
 

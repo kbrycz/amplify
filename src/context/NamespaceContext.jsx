@@ -70,11 +70,20 @@ export function NamespaceProvider({ children }) {
       } else {
         console.error('Invalid namespaces data format:', fetchedNamespaces);
         setNamespaces([]);
-        setError('Received invalid data from server');
+        setError('Unable to load your namespaces. Please try again or contact support if the issue persists.');
       }
     } catch (err) {
       console.error('Error fetching namespaces:', err);
-      setError(err.message || 'Failed to load namespaces. Please try again.');
+      
+      // Provide more user-friendly error messages based on the error type
+      if (err.name === 'ServerError') {
+        setError('Server connection issue. Please check your internet connection and try again.');
+      } else if (err.message.includes('User not authenticated')) {
+        setError('Your session has expired. Please sign in again.');
+      } else {
+        setError('Unable to load your namespaces. Please try again later.');
+      }
+      
       setNamespaces([]);
     } finally {
       setIsLoading(false);
