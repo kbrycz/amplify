@@ -50,12 +50,12 @@ export default function PricingPlans({
                   onClick={() => handleSelectPlan(tier)}
                   className={classNames(
                     tier.featured
-                      ? 'bg-indigo-600 text-white hover:bg-indigo-500 dark:hover:bg-indigo-400'
+                      ? 'bg-primary-600 text-white hover:bg-primary-500 dark:hover:bg-primary-400'
                       : 'bg-gray-800 text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100',
-                    'rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600',
+                    'rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
                     (isLoading && selectedPlan?.id !== tier.id) ? 'opacity-60 cursor-not-allowed' : '',
                     (isLoading && selectedPlan?.id === tier.id) ? 'opacity-75 cursor-not-allowed' : '',
-                    (isFromSettings && tier.planId === userPlan) ? 'ring-2 ring-indigo-500 dark:ring-indigo-400 cursor-not-allowed' : ''
+                    (isFromSettings && tier.planId === userPlan) ? 'ring-2 ring-primary-500 dark:ring-primary-400 cursor-not-allowed' : ''
                   )}
                   disabled={isLoading || (isFromSettings && tier.planId === userPlan)}
                 >
@@ -98,7 +98,7 @@ export default function PricingPlans({
                     <li key={feature} className="flex gap-x-3 py-2">
                       <Check
                         className={classNames(
-                          tier.featured ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400',
+                          tier.featured ? 'text-primary-text-600 dark:text-primary-text-400' : 'text-gray-500 dark:text-gray-400',
                           'h-6 w-5 flex-none'
                         )}
                       />

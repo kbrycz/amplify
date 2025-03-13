@@ -79,7 +79,7 @@ export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode, 
   const statusColors = {
     Active: "bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20",
     Draft: "bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/20 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-500/20",
-    Scheduled: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20"
+    Scheduled: "bg-primary-50 text-primary-700 ring-1 ring-inset ring-primary-600/20 dark:bg-primary-900/30 dark:text-primary-400 dark:ring-primary-500/20"
   };
 
   const handleDelete = async () => {
@@ -156,21 +156,21 @@ export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode, 
           </div>
         </div>
         <div className="hidden lg:flex flex-col justify-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <Users className="h-4 w-4 shrink-0" />
             <NumberTicker value={responseCount} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Responses</div>
         </div>
         <div className="hidden lg:flex flex-col justify-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <Sparkles className="h-4 w-4 shrink-0" />
             <NumberTicker value={aiVideosCount} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">AI Videos</div>
         </div>
         <div className="hidden lg:flex flex-col justify-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <Clock className="h-4 w-4 shrink-0" />
             <span className="tabular-nums font-medium">{lastUpdateStr}</span>
           </div>
@@ -217,7 +217,7 @@ export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode, 
               </button>
             </div>
           ) : (
-            <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 dark:text-gray-600 dark:group-hover:text-indigo-400" />
+            <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-primary-500 dark:text-gray-600 dark:group-hover:text-primary-400" />
           )}
         </div>
       </div>
@@ -265,21 +265,21 @@ export default function CampaignRow({ campaign, onDelete, onUpdate, isEditMode, 
           </div>
         )}
         <div className="flex flex-col items-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <Users className="h-4 w-4 shrink-0" />
             <NumberTicker value={responseCount} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Responses</div>
         </div>
         <div className="flex flex-col items-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <Sparkles className="h-4 w-4 shrink-0" />
             <NumberTicker value={aiVideosCount} className="font-medium" />
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">AI Videos</div>
         </div>
         <div className="flex flex-col items-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <Clock className="h-4 w-4 shrink-0" />
             <span className="tabular-nums font-medium">{lastUpdateStr}</span>
           </div>

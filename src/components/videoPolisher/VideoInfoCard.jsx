@@ -43,7 +43,7 @@ export default function VideoInfoCard({ video, handleInputChange }) {
     <Card className="border border-gray-200 dark:border-gray-800">
       <CardHeader className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800">
         <CardTitle className="text-lg font-medium flex items-center gap-2">
-          <FileText className="h-5 w-5 text-blue-500" />
+          <FileText className="h-5 w-5 text-primary-500" />
           Video Information
         </CardTitle>
       </CardHeader>

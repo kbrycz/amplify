@@ -41,7 +41,7 @@ export default function NamespaceSuccessModal({ isOpen, onClose, namespaceName, 
           <div className="mt-6 w-full">
             <button
               onClick={handleGoToManage}
-              className="inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+              className="inline-flex w-full items-center justify-center rounded-md bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             >
               Go to Manage Namespaces
               <ArrowRight className="ml-2 h-4 w-4" />

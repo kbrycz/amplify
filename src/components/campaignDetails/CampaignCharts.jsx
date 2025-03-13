@@ -84,7 +84,7 @@ export default function CampaignCharts() {
               <CardTitle>Engagement Overview</CardTitle>
               <CardDescription>Views vs completed responses</CardDescription>
             </div>
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
+            <span className="inline-flex items-center rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700 ring-1 ring-inset ring-primary-600/20 dark:bg-primary-900/30 dark:text-primary-400 dark:ring-primary-500/20">
               <Zap className="mr-1 h-3 w-3" />
               High Engagement
             </span>

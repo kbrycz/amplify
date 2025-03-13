@@ -23,7 +23,7 @@ export const useSettingsForm = (campaignData) => {
   // Campaign details state
   const [surveyQuestions, setSurveyQuestions] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
-  const [selectedTheme, setSelectedTheme] = useState('blue');
+  const [selectedTheme, setSelectedTheme] = useState('primary');
   const [hasExplainerVideo, setHasExplainerVideo] = useState(false);
   const [explainerVideo, setExplainerVideo] = useState(null);
   
@@ -44,8 +44,8 @@ export const useSettingsForm = (campaignData) => {
   
   // Available themes
   const themes = {
-    blue: {
-      name: 'Blue',
+    primary: {
+      name: 'primary',
       colors: ['#3b82f6', '#1d4ed8', '#1e40af'],
       gradient: true,
       direction: 'right'

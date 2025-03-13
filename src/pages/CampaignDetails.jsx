@@ -130,7 +130,7 @@ export default function CampaignDetails() {
               </button>
               <button
                 onClick={() => navigate('/app/campaigns/new')}
-                className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600"
+                className="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600"
               >
                 Create New Campaign
               </button>

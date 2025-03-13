@@ -201,7 +201,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
           className="video-area relative aspect-video w-full lg:w-48 overflow-hidden lg:rounded-lg hover:opacity-90 transition-opacity"
         >
           {response.isNew && (
-            <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-blue-500 px-2 py-1 text-xs font-medium text-white">
+            <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-primary-500 px-2 py-1 text-xs font-medium text-white">
               <Circle className="h-2 w-2 fill-current" />
               <span>New</span>
             </div>
@@ -234,7 +234,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
           ) : (
             <div className={`absolute inset-0 ${
               isEnhanced 
-                ? 'bg-gradient-to-br from-purple-800 to-indigo-900 dark:from-purple-900 dark:to-indigo-950' 
+                ? 'bg-gradient-to-br from-purple-800 to-primary-900 dark:from-purple-900 dark:to-primary-950' 
                 : 'bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-900 dark:to-black'
             } flex items-center justify-center`}>
               <Video className="h-12 w-12 text-gray-400 dark:text-gray-600 opacity-50" />
@@ -336,7 +336,7 @@ export function ListViewResponse({ response, onVideoClick, onEdit, onDelete, onT
               </>
             ) : onTransform && (
               <button
-                className="action-button inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium w-full sm:w-auto justify-center transition-all bg-blue-600 text-white hover:bg-blue-700 hover:scale-105"
+                className="action-button inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium w-full sm:w-auto justify-center transition-all bg-primary-600 text-white hover:bg-primary-700 hover:scale-105"
                 onClick={(e) => {
                   e.stopPropagation();
                   onTransform(response);

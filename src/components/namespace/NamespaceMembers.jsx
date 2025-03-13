@@ -5,9 +5,9 @@ import { Plus, Trash2, Shield, Eye, Edit2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const ROLE_ICONS = {
-  admin: <Shield className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />,
+  admin: <Shield className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />,
   'read/write': <Edit2 className="h-4 w-4 text-green-600 dark:text-green-400" />,
-  'read-only': <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+  'read-only': <Eye className="h-4 w-4 text-primary-600 dark:text-primary-400" />
 };
 
 const ROLE_LABELS = {
@@ -111,7 +111,7 @@ export default function NamespaceMembers({ members, setMembers, currentUser }) {
             <button
               type="button"
               onClick={handleAddMember}
-              className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 w-full"
+              className="inline-flex items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 w-full"
             >
               <Plus className="h-4 w-4 mr-1" />
               Add Email
@@ -139,8 +139,8 @@ export default function NamespaceMembers({ members, setMembers, currentUser }) {
                     style={{ zIndex: members.length - index }}
                   >
                     <div className="flex items-center space-x-3 mb-3 sm:mb-0">
-                      <div className="flex-shrink-0 h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                        <span className="text-sm font-medium text-indigo-800 dark:text-indigo-300">
+                      <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                        <span className="text-sm font-medium text-primary-800 dark:text-primary-300">
                           {member.name ? member.name.charAt(0).toUpperCase() : member.email.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -148,7 +148,7 @@ export default function NamespaceMembers({ members, setMembers, currentUser }) {
                         <p className="text-sm font-medium text-gray-900 dark:text-white">
                           {member.email}
                           {member.isCurrentUser && (
-                            <span className="ml-2 text-xs bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 px-2 py-0.5 rounded-full">
+                            <span className="ml-2 text-xs bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300 px-2 py-0.5 rounded-full">
                               You
                             </span>
                           )}

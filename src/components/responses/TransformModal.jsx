@@ -147,8 +147,8 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
             <X className="h-5 w-5" />
           </button>
           <div className="mt-3 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-              <Wand2 className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/50">
+              <Wand2 className="h-7 w-7 text-primary-text-600 dark:text-primary-text-400" />
             </div>
             <div>
               <h3 className="mt-5 text-xl font-semibold text-gray-900 dark:text-white">
@@ -158,8 +158,8 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
                 Enhance your video with professional effects using our AI video processor.
               </p>
               <div className="mt-4 mx-auto max-w-md">
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg px-4 py-3">
-                  <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center justify-center">
+                <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-lg px-4 py-3">
+                  <p className="text-xs text-primary-700 dark:text-primary-300 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -186,7 +186,7 @@ export function TransformModal({ isOpen, onClose, video, onProcessingStart, onTr
               type="button"
               onClick={handleTransform}
               disabled={isProcessing}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing ? (
                 <>

@@ -13,7 +13,7 @@ const features = [
     description: 'Capture genuine video testimonials from supporters and community members with our intuitive recording tools.',
     icon: Video,
     image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=2070',
-    color: 'text-blue-600 dark:text-blue-400',
+    color: 'text-primary-600 dark:text-primary-400',
     gridSpan: 'lg:col-span-3',
     rounded: 'max-lg:rounded-t-[2rem] lg:rounded-tl-[2rem]'
   },
@@ -22,7 +22,7 @@ const features = [
     description: 'Let AI transform raw testimonials into polished, shareable content that amplifies your message.',
     icon: BarChart3,
     image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070',
-    color: 'text-indigo-600 dark:text-indigo-400',
+    color: 'text-primary-text-600 dark:text-primary-text-400',
     gridSpan: 'lg:col-span-3',
     rounded: 'lg:rounded-tr-[2rem]'
   },
@@ -63,7 +63,7 @@ export function FeaturesSection() {
     >
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         <div className="max-w-2xl md:mx-auto md:text-center xl:max-w-none">
-          <h2 className="text-base font-semibold leading-7 text-indigo-600 dark:text-indigo-400 text-center">Features</h2>
+          <h2 className="text-base font-semibold leading-7 text-primary-text-600 dark:text-primary-text-400 text-center">Features</h2>
           <p className="mt-2 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl mx-auto max-w-4xl text-center">
             Transform Stories into Impact
           </p>
@@ -99,7 +99,7 @@ export function FeaturesSection() {
                         <Tab
                           className={classNames(
                             selectedIndex === featureIndex
-                              ? 'text-indigo-600 lg:text-gray-900 dark:lg:text-white'
+                              ? 'text-primary-text-600 lg:text-gray-900 dark:lg:text-white'
                               : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white',
                             'font-display text-lg [&:not(:focus-visible)]:focus:outline-none'
                           )}

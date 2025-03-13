@@ -94,13 +94,13 @@ export function ReviewCampaign({
           <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Building className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <Building className="h-5 w-5 text-primary-text-600 dark:text-primary-text-400" />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">{currentNamespace}</span>
               </div>
               {userPermission && (
-                <div className="flex items-center gap-2 px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 rounded-md">
-                  <Shield className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-                  <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">{formatPermission(userPermission)}</span>
+                <div className="flex items-center gap-2 px-2 py-1 bg-primary-100 dark:bg-primary-900/50 rounded-md">
+                  <Shield className="h-3.5 w-3.5 text-primary-text-600 dark:text-primary-text-400" />
+                  <span className="text-xs font-medium text-primary-700 dark:text-primary-300">{formatPermission(userPermission)}</span>
                 </div>
               )}
             </div>

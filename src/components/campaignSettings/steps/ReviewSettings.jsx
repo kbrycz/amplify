@@ -40,21 +40,21 @@ export const ReviewSettings = ({
 
       <div className="space-y-6">
         {/* Namespace Information */}
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 dark:bg-blue-900/20 dark:border-blue-900/50">
+        <div className="p-4 bg-primary-50 rounded-lg border border-primary-200 dark:bg-primary-900/20 dark:border-primary-900/50">
           <div className="flex items-start gap-3">
-            <div className="rounded-full p-2 bg-blue-100 dark:bg-blue-900/50">
-              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="rounded-full p-2 bg-primary-100 dark:bg-primary-900/50">
+              <Users className="h-5 w-5 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300">
+              <h3 className="text-sm font-medium text-primary-800 dark:text-primary-300">
                 Namespace Information
               </h3>
-              <p className="mt-1 text-sm text-blue-700 dark:text-blue-400">
+              <p className="mt-1 text-sm text-primary-700 dark:text-primary-400">
                 This campaign belongs to the <strong>{currentNamespace}</strong> namespace.
               </p>
               <div className="mt-2 flex items-center gap-1.5">
-                <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs text-blue-700 dark:text-blue-400">
+                <Shield className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                <span className="text-xs text-primary-700 dark:text-primary-400">
                   Your permission: {formatPermission(userPermission)}
                 </span>
               </div>

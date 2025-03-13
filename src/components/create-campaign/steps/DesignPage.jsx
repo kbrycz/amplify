@@ -181,13 +181,13 @@ export function DesignPage({
                     onClick={() => setGradientDirection(value)}
                     className={`relative flex h-16 items-center justify-center overflow-hidden rounded-lg border transition-all ${
                       gradientDirection === value
-                        ? 'border-indigo-600 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-900/20'
+                        ? 'border-primary-600 bg-primary-50 dark:border-primary-400 dark:bg-primary-900/20'
                         : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800'
                     }`}
                   >
                     <span className={`text-sm font-medium ${
                       gradientDirection === value
-                        ? 'text-indigo-600 dark:text-indigo-400'
+                        ? 'text-primary-text-600 dark:text-primary-text-400'
                         : 'text-gray-700 dark:text-gray-300'
                     }`}>
                       {label}
@@ -269,8 +269,8 @@ export function DesignPage({
               type="button" // Explicitly set button type to prevent form submission
               className={`group relative flex flex-col overflow-hidden rounded-xl border-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl ${
                 selectedTheme === key
-                  ? 'border-indigo-600 dark:border-indigo-400 ring-4 ring-indigo-600/20 dark:ring-indigo-400/20 shadow-lg'
-                  : 'border-gray-200 dark:border-gray-800 hover:border-indigo-600/50 dark:hover:border-indigo-400/50 shadow-md'
+                  ? 'border-primary-600 dark:border-primary-400 ring-4 ring-primary-600/20 dark:ring-primary-400/20 shadow-lg'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-primary-600/50 dark:hover:border-primary-400/50 shadow-md'
               }`}
             >
               {/* Theme Preview */}
@@ -280,7 +280,7 @@ export function DesignPage({
 
                 {/* Selected Indicator */}
                 {selectedTheme === key && (
-                  <div className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white text-indigo-600 shadow-lg ring-2 ring-white/20 dark:bg-gray-900 dark:text-indigo-400 dark:ring-black/20">
+                  <div className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary-text-600 shadow-lg ring-2 ring-white/20 dark:bg-gray-900 dark:text-primary-text-400 dark:ring-black/20">
                     <Check className="h-5 w-5" />
                   </div>
                 )}
@@ -295,10 +295,10 @@ export function DesignPage({
 
               {/* Theme Name */}
               <div className="relative border-t border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-                <h3 className="font-medium text-gray-900 dark:text-white transition-colors group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                <h3 className="font-medium text-gray-900 dark:text-white transition-colors group-hover:text-primary-text-600 dark:group-hover:text-primary-400">
                   {theme.name}
                 </h3>
-                <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-indigo-600/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-primary-600/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
               </div>
             </button>
           ))}

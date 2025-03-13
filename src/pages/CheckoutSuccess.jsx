@@ -91,12 +91,12 @@ export default function CheckoutSuccess() {
   const getPlanFeatures = (planName) => {
     if (planName === 'pro') {
       return [
-        { icon: <Zap className="h-5 w-5 text-blue-500" />, text: '10 active campaigns' },
-        { icon: <Video className="h-5 w-5 text-blue-500" />, text: '100 video responses per campaign' },
-        { icon: <Star className="h-5 w-5 text-blue-500" />, text: '100 video enhancement credits' },
-        { icon: <Shield className="h-5 w-5 text-blue-500" />, text: 'HD video quality (1080p)' },
-        { icon: <BarChart2 className="h-5 w-5 text-blue-500" />, text: 'Advanced analytics & reporting' },
-        { icon: <Users className="h-5 w-5 text-blue-500" />, text: 'Team collaboration tools' }
+        { icon: <Zap className="h-5 w-5 text-primary-500" />, text: '10 active campaigns' },
+        { icon: <Video className="h-5 w-5 text-primary-500" />, text: '100 video responses per campaign' },
+        { icon: <Star className="h-5 w-5 text-primary-500" />, text: '100 video enhancement credits' },
+        { icon: <Shield className="h-5 w-5 text-primary-500" />, text: 'HD video quality (1080p)' },
+        { icon: <BarChart2 className="h-5 w-5 text-primary-500" />, text: 'Advanced analytics & reporting' },
+        { icon: <Users className="h-5 w-5 text-primary-500" />, text: 'Team collaboration tools' }
       ];
     } else if (planName === 'premium') {
       return [
@@ -145,7 +145,7 @@ export default function CheckoutSuccess() {
   const isPremium = planDetails?.name === 'premium';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-indigo-50 dark:from-gray-900 dark:to-indigo-950 flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-white to-primary-50 dark:from-gray-900 dark:to-primary-950 flex flex-col items-center justify-center px-4 py-12">
       <div className="max-w-2xl w-full bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8 text-center">
         {/* Success Icon */}
         <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 dark:bg-green-900">
@@ -157,7 +157,7 @@ export default function CheckoutSuccess() {
           <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
             ${isPremium 
               ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
-              : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'}`}>
+              : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'}`}>
             <Crown className="mr-1 h-4 w-4" />
             {isPremium ? 'Premium Plan' : 'Pro Plan'} Activated
           </div>
@@ -185,7 +185,7 @@ export default function CheckoutSuccess() {
         {isLoading ? (
           <div className="mt-10">
             <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400"></div>
             </div>
             <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
               Setting up your enhanced account...
@@ -196,7 +196,7 @@ export default function CheckoutSuccess() {
             {/* Only show features section if verification succeeded */}
             {!error && planDetails && (
               <>
-                <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-6 mb-8">
+                <div className="bg-primary-50 dark:bg-primary-900/30 rounded-xl p-6 mb-8">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     Your New Capabilities
                   </h2>
@@ -223,8 +223,8 @@ export default function CheckoutSuccess() {
               className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white 
                 ${isPremium && !error
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' 
-                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700'} 
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 transition-all duration-200`}
+                  : 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700'} 
+                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800 transition-all duration-200`}
             >
               Continue to Dashboard
             </button>

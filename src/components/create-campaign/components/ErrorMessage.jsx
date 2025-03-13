@@ -25,7 +25,7 @@ export const ErrorMessage = ({ error, duration = 5000 }) => {
     if (error.type === 'success') {
       return 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800';
     } else if (error.type === 'info') {
-      return 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800';
+      return 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 border-primary-200 dark:border-primary-800';
     } else {
       return 'bg-red-50 text-red-700 dark:bg-red-900/50 dark:text-red-400 border-red-200 dark:border-red-800';
     }
@@ -36,7 +36,7 @@ export const ErrorMessage = ({ error, duration = 5000 }) => {
     if (error.type === 'success') {
       return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />;
     } else if (error.type === 'info') {
-      return <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
+      return <Info className="h-5 w-5 text-primary-600 dark:text-primary-400" />;
     } else {
       return <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />;
     }

@@ -71,7 +71,7 @@ export default function SocialSignIn({ handleGoogleSignIn }) {
 
       <p className="mx-auto mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
         Don't have an account?{' '}
-        <Link to="/signup" className="font-semibold text-indigo-600 hover:text-indigo-500">
+        <Link to="/signup" className="font-semibold text-primary-text-600 hover:text-primary-500">
           Sign up
         </Link>
       </p>

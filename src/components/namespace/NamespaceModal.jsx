@@ -87,8 +87,8 @@ export default function NamespaceModal() {
         
         <div className="mb-8">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-              <Building className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/50">
+              <Building className="h-6 w-6 text-primary-text-600 dark:text-primary-text-400" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -105,7 +105,7 @@ export default function NamespaceModal() {
           {/* Loading State */}
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-10">
-              <Loader2 className="h-10 w-10 animate-spin text-indigo-600 dark:text-indigo-400" />
+              <Loader2 className="h-10 w-10 animate-spin text-primary-text-600 dark:text-primary-text-400" />
               <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">Loading namespaces...</p>
             </div>
           )}
@@ -143,7 +143,7 @@ export default function NamespaceModal() {
                       )}
                     </div>
                     {getNamespaceName(namespace) === currentNamespace && (
-                      <span className="text-xs bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-300 px-2 py-1 rounded-full">
                         Active
                       </span>
                     )}
@@ -164,7 +164,7 @@ export default function NamespaceModal() {
           <div className="grid grid-cols-2 gap-4 pt-3">
             <button
               onClick={handleNavigateToCreate}
-              className="flex items-center justify-center gap-2 p-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+              className="flex items-center justify-center gap-2 p-3 bg-primary-600 text-white rounded-lg hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             >
               <Plus className="w-4 h-4" />
               <span className="font-medium">Create New</span>

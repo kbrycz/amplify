@@ -1,7 +1,7 @@
 import React from 'react';
-import { Loader2, X, CheckCircle, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Loader2, X, CheckCircle, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { CopyButton } from '../../ui/copy-button';
+import { CopyButton } from '../ui/copy-button';
 
 // Helper function to format error messages in a user-friendly way
 const formatErrorMessage = (error) => {
@@ -30,23 +30,11 @@ const formatErrorMessage = (error) => {
   return error;
 };
 
-export function LoadingModal({ 
-  isOpen, 
-  onClose, 
-  status, 
-  error, 
-  campaignId, 
-  campaignName,
-  message,
-  videoUploadError,
-  videoUploadWarning
-}) {
+export function LoadingModal({ isOpen, onClose, status, error, campaignId, campaignName }) {
   if (!isOpen) return null;
 
   const surveyUrl = campaignId ? `${window.location.origin}/survey/${campaignId}` : '';
   const formattedError = formatErrorMessage(error);
-  const formattedVideoError = videoUploadError ? formatErrorMessage(videoUploadError) : null;
-  const formattedVideoWarning = videoUploadWarning ? formatErrorMessage(videoUploadWarning) : null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
@@ -99,17 +87,6 @@ export function LoadingModal({
                   Your campaign "{campaignName}" has been created. Share the survey link with your audience to start collecting responses.
                 </p>
 
-                {formattedVideoWarning && (
-                  <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                    <div className="flex items-start">
-                      <AlertTriangle className="h-5 w-5 text-yellow-500 dark:text-yellow-400 mt-0.5 mr-2 flex-shrink-0" />
-                      <p className="text-sm text-yellow-700 dark:text-yellow-300 text-left">
-                        {formattedVideoWarning}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 <div className="mt-8">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Survey URL
@@ -152,7 +129,7 @@ export function LoadingModal({
                   Creating Your Campaign
                 </h3>
                 <p className="mt-4 text-base text-gray-600 dark:text-gray-400 px-4">
-                  {message || "Please wait while we set up your campaign..."}
+                  Please wait while we set up your campaign...
                 </p>
               </>
             )}

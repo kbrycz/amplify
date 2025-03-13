@@ -18,42 +18,42 @@ export function CategorySelection({ formData, setFormData, handleNext }) {
       name: 'Political Campaigns',
       icon: <Vote className="w-8 h-8 text-white" />,
       description: 'For candidates, PACs, and ballot initiatives.',
-      color: 'bg-blue-500 hover:bg-blue-600'
+      color: 'bg-primary-500 hover:bg-primary-600'
     },
     {
       id: 'government',
       name: 'Government Offices & Legislatures',
       icon: <LandmarkIcon className="w-8 h-8 text-white" />,
       description: 'For Congressional, State, & Local Offices highlighting constituent services and policy impact.',
-      color: 'bg-blue-500 hover:bg-blue-600'
+      color: 'bg-primary-500 hover:bg-primary-600'
     },
     {
       id: 'trade',
       name: 'Trade & Professional Associations',
       icon: <Building2 className="w-8 h-8 text-white" />,
       description: 'For Trade Associations, Unions, and Professional Groups',
-      color: 'bg-blue-500 hover:bg-blue-600'
+      color: 'bg-primary-500 hover:bg-primary-600'
     },
     {
       id: 'advocacy',
       name: 'Advocacy Groups',
       icon: <Users className="w-8 h-8 text-white" />,
       description: 'For Cause-Based Organizations, Grassroots Movements, and Public Policy Groups.',
-      color: 'bg-blue-500 hover:bg-blue-600'
+      color: 'bg-primary-500 hover:bg-primary-600'
     },
     {
       id: 'religious',
       name: 'Churches & Faith-Based Organizations',
       icon: <Church className="w-8 h-8 text-white" />,
       description: 'For religious groups engaging members, sharing faith stories, and driving involvement.',
-      color: 'bg-blue-500 hover:bg-blue-600'
+      color: 'bg-primary-500 hover:bg-primary-600'
     },
     {
       id: 'education',
       name: 'Universities, Schools, & Alumni Groups',
       icon: <GraduationCap className="w-8 h-8 text-white" />,
       description: 'For educational institutions engaging students, alumni, and donors.',
-      color: 'bg-blue-500 hover:bg-blue-600'
+      color: 'bg-primary-500 hover:bg-primary-600'
     }
   ];
 
@@ -127,7 +127,7 @@ export function CategorySelection({ formData, setFormData, handleNext }) {
             key={category.id}
             className={`cursor-pointer transition-all duration-200 border-2 ${
               formData.category === category.id 
-                ? 'border-blue-500 dark:border-blue-400 shadow-md bg-blue-50 dark:bg-blue-900/20' 
+                ? 'border-primary-500 dark:border-primary-400 shadow-md bg-primary-50 dark:bg-primary-900/20' 
                 : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700 shadow-sm hover:shadow-md'
             }`}
             onClick={() => handleCategorySelect(category.id)}
@@ -135,7 +135,7 @@ export function CategorySelection({ formData, setFormData, handleNext }) {
             <div className="p-6 flex items-start space-x-4">
               <div className={`p-3 rounded-lg ${
                 formData.category === category.id 
-                  ? 'bg-blue-600 dark:bg-blue-700' 
+                  ? 'bg-primary-600 dark:bg-primary-700' 
                   : category.color
               }`}>
                 {category.icon}
@@ -144,11 +144,11 @@ export function CategorySelection({ formData, setFormData, handleNext }) {
                 <div className="flex justify-between items-start">
                   <h3 className={`font-medium ${
                     formData.category === category.id 
-                      ? 'text-blue-700 dark:text-blue-400' 
+                      ? 'text-primary-700 dark:text-primary-400' 
                       : 'text-gray-900 dark:text-white'
                   }`}>{category.name}</h3>
                   {formData.category === category.id && (
-                    <CheckCircle2 className="h-5 w-5 text-blue-500 dark:text-blue-400 flex-shrink-0" />
+                    <CheckCircle2 className="h-5 w-5 text-primary-500 dark:text-primary-400 flex-shrink-0" />
                   )}
                 </div>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{category.description}</p>

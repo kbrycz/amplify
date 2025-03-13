@@ -32,7 +32,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What issue is most important to you in this election?',
           'How do you think [Candidate Name] will make a difference?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'call_to_action',
@@ -44,7 +44,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What message would you send to undecided voters?',
           'What would you say to encourage others to sign the petition or get involved?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'endorsements',
@@ -56,7 +56,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What qualities make [Candidate Name] the right choice for this position?',
           'What impact do you believe [Candidate Name] will have on our community?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'issue_spotlights',
@@ -68,7 +68,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'How has this issue impacted your life or community?',
           'What change would you like to see regarding this issue?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       }
     ],
     government: [
@@ -82,7 +82,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'How did it make a difference in your life?',
           'What would you say to others who may need this service?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'legislative_impact',
@@ -94,7 +94,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What changes have you seen because of this policy?',
           'Why is it important for lawmakers to hear stories like yours?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'public_service',
@@ -106,7 +106,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What do people need to know about [specific program or service]?',
           'How can people take advantage of [government program]?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'community_recognition',
@@ -118,7 +118,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'How has this person or organization positively impacted your area?',
           'What would you say to encourage others to support their efforts?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       }
     ],
     trade: [
@@ -132,7 +132,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'How has being a member helped you navigate challenges in your industry?',
           'Why would you encourage others to join [Association Name]?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'policy_impact',
@@ -144,7 +144,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What challenges does your industry face due to current policies?',
           'What would you say to lawmakers about improving industry regulations?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'career_spotlights',
@@ -156,7 +156,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What advice would you give to someone considering a career in your field?',
           'What\'s one thing you love about your profession?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'advocacy_outreach',
@@ -168,7 +168,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'Why is it important for professionals like you to have a voice in policymaking?',
           'What would you say to lawmakers about supporting your industry?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       }
     ],
     advocacy: [
@@ -182,7 +182,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'Why is this cause important to you?',
           'What message do you want to share with others about this issue?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'awareness_appeals',
@@ -194,7 +194,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'Why is it urgent to take action now?',
           'What simple action can people take today to make a difference?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'call_to_government',
@@ -206,7 +206,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'How has this policy affected your life?',
           'Why should elected officials take action on this?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'fundraising',
@@ -218,7 +218,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'How has donor support made a difference in this movement?',
           'What would you say to encourage someone to contribute or volunteer?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       }
     ],
     religious: [
@@ -232,7 +232,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'How has your faith journey been impacted by [Church Name]?',
           'Why is [specific biblical message] meaningful to you?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'volunteer_spotlights',
@@ -244,7 +244,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What\'s one memorable experience you\'ve had while volunteering?',
           'How has serving others deepened your faith?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'fundraising_appeals',
@@ -256,7 +256,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'How has your generosity made an impact in the church or community?',
           'What would you say to encourage others to support this ministry?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'event_promotion',
@@ -268,7 +268,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What can people expect when they attend this event?',
           'Who would you invite to join you and why?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       }
     ],
     education: [
@@ -282,7 +282,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What\'s one unforgettable experience from your time at [School Name]?',
           'Why would you recommend [School Name] to others?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'fundraising_appeals',
@@ -294,7 +294,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What impact has financial aid or scholarships had on students?',
           'What would you say to inspire others to give back?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'event_recaps',
@@ -306,7 +306,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'Why should alumni and students attend [upcoming event]?',
           'How did this event strengthen the [School Name] community?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       },
       {
         id: 'career_success',
@@ -318,7 +318,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
           'What advice would you give to students entering your field?',
           'What opportunities did you gain through your university connections?'
         ],
-        color: 'bg-blue-500 hover:bg-blue-600'
+        color: 'bg-primary-500 hover:bg-primary-600'
       }
     ]
   };
@@ -388,7 +388,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
             key={subcategory.id}
             className={`cursor-pointer transition-all duration-200 border-2 ${
               formData.subcategory === subcategory.id 
-                ? 'border-blue-500 dark:border-blue-400 shadow-md bg-blue-50 dark:bg-blue-900/20' 
+                ? 'border-primary-500 dark:border-primary-400 shadow-md bg-primary-50 dark:bg-primary-900/20' 
                 : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700 shadow-sm hover:shadow-md'
             }`}
             onClick={() => handleSubcategorySelect(subcategory.id, subcategory.questions)}
@@ -396,7 +396,7 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
             <div className="p-6 flex items-start space-x-4">
               <div className={`p-3 rounded-lg ${
                 formData.subcategory === subcategory.id 
-                  ? 'bg-blue-600 dark:bg-blue-700' 
+                  ? 'bg-primary-600 dark:bg-primary-700' 
                   : subcategory.color
               }`}>
                 {subcategory.icon}
@@ -405,11 +405,11 @@ export function SubcategorySelection({ formData, setFormData, handleNext }) {
                 <div className="flex justify-between items-start">
                   <h3 className={`font-medium ${
                     formData.subcategory === subcategory.id 
-                      ? 'text-blue-700 dark:text-blue-400' 
+                      ? 'text-primary-700 dark:text-primary-400' 
                       : 'text-gray-900 dark:text-white'
                   }`}>{subcategory.name}</h3>
                   {formData.subcategory === subcategory.id && (
-                    <CheckCircle2 className="h-5 w-5 text-blue-500 dark:text-blue-400 flex-shrink-0" />
+                    <CheckCircle2 className="h-5 w-5 text-primary-500 dark:text-primary-400 flex-shrink-0" />
                   )}
                 </div>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subcategory.description}</p>

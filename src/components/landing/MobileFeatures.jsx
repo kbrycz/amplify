@@ -46,7 +46,7 @@ export function MobileFeatures({ features }) {
             onClick={() => setSelectedFeature(index)}
             className={classNames(
               selectedFeature === index
-                ? 'border-indigo-600 bg-indigo-50 text-indigo-600 dark:border-indigo-400 dark:bg-indigo-900/20 dark:text-indigo-400'
+                ? 'border-primary-600 bg-primary-50 text-primary-text-600 dark:border-primary-400 dark:bg-primary-900/20 dark:text-primary-text-400'
                 : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800',
               'flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-colors w-full'
             )}

@@ -80,7 +80,7 @@ export default function RecentCampaigns({
             <Link
               to="/app/campaigns"
               onClick={onViewAllCampaigns}
-              className="mt-4 sm:mt-0 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              className="mt-4 sm:mt-0 inline-flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
             >
               View all campaigns
               <ChevronRight className="h-4 w-4" />
@@ -100,7 +100,7 @@ export default function RecentCampaigns({
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400">
                         {campaign.name || 'Untitled Campaign'}
                       </h3>
                     </div>
@@ -123,15 +123,15 @@ export default function RecentCampaigns({
                       </span>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-4">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                      <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400">
                         <Clock className="h-4 w-4" />
                         <span>{lastUpdateStr}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                      <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400">
                         <Inbox className="h-4 w-4" />
                         <span>{campaign.responseCount || 0} responses</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                      <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400">
                         <Video className="h-4 w-4" />
                         <span>{campaign.aiVideosCount || 0} AI videos</span>
                       </div>
@@ -148,12 +148,12 @@ export default function RecentCampaigns({
     console.log('Rendering empty state, no campaigns to display');
     return (
       <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-50 via-white to-white opacity-50 dark:from-indigo-900/20 dark:via-gray-900 dark:to-gray-900" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary-50 via-white to-white opacity-50 dark:from-primary-900/20 dark:via-gray-900 dark:to-gray-900" />
         <div className="relative">
           <div className="mx-auto max-w-xl text-center">
             <div className="mb-6 flex justify-center">
-              <div className="rounded-full bg-indigo-100 p-3 dark:bg-indigo-900/50">
-                <Video className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+              <div className="rounded-full bg-primary-100 p-3 dark:bg-primary-900/50">
+                <Video className="h-8 w-8 text-primary-text-600 dark:text-primary-text-400" />
               </div>
             </div>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
@@ -164,15 +164,15 @@ export default function RecentCampaigns({
             </p>
             <button
               onClick={onNewCampaign}
-              className="mt-8 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-base font-medium text-white transition-all duration-200 hover:bg-indigo-500 hover:scale-105"
+              className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-base font-medium text-white transition-all duration-200 hover:bg-primary-500 hover:scale-105"
             >
               <Plus className="h-5 w-5" />
               Create Campaign
             </button>
             <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
               <div className="flex flex-col items-center">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                  <Video className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/50">
+                  <Video className="h-6 w-6 text-primary-text-600 dark:text-primary-text-400" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-900 dark:text-white">Record Stories</h3>
                 <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
@@ -202,7 +202,7 @@ export default function RecentCampaigns({
               <span>Need help getting started?</span>
               <Link
                 to="/app/support"
-                className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                className="font-medium text-primary-text-600 hover:text-primary-500 dark:text-primary-text-400 dark:hover:text-primary-300"
               >
                 View our guide
               </Link>

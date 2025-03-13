@@ -99,8 +99,8 @@ function Header() {
               onClick={openVideoModal}
               className={`flex items-center justify-center ${
                 isMobile 
-                  ? 'w-10 h-10 rounded-lg text-blue-600 border border-blue-300 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/20' 
-                  : 'gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/20'
+                  ? 'w-10 h-10 rounded-lg text-primary-600 border border-primary-300 hover:bg-primary-50 dark:text-primary-400 dark:border-primary-700 dark:hover:bg-primary-900/20' 
+                  : 'gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 border border-primary-300 rounded-lg hover:bg-primary-50 dark:text-primary-400 dark:border-primary-700 dark:hover:bg-primary-900/20'
               } transition-colors`}
               aria-label="View Demo"
             >

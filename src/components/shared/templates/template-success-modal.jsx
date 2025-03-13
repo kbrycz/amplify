@@ -47,7 +47,7 @@ export function TemplateSuccessModal({ isOpen, onClose, templateName, templateId
           <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
             <button
               onClick={handleCreateCampaign}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Create Campaign

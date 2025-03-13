@@ -49,13 +49,13 @@ export function DraftsDropdown({
               <button
                 className={`flex-1 flex items-start gap-3 p-2 text-sm text-left rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
                   selectedDraftId === draft.id
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20'
                     : 'text-gray-700 dark:text-gray-300'
                 }`}
                 onClick={() => handleDraftClick(draft.id)}
               >
                 {selectedDraftId === draft.id && !isDeletingDraft ? (
-                  <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <Check className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                 ) : (
                   <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                 )}

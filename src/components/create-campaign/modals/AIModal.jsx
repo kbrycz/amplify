@@ -17,8 +17,8 @@ export function AIModal({ isOpen, onClose, aiPrompt, setAiPrompt, handleAIGenera
         
         <div className="mb-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-              <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/50">
+              <Sparkles className="h-5 w-5 text-primary-text-600 dark:text-primary-text-400" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -39,7 +39,7 @@ export function AIModal({ isOpen, onClose, aiPrompt, setAiPrompt, handleAIGenera
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
               placeholder="Example: Create a campaign for a local food bank's summer donation drive targeting young professionals..."
-              className="mt-2 block h-32 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/10"
+              className="mt-2 block h-32 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary-400 dark:focus:ring-primary-400/10"
             />
           </div>
           
@@ -50,13 +50,13 @@ export function AIModal({ isOpen, onClose, aiPrompt, setAiPrompt, handleAIGenera
             </div>
           )}
           
-          <div className="flex items-center gap-3 rounded-lg border border-indigo-100 bg-indigo-50/50 p-3 dark:border-indigo-900/50 dark:bg-indigo-900/10">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-              <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="flex items-center gap-3 rounded-lg border border-primary-100 bg-primary-50/50 p-3 dark:border-primary-900/50 dark:bg-primary-900/10">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/50">
+              <svg className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
               </svg>
             </div>
-            <p className="text-sm text-indigo-700 dark:text-indigo-400">
+            <p className="text-sm text-primary-700 dark:text-primary-text-400">
               Our AI will generate campaign details, questions, and branding suggestions based on your description.
             </p>
           </div>
@@ -73,7 +73,7 @@ export function AIModal({ isOpen, onClose, aiPrompt, setAiPrompt, handleAIGenera
               type="button"
               onClick={handleAIGenerate}
               disabled={!aiPrompt.trim() || isGenerating}
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:bg-indigo-500 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-500 disabled:bg-primary-500 disabled:opacity-50"
             >
               {isGenerating ? (
                 <>

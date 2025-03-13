@@ -80,7 +80,7 @@ export default function RecentActivity() {
             {(isExpanded ? activities : activities.slice(0, INITIAL_ITEMS)).map((activity, index) => (
               <div key={activity.id} className="flex items-start gap-4">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
-                  <Star className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <Star className="h-4 w-4 text-primary-600 dark:text-primary-400" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">

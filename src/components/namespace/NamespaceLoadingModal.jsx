@@ -25,7 +25,7 @@ export default function NamespaceLoadingModal({ isOpen, status, error, onClose, 
           {status === 'loading' ? (
             <>
               <div className="flex h-12 w-12 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary-text-600 dark:text-primary-text-400" />
               </div>
               
               <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
@@ -56,7 +56,7 @@ export default function NamespaceLoadingModal({ isOpen, status, error, onClose, 
               
               <button
                 onClick={onClose}
-                className="mt-6 inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                className="mt-6 inline-flex items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
               >
                 Continue
               </button>
@@ -78,13 +78,13 @@ export default function NamespaceLoadingModal({ isOpen, status, error, onClose, 
               <div className="mt-6 flex space-x-3">
                 <button
                   onClick={onClose}
-                  className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
+                  className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={onRetry || onClose}
-                  className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                  className="inline-flex items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
                 >
                   Try Again
                 </button>

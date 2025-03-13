@@ -54,8 +54,8 @@ export default function CampaignAgeModal({ campaign, onClose, currentNamespaceId
 
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 rounded-full bg-blue-100 p-1.5 dark:bg-blue-900/50">
-                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <div className="mt-0.5 rounded-full bg-primary-100 p-1.5 dark:bg-primary-900/50">
+                <Calendar className="h-4 w-4 text-primary-600 dark:text-primary-400" />
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-900 dark:text-white">Created</h4>

@@ -64,7 +64,7 @@ export function VideoModal({ testimonial, onClose }) {
       <div className="relative w-full max-w-4xl mx-4">
         {/* Original version badge */}
         {isOriginalVersion && (
-          <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 rounded-full bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-lg">
+          <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 rounded-full bg-primary-600 px-3 py-1.5 text-sm font-medium text-white shadow-lg">
             <Rewind className="h-4 w-4" />
             <span>Original Version</span>
           </div>

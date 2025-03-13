@@ -107,7 +107,7 @@ export function EditCampaignModal({ isOpen, onClose, campaign, onSave }) {
                 type="submit"
                 disabled={isSubmitting}
                 className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50 ${
-                  isSuccess ? 'bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700'
+                  isSuccess ? 'bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700' : 'bg-primary-600 hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700'
                 }`}
               >
                 {isSubmitting ? (

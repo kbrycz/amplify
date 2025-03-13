@@ -60,8 +60,8 @@ export const DesignSettingsCard = ({
                 type="button"
                 className={`group relative flex flex-col overflow-hidden rounded-xl border-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl ${
                   selectedTheme === key
-                    ? 'border-indigo-600 dark:border-indigo-400 ring-4 ring-indigo-600/20 dark:ring-indigo-400/20 shadow-lg'
-                    : 'border-gray-200 dark:border-gray-800 hover:border-indigo-600/50 dark:hover:border-indigo-400/50 shadow-md'
+                    ? 'border-primary-600 dark:border-primary-400 ring-4 ring-primary-600/20 dark:ring-primary-400/20 shadow-lg'
+                    : 'border-gray-200 dark:border-gray-800 hover:border-primary-600/50 dark:hover:border-primary-400/50 shadow-md'
                 }`}
               >
                 {/* Theme Preview */}
@@ -76,7 +76,7 @@ export const DesignSettingsCard = ({
                 <div className="p-3 flex items-center justify-between">
                   <span className="font-medium">{theme.name}</span>
                   {selectedTheme === key && (
-                    <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                    <Check className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />
                   )}
                 </div>
               </button>
@@ -88,8 +88,8 @@ export const DesignSettingsCard = ({
               type="button"
               className={`group relative flex flex-col overflow-hidden rounded-xl border-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl ${
                 selectedTheme === 'custom'
-                  ? 'border-indigo-600 dark:border-indigo-400 ring-4 ring-indigo-600/20 dark:ring-indigo-400/20 shadow-lg'
-                  : 'border-gray-200 dark:border-gray-800 hover:border-indigo-600/50 dark:hover:border-indigo-400/50 shadow-md'
+                  ? 'border-primary-600 dark:border-primary-400 ring-4 ring-primary-600/20 dark:ring-primary-400/20 shadow-lg'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-primary-600/50 dark:hover:border-primary-400/50 shadow-md'
               }`}
             >
               <div
@@ -103,7 +103,7 @@ export const DesignSettingsCard = ({
               <div className="p-3 flex items-center justify-between">
                 <span className="font-medium">Custom</span>
                 {selectedTheme === 'custom' && (
-                  <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  <Check className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />
                 )}
               </div>
             </button>

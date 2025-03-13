@@ -24,7 +24,7 @@ export function SurveyHeader({ campaign, theme, themes, goToNextStep, previewIma
         className={`mt-8 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
           theme 
             ? `${themes[theme].border} border-2 ${themes[theme].text} hover:bg-white/10` 
-            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+            : 'bg-primary-600 text-white hover:bg-primary-700'
         }`}
       >
         Get Started

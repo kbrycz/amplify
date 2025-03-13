@@ -6,7 +6,7 @@ const captionStyles = [
   { id: 'standard', name: 'Standard', description: 'Clean white text with dark background', preview: 'bg-black/70 text-white px-4 py-2 rounded-md text-center' },
   { id: 'minimal', name: 'Minimal', description: 'Simple white text with no background', preview: 'text-white px-3 py-1.5 text-shadow-sm rounded-md text-center' },
   { id: 'outlined', name: 'Outlined', description: 'White text with black outline', preview: 'text-white px-4 py-2 rounded-md text-center text-shadow-outline' },
-  { id: 'bold', name: 'Bold', description: 'Large, impactful text with background', preview: 'bg-indigo-600 text-white px-4 py-2 font-bold rounded-md text-center' },
+  { id: 'bold', name: 'Bold', description: 'Large, impactful text with background', preview: 'bg-primary-600 text-white px-4 py-2 font-bold rounded-md text-center' },
   { id: 'gradient', name: 'Gradient', description: 'Eye-catching gradient background', preview: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-md text-center' }
 ];
 
@@ -76,8 +76,8 @@ export function Captions({ selectedCaptionStyle, setSelectedCaptionStyle }) {
               key={style.id}
               className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
                 currentStyle === style.id
-                  ? 'border-indigo-500 ring-2 ring-indigo-500/50 bg-indigo-50 dark:bg-indigo-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-800'
+                  ? 'border-primary-500 ring-2 ring-primary-500/50 bg-primary-50 dark:bg-primary-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800'
               }`}
               onClick={() => handleStyleChange(style.id)}
             >
@@ -108,7 +108,7 @@ export function Captions({ selectedCaptionStyle, setSelectedCaptionStyle }) {
         <Label className="text-lg font-medium">Caption Position</Label>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Choose where captions will be displayed on the video.
-          {isSubtitlesDisabled && <span className="ml-2 text-indigo-500 font-medium">(Select a caption style first)</span>}
+          {isSubtitlesDisabled && <span className="ml-2 text-primary-500 font-medium">(Select a caption style first)</span>}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           {captionPositions.map((position) => (
@@ -116,8 +116,8 @@ export function Captions({ selectedCaptionStyle, setSelectedCaptionStyle }) {
               key={position.id}
               className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
                 captionPosition === position.id && !isSubtitlesDisabled
-                  ? 'border-indigo-500 ring-2 ring-indigo-500/50 bg-indigo-50 dark:bg-indigo-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-800'
+                  ? 'border-primary-500 ring-2 ring-primary-500/50 bg-primary-50 dark:bg-primary-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800'
               }`}
               onClick={() => handlePositionChange(position.id)}
             >

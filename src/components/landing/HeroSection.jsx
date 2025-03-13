@@ -26,7 +26,7 @@ export function HeroSection() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h1 className="text-balance text-5xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-7xl mb-8">
-              Let Your Community <span className="bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-500 bg-clip-text text-transparent">Shout</span>
+              Let Your Community <span className="bg-gradient-to-r from-purple-700 via-primary-600 to-purple-500 bg-clip-text text-transparent">Shout</span>
             </h1>
             <p className="text-pretty text-lg font-medium text-gray-600 dark:text-gray-400 sm:text-xl/8">
               Turn community feedback into powerful video stories. Whether it's political support, social causes, or community initiatives - let every voice be heard.
@@ -34,7 +34,7 @@ export function HeroSection() {
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
                 to="/login"
-                className="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
+                className="rounded-md bg-primary-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400"
               >
                 Get started
               </Link>

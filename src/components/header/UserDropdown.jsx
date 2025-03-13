@@ -53,7 +53,7 @@ export default function UserDropdown() {
       );
     } else if (isPro) {
       return (
-        <div className="ml-2 flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 px-2 py-0.5">
+        <div className="ml-2 flex items-center gap-1 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 px-2 py-0.5">
           <Crown className="h-3 w-3 text-white" />
           <span className="text-xs font-medium text-white">Pro</span>
         </div>
@@ -90,12 +90,12 @@ export default function UserDropdown() {
             
             <div className="mt-2">
               {/* Credits section */}
-              <div className="flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 dark:bg-indigo-900/20">
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                  <CreditCard className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+              <div className="flex items-center gap-2 rounded-lg bg-primary-50 px-3 py-2 dark:bg-primary-900/20">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/50">
+                  <CreditCard className="h-3.5 w-3.5 text-primary-text-600 dark:text-primary-text-400" />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-indigo-700 dark:text-indigo-400">
+                  <p className="truncate text-sm font-medium text-primary-700 dark:text-primary-text-400">
                     {user?.credits || 0} {user?.credits === 1 ? 'credit' : 'credits'} remaining
                   </p>
                 </div>

@@ -1,84 +1,71 @@
 import React, { useState, useEffect } from 'react';
-import { X, Layout, Check, Loader2, Clock, FolderX } from 'lucide-react';
+import { X, FileText, Check, Loader2, Clock, FolderX } from 'lucide-react';
 import { SERVER_URL, auth } from '../../lib/firebase';
-import { useNamespace } from '../../context/NamespaceContext';
 
-export function TemplateModal({ isOpen, onClose, onSelectTemplate }) {
-  const [templates, setTemplates] = useState([]);
+export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
+  const [campaigns, setCampaigns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedTemplateId, setSelectedTemplateId] = useState(null);
-  
-  // Get the current namespace from context
-  const { currentNamespace, namespaces } = useNamespace();
-  
-  // Find the current namespace ID
-  const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
-  const currentNamespaceId = currentNamespaceObj?.id;
+  const [selectedCampaignId, setSelectedCampaignId] = useState(null);
 
   useEffect(() => {
-    if (isOpen && currentNamespaceId) {
-      fetchTemplates();
-    } else if (isOpen && !currentNamespaceId) {
-      setError('No namespace selected. Please select a namespace to view templates.');
-      setIsLoading(false);
+    if (isOpen) {
+      fetchCampaigns();
     }
-  }, [isOpen, currentNamespaceId]);
+  }, [isOpen]);
 
-  const fetchTemplates = async () => {
+  const fetchCampaigns = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/templates?namespaceId=${currentNamespaceId}`, {
+      const response = await fetch(`${SERVER_URL}/campaign/campaigns`, {
         headers: {
           'Authorization': `Bearer ${idToken}`
         }
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to fetch templates');
+        throw new Error('Failed to fetch campaigns');
       }
 
       const data = await response.json();
-      setTemplates(data);
+      setCampaigns(data);
     } catch (err) {
-      console.error('Error fetching templates:', err);
-      setError('Failed to load templates. Please try again.');
+      console.error('Error fetching campaigns:', err);
+      setError('Failed to load campaigns. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSelectTemplate = (templateId) => {
-    setSelectedTemplateId(templateId);
+  const handleSelectCampaign = (campaignId) => {
+    setSelectedCampaignId(campaignId);
   };
 
   const handleConfirmSelection = async () => {
-    if (!selectedTemplateId) return;
+    if (!selectedCampaignId) return;
     
     try {
       setIsLoading(true);
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/templates/${selectedTemplateId}`, {
+      const response = await fetch(`${SERVER_URL}/campaign/campaigns/${selectedCampaignId}`, {
         headers: {
           'Authorization': `Bearer ${idToken}`
         }
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to fetch template details');
+        throw new Error('Failed to fetch campaign details');
       }
 
-      const templateData = await response.json();
-      onSelectTemplate(templateData);
+      const campaignData = await response.json();
+      onSelectTemplate(campaignData);
       onClose();
     } catch (err) {
-      console.error('Error fetching template details:', err);
-      setError('Failed to load template details. Please try again.');
+      console.error('Error fetching campaign details:', err);
+      setError('Failed to load campaign details. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +124,7 @@ export function TemplateModal({ isOpen, onClose, onSelectTemplate }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-[90%] sm:w-full max-w-md rounded-lg bg-white shadow-xl dark:bg-gray-900 max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 pb-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Select Template</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Use Campaign as Template</h2>
           <button 
             onClick={onClose}
             className="rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
@@ -149,8 +136,8 @@ export function TemplateModal({ isOpen, onClose, onSelectTemplate }) {
         <div className="px-6">
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary-600 dark:text-primary-400" />
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading templates...</p>
+              <Loader2 className="h-8 w-8 animate-spin text-primary-text-600 dark:text-primary-text-400" />
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading campaigns...</p>
             </div>
           )}
           
@@ -167,31 +154,31 @@ export function TemplateModal({ isOpen, onClose, onSelectTemplate }) {
             </div>
           )}
           
-          {!isLoading && !error && templates.length === 0 && (
+          {!isLoading && !error && campaigns.length === 0 && (
             <div className="py-8 text-center">
               <div className="flex flex-col items-center justify-center">
                 <div className="rounded-full bg-gray-100 p-3 mb-3 dark:bg-gray-800">
                   <FolderX className="h-6 w-6 text-gray-500 dark:text-gray-400" />
                 </div>
-                <p className="text-lg font-medium text-gray-800 dark:text-gray-200">No templates found</p>
+                <p className="text-lg font-medium text-gray-800 dark:text-gray-200">No campaigns found</p>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  You don't have any templates yet to use.
+                  You don't have any campaigns yet to use as templates.
                 </p>
               </div>
             </div>
           )}
           
-          {!isLoading && !error && templates.length > 0 && (
+          {!isLoading && !error && campaigns.length > 0 && (
             <>
               <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-                Select a template to apply to your video.
+                Select a campaign to use as a template. This will copy all settings except the campaign name.
               </p>
             </>
           )}
         </div>
         
         {/* Scrollable container with visual indicators */}
-        {!isLoading && !error && templates.length > 0 && (
+        {!isLoading && !error && campaigns.length > 0 && (
           <div className="relative flex-1 min-h-0 px-6">
             {/* Scroll shadow indicators */}
             <div className="absolute top-0 left-6 right-10 h-4 bg-gradient-to-b from-white to-transparent dark:from-gray-900 z-10 pointer-events-none"></div>
@@ -203,34 +190,34 @@ export function TemplateModal({ isOpen, onClose, onSelectTemplate }) {
               scrollbar-thumb-primary-200 hover:scrollbar-thumb-primary-300 
               dark:scrollbar-thumb-primary-900/40 dark:hover:scrollbar-thumb-primary-800/60 
               scrollbar-track-transparent">
-              {templates.map((template) => (
+              {campaigns.map((campaign) => (
                 <div
-                  key={template.id}
+                  key={campaign.id}
                   className={`flex items-center gap-3 rounded-md p-3 cursor-pointer transition-colors border shadow-sm ${
-                    selectedTemplateId === template.id
+                    selectedCampaignId === campaign.id
                       ? 'bg-primary-50 border-primary-200 dark:bg-primary-900/20 dark:border-primary-800'
                       : 'border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800'
                   }`}
-                  onClick={() => handleSelectTemplate(template.id)}
+                  onClick={() => handleSelectCampaign(campaign.id)}
                 >
                   <div className="flex-shrink-0">
-                    {selectedTemplateId === template.id ? (
-                      <Check className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                    {selectedCampaignId === campaign.id ? (
+                      <Check className="h-5 w-5 text-primary-text-600 dark:text-primary-text-400" />
                     ) : (
-                      <Layout className="h-5 w-5 text-gray-400" />
+                      <FileText className="h-5 w-5 text-gray-400" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 dark:text-white truncate">
-                      {template.name || 'Untitled Template'}
+                      {campaign.title || 'Untitled Campaign'}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {template.captionStyle ? 'With captions' : 'No captions'}
+                      {campaign.name || 'No internal name'}
                     </p>
-                    {template.lastModified && (
+                    {campaign.dateModified && (
                       <div className="flex items-center gap-1 mt-1 text-xs text-gray-500 dark:text-gray-400">
                         <Clock className="h-3 w-3 shrink-0" />
-                        <span>{formatDate(template.lastModified)}</span>
+                        <span>{formatDate(campaign.dateModified)}</span>
                       </div>
                     )}
                   </div>
@@ -249,9 +236,9 @@ export function TemplateModal({ isOpen, onClose, onSelectTemplate }) {
           </button>
           <button
             onClick={handleConfirmSelection}
-            disabled={!selectedTemplateId || isLoading}
+            disabled={!selectedCampaignId || isLoading}
             className={`rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600 ${
-              (!selectedTemplateId || isLoading) ? 'opacity-50 cursor-not-allowed' : ''
+              (!selectedCampaignId || isLoading) ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             {isLoading ? (
@@ -260,7 +247,7 @@ export function TemplateModal({ isOpen, onClose, onSelectTemplate }) {
                 Loading...
               </>
             ) : (
-              'Apply Template'
+              'Use as Template'
             )}
           </button>
         </div>

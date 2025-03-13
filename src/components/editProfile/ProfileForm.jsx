@@ -66,7 +66,7 @@ export default function ProfileForm({ user, isUpdating, messages, onUpdateProfil
           <button
             type="submit"
             disabled={isUpdating}
-            className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700"
           >
             {isUpdating ? (
               <span className="flex items-center gap-2">

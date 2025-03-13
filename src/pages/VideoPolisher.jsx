@@ -15,9 +15,9 @@ import { useNamespace } from '../context/NamespaceContext';
 
 const themes = {
   sunset: { background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600', text: 'text-white', subtext: 'text-orange-100', border: 'border-white/20', input: 'bg-white/20', name: 'Sunset Vibes' },
-  midnight: { background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900', text: 'text-white', subtext: 'text-blue-200', border: 'border-blue-900/50', input: 'bg-blue-950/50', name: 'Midnight Blue' },
+  midnight: { background: 'bg-gradient-to-br from-gray-900 via-primary-900 to-gray-900', text: 'text-white', subtext: 'text-primary-200', border: 'border-primary-900/50', input: 'bg-primary-950/50', name: 'Midnight primary' },
   nature: { background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600', text: 'text-white', subtext: 'emerald-100', border: 'border-white/20', input: 'bg-white/20', name: 'Nature Fresh' },
-  ocean: { background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600', text: 'text-white', subtext: 'text-cyan-100', border: 'border-white/20', input: 'bg-white/20', name: 'Ocean Depths' }
+  ocean: { background: 'bg-gradient-to-br from-cyan-500 via-primary-500 to-primary-600', text: 'text-white', subtext: 'text-cyan-100', border: 'border-white/20', input: 'bg-white/20', name: 'Ocean Depths' }
 };
 
 const steps = [
@@ -208,7 +208,7 @@ export default function VideoPolisher() {
               <p className="font-semibold text-base">Success! Your enhanced video is ready.</p>
               <button 
                 onClick={() => navigate(campaignId ? `/app/campaigns/${campaignId}/responses` : '/app/campaigns')}
-                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm font-medium mt-1 w-full text-center"
+                className="bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded text-sm font-medium mt-1 w-full text-center"
               >
                 Go to Responses
               </button>
@@ -374,13 +374,13 @@ export default function VideoPolisher() {
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Customize and enhance your video using our AI enhancement tool. Use 1 credit to transform your video.
             {currentNamespace && (
-              <span className="ml-1 text-indigo-600 dark:text-indigo-400">
+              <span className="ml-1 text-primary-text-600 dark:text-primary-text-400">
                 Current namespace: {currentNamespace}
               </span>
             )}
           </p>
           <div className="relative max-w-[800px] h-1 bg-gray-200 dark:bg-gray-800 mt-4">
-            <div className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-400 transition-all duration-500" style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }} />
+            <div className="absolute inset-y-0 left-0 bg-primary-600 dark:bg-primary-400 transition-all duration-500" style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }} />
           </div>
         </div>
         
@@ -409,11 +409,11 @@ export default function VideoPolisher() {
                         {selectedTemplate ? 'Change Template' : 'Use Template'}
                       </button>
                       {selectedTemplate ? (
-                        <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-md dark:bg-blue-900/20 dark:border-blue-800">
+                        <div className="mt-3 p-3 bg-primary-50 border border-primary-100 rounded-md dark:bg-primary-900/20 dark:border-primary-800">
                           <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
                               selectedTemplate.theme ? themes[selectedTemplate.theme]?.background : 
-                              (selectedTemplate.outroTheme ? themes[selectedTemplate.outroTheme]?.background : 'bg-blue-500')
+                              (selectedTemplate.outroTheme ? themes[selectedTemplate.outroTheme]?.background : 'bg-primary-500')
                             }`}>
                               <FileText className="h-4 w-4 text-white" />
                             </div>
@@ -421,7 +421,7 @@ export default function VideoPolisher() {
                               <p className="font-medium text-gray-900 dark:text-white">{selectedTemplate.name || 'Unnamed Template'}</p>
                               <div className="flex flex-wrap gap-2 mt-1">
                                 {selectedTemplate.captionType && (
-                                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                  <span className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900/30 dark:text-primary-300">
                                     {selectedTemplate.captionType} captions {selectedTemplate.captionPosition && `(${selectedTemplate.captionPosition})`}
                                   </span>
                                 )}

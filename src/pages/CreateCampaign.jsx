@@ -113,7 +113,7 @@ export default function CreateCampaign() {
           </p>
           <div className="relative max-w-[800px] h-1 bg-gray-200 dark:bg-gray-800 mt-4">
             <div
-              className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-400 transition-all duration-500"
+              className="absolute inset-y-0 left-0 bg-primary-600 dark:bg-primary-400 transition-all duration-500"
               style={{ width: `${((form.currentStep + 1) / steps.length) * 100}%` }}
             />
           </div>

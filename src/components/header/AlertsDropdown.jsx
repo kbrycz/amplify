@@ -168,7 +168,7 @@ function AlertsDropdown() {
       case 'campaign_created':
         return 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50';
       default:
-        return 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50';
+        return 'text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/50';
     }
   }
 
@@ -324,8 +324,8 @@ function AlertsDropdown() {
         <Bell className="w-5 h-5" />
         {totalCount > 0 && (
           <span className="absolute top-1 right-1 flex h-4 w-4">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 dark:bg-blue-600"></span>
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-blue-500 dark:bg-blue-700 items-center justify-center">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75 dark:bg-primary-600"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-primary-500 dark:bg-primary-700 items-center justify-center">
               <span className="text-[10px] font-medium text-white">{totalCount}</span>
             </span>
           </span>
@@ -349,14 +349,14 @@ function AlertsDropdown() {
               onClick={() => setActiveTab('notifications')}
               className={`px-3 py-1 text-sm rounded-md transition-colors ${
                 activeTab === 'notifications'
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'
+                  ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-400'
                   : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800/70'
               }`}
             >
               <span className="flex items-center">
                 <Bell className="w-4 h-4 mr-1.5" />
                 {unreadCount > 0 && (
-                  <span className="ml-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="ml-1 bg-primary-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                     {unreadCount}
                   </span>
                 )}
@@ -367,14 +367,14 @@ function AlertsDropdown() {
               onClick={() => setActiveTab('invites')}
               className={`px-3 py-1 text-sm rounded-md transition-colors ${
                 activeTab === 'invites'
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'
+                  ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-400'
                   : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800/70'
               }`}
             >
               <span className="flex items-center">
                 <UserPlus className="w-4 h-4 mr-1.5" />
                 {inviteCount > 0 && (
-                  <span className="ml-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="ml-1 bg-primary-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                     {inviteCount}
                   </span>
                 )}
@@ -438,7 +438,7 @@ function AlertsDropdown() {
                 {hasMoreAlerts && (
                   <button
                     onClick={toggleShowAllAlerts}
-                    className="flex items-center justify-center w-full p-3 text-sm font-medium text-blue-600 hover:bg-gray-50 dark:text-blue-400 dark:hover:bg-gray-800/50 transition-colors"
+                    className="flex items-center justify-center w-full p-3 text-sm font-medium text-primary-600 hover:bg-gray-50 dark:text-primary-400 dark:hover:bg-gray-800/50 transition-colors"
                   >
                     {showAllAlerts ? (
                       <>
@@ -501,7 +501,7 @@ function AlertsDropdown() {
                     className="flex flex-col w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                   >
                     <div className="flex items-start gap-4">
-                      <div className="rounded-full p-2 text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50">
+                      <div className="rounded-full p-2 text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/50">
                         <Users className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -541,7 +541,7 @@ function AlertsDropdown() {
                       <button
                         onClick={() => handleAcceptInvite(invite.id)}
                         disabled={processingInviteId === invite.id}
-                        className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50"
+                        className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 transition-colors disabled:opacity-50"
                       >
                         {processingInviteId === invite.id ? (
                           <span className="flex items-center">

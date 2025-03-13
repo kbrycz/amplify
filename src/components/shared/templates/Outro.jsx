@@ -6,9 +6,9 @@ import { ToggleSwitch } from '../../ui/toggle-switch';
 
 const outroThemes = [
   { id: 'sunset', name: 'Sunset Vibes', background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600', text: 'text-white' },
-  { id: 'midnight', name: 'Midnight Blue', background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900', text: 'text-white' },
+  { id: 'midnight', name: 'Midnight primary', background: 'bg-gradient-to-br from-gray-900 via-primary-900 to-gray-900', text: 'text-white' },
   { id: 'nature', name: 'Nature Fresh', background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600', text: 'text-white' },
-  { id: 'ocean', name: 'Ocean Depths', background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600', text: 'text-white' },
+  { id: 'ocean', name: 'Ocean Depths', background: 'bg-gradient-to-br from-cyan-500 via-primary-500 to-primary-600', text: 'text-white' },
   { id: 'custom', name: 'Custom Color', background: 'bg-gray-200 dark:bg-gray-700', text: 'text-gray-800 dark:text-white', isCustom: true }
 ];
 
@@ -228,8 +228,8 @@ export function Outro({
                   key={theme.id}
                   className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
                     selectedOutroTheme === theme.id
-                      ? 'border-indigo-500 ring-2 ring-indigo-500/50'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-800'
+                      ? 'border-primary-500 ring-2 ring-primary-500/50'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800'
                   }`}
                   onClick={() => setSelectedOutroTheme(theme.id)}
                 >

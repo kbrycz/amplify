@@ -22,11 +22,11 @@ export default function NamespaceSelector() {
       className="flex items-center justify-between w-full px-3 py-3 mt-2 text-sm rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-800/50 dark:hover:bg-gray-800 transition-colors"
     >
       <div className="flex items-center gap-2">
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
           {isLoading ? (
-            <Loader2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400 animate-spin" />
+            <Loader2 className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400 animate-spin" />
           ) : (
-            <Building className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <Building className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />
           )}
         </div>
         <div className="flex flex-col items-start">

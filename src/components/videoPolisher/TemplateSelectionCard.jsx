@@ -7,7 +7,7 @@ export default function TemplateSelectionCard({ selectedTemplate, setSelectedTem
     <Card className="border border-gray-200 dark:border-gray-800">
       <CardHeader className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800">
         <CardTitle className="text-lg font-medium flex items-center gap-2">
-          <Layout className="h-5 w-5 text-blue-500" />
+          <Layout className="h-5 w-5 text-primary-500" />
           Template Selection
         </CardTitle>
       </CardHeader>
@@ -16,7 +16,7 @@ export default function TemplateSelectionCard({ selectedTemplate, setSelectedTem
           <div className="flex flex-col space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-md flex items-center justify-center ${selectedTemplate.theme?.background || 'bg-indigo-500'}`}>
+                <div className={`w-12 h-12 rounded-md flex items-center justify-center ${selectedTemplate.theme?.background || 'bg-primary-500'}`}>
                   <Layout className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -29,7 +29,7 @@ export default function TemplateSelectionCard({ selectedTemplate, setSelectedTem
               <button
                 type="button"
                 onClick={onOpenTemplateModal}
-                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
               >
                 Change
               </button>
@@ -37,8 +37,8 @@ export default function TemplateSelectionCard({ selectedTemplate, setSelectedTem
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-6 text-center">
-            <div className="mb-3 rounded-full bg-blue-100 p-3 dark:bg-blue-900/30">
-              <Layout className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="mb-3 rounded-full bg-primary-100 p-3 dark:bg-primary-900/30">
+              <Layout className="h-6 w-6 text-primary-600 dark:text-primary-400" />
             </div>
             <h3 className="mb-1 text-base font-medium text-gray-900 dark:text-white">No template selected</h3>
             <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">

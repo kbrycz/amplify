@@ -48,7 +48,7 @@ export function SelectTrigger({ children, className = '' }) {
       type="button"
       id={id}
       onClick={() => setOpen(!open)}
-      className={`flex items-center justify-between w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${className}`}
+      className={`flex items-center justify-between w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${className}`}
       aria-haspopup="listbox"
       aria-expanded={open}
     >
@@ -92,7 +92,7 @@ export function SelectItem({ children, value }) {
       aria-selected={isSelected}
       onClick={() => handleSelect(value)}
       className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
-        isSelected ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400' : 'text-gray-900 dark:text-gray-100'
+        isSelected ? 'bg-primary-50 text-primary-text-600 dark:bg-primary-900/20 dark:text-primary-text-400' : 'text-gray-900 dark:text-gray-100'
       }`}
     >
       {children}

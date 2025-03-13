@@ -133,8 +133,8 @@ export function CampaignDetails({
               <div 
                 className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors duration-200 ${
                   isDragging 
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                    : 'border-gray-300 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10'
+                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
+                    : 'border-gray-300 dark:border-gray-700 hover:border-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-900/10'
                 }`}
                 onClick={handleBoxClick}
                 onDragEnter={handleDragEnter}
@@ -143,7 +143,7 @@ export function CampaignDetails({
                 onDrop={handleDrop}
               >
                 <div className="flex flex-col items-center">
-                  <Video className={`h-8 w-8 mb-2 ${isDragging ? 'text-blue-500' : 'text-gray-400 dark:text-gray-300'}`} />
+                  <Video className={`h-8 w-8 mb-2 ${isDragging ? 'text-primary-500' : 'text-gray-400 dark:text-gray-300'}`} />
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
                     {isDragging ? 'Drop your video here' : 'Upload your explainer video'}
                   </p>

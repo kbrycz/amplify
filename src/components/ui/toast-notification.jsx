@@ -94,9 +94,9 @@ function Toast({ toast, onClose }) {
       title: 'Error'
     },
     info: {
-      bg: 'bg-blue-50 dark:bg-blue-900/20',
-      border: 'border-blue-200 dark:border-blue-800',
-      icon: <AlertCircle className="w-5 h-5 text-blue-500 dark:text-blue-400" />,
+      bg: 'bg-primary-50 dark:bg-primary-900/20',
+      border: 'border-primary-200 dark:border-primary-800',
+      icon: <AlertCircle className="w-5 h-5 text-primary-500 dark:text-primary-400" />,
       title: 'Info'
     }
   };

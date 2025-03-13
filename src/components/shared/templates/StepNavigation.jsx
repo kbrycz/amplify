@@ -64,7 +64,7 @@ export function StepNavigation({
           type="button"
           onClick={onNext}
           disabled={isSubmitting || !canProceed}
-          className={`inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600 ${
+          className={`inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 ${
             (isSubmitting || !canProceed) ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >

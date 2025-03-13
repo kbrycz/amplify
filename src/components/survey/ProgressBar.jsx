@@ -5,7 +5,7 @@ export function ProgressBar({ currentStepIndex, totalSteps, theme, themes }) {
     <div className="fixed inset-x-0 top-0">
       <div className={`h-1 ${theme ? 'bg-white/10' : 'bg-gray-200 dark:bg-gray-800'}`}>
         <div
-          className={`h-1 ${theme ? 'bg-white/20' : 'bg-indigo-600 dark:bg-indigo-400'} transition-all duration-500`}
+          className={`h-1 ${theme ? 'bg-white/20' : 'bg-primary-600 dark:bg-primary-400'} transition-all duration-500`}
           style={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
         />
       </div>

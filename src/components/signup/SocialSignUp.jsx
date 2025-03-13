@@ -19,7 +19,7 @@ export default function SocialSignUp({ error, loadingState, handleGoogleSignUp }
       <button
         onClick={handleGoogleSignUp}
         disabled={loadingState.google}
-        className="mt-6 w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+        className="mt-6 w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-70 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
       >
         {loadingState.google ? (
           'Signing in...'
@@ -63,7 +63,7 @@ export default function SocialSignUp({ error, loadingState, handleGoogleSignUp }
 
       <p className="mx-auto mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
         Already have an account?{' '}
-        <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500">
+        <Link to="/login" className="font-semibold text-primary-text-600 hover:text-primary-500">
           Sign in
         </Link>
       </p>

@@ -80,7 +80,7 @@ export function PricingSection() {
     <div id="pricing" className="bg-white py-24 sm:py-32 dark:bg-gray-900 scroll-mt-16">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-base font-semibold leading-7 text-indigo-600 dark:text-indigo-400 text-center">Pricing</h2>
+          <h2 className="text-base font-semibold leading-7 text-primary-text-600 dark:text-primary-text-400 text-center">Pricing</h2>
           <p className="mt-2 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl mx-auto max-w-4xl">
             Simple, transparent pricing
           </p>
@@ -151,9 +151,9 @@ export function PricingSection() {
                       aria-describedby={tier.id}
                       className={classNames(
                         tier.featured
-                          ? 'bg-indigo-600 text-white hover:bg-indigo-500 dark:hover:bg-indigo-400'
+                          ? 'bg-primary-600 text-white hover:bg-primary-500 dark:hover:bg-primary-400'
                           : 'bg-gray-800 text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100',
-                        'rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                        'rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600'
                       )}
                     >
                       Buy this plan
@@ -173,7 +173,7 @@ export function PricingSection() {
                         <li key={feature} className="flex gap-x-3 py-2">
                           <Check
                             className={classNames(
-                              tier.featured ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400',
+                              tier.featured ? 'text-primary-text-600 dark:text-primary-text-400' : 'text-gray-500 dark:text-gray-400',
                               'h-6 w-5 flex-none'
                             )}
                           />

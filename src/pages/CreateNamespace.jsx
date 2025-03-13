@@ -111,7 +111,7 @@ export default function CreateNamespace() {
       {/* Progress Bar - Full width */}
       <div className="relative w-full h-1 bg-gray-200 dark:bg-gray-800 mb-6">
         <div
-          className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-400 transition-all duration-500"
+          className="absolute inset-y-0 left-0 bg-primary-600 dark:bg-primary-400 transition-all duration-500"
           style={{ width: `${((currentStep + 1) / 3) * 100}%` }}
         />
       </div>

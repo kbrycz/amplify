@@ -1,42 +1,69 @@
 // src/colors.js
 
 /**
- * Primary background colors (based on Tailwind blue)
+ * Primary colors (renaming Tailwind's primary scale)
+ * Use these for backgrounds, borders, etc.
  */
 export const primary = {
-    DEFAULT: '#3B82F6',          // equivalent to bg-blue-500
-    hover: '#2563EB',            // equivalent to hover:bg-blue-600
-    light: '#EFF6FF',            // equivalent to bg-blue-50
-    darkBg: 'rgba(30, 58, 138, 0.2)',  // equivalent to bg-blue-900/20
-    hoverDark: '#1D4ED8',        // equivalent to hover:bg-blue-700
+    50:  '#EEF2FF',  // was primary-50
+    100: '#E0E7FF',  // was primary-100
+    200: '#C7D2FE',  // was primary-200
+    300: '#A5B4FC',  // was primary-300
+    400: '#818CF8',  // was primary-400
+    500: '#6366F1',  // was primary-500
+    600: '#4F46E5',  // was primary-600
+    700: '#4338CA',  // was primary-700
+    800: '#3730A3',  // was primary-800
+    900: '#312E81',  // was primary-900
   };
   
   /**
-   * Primary text colors (based on Tailwind indigo)
+   * Primary text colors
+   * (For example, you may choose to use a lighter or darker shade for text)
    */
   export const primaryText = {
-    DEFAULT: '#4F46E5',          // equivalent to text-indigo-600
-    dark: '#818CF8',             // equivalent to dark:text-indigo-400
+    50:  '#EEF2FF',  // you might not use this for text, but defined for completeness
+    100: '#E0E7FF',
+    200: '#C7D2FE',
+    300: '#A5B4FC',
+    400: '#818CF8',
+    500: '#6366F1',
+    600: '#4F46E5',
+    700: '#4338CA',
+    800: '#3730A3',
+    900: '#312E81',
+    // Alternatively, you could choose a slightly different scale for text.
+    // For now, we use the same scale as primary.
   };
   
   /**
-   * Red colors (based on Tailwind red)
+   * Red colors scale (Tailwind default)
    */
   export const red = {
-    DEFAULT: '#EF4444',          // equivalent to red-500
-    hover: '#DC2626',            // equivalent to hover:red-600
-    light: '#FEF2F2',            // equivalent to red-50
-    darkBg: 'rgba(185,28,28,0.2)', // equivalent to red-700 at 20% opacity
-    hoverDark: '#B91C1C',        // equivalent to red-700
+    50:  '#FEF2F2',  // red-50
+    100: '#FEE2E2',  // red-100
+    200: '#FECACA',  // red-200
+    300: '#FCA5A5',  // red-300
+    400: '#F87171',  // red-400
+    500: '#EF4444',  // red-500
+    600: '#DC2626',  // red-600
+    700: '#B91C1C',  // red-700
+    800: '#991B1B',  // red-800
+    900: '#7F1D1D',  // red-900
   };
   
   /**
-   * Green colors (based on Tailwind green)
+   * Green colors scale (Tailwind default)
    */
   export const green = {
-    DEFAULT: '#10B981',          // equivalent to green-500
-    hover: '#059669',            // equivalent to hover:green-600
-    light: '#ECFDF5',            // equivalent to green-50
-    darkBg: 'rgba(6,78,59,0.2)',   // equivalent to green-900 at 20% opacity
-    hoverDark: '#047857',        // equivalent to green-700
+    50:  '#ECFDF5',  // green-50
+    100: '#D1FAE5',  // green-100
+    200: '#A7F3D0',  // green-200
+    300: '#6EE7B7',  // green-300
+    400: '#34D399',  // green-400
+    500: '#10B981',  // green-500
+    600: '#059669',  // green-600
+    700: '#047857',  // green-700
+    800: '#065F46',  // green-800
+    900: '#064E3B',  // green-900
   };

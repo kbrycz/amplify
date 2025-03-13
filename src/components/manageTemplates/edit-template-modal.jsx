@@ -104,7 +104,7 @@ export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
               required
             />
           </div>
@@ -118,7 +118,7 @@ export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
               name="captionType"
               value={formData.captionType}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
             >
               <option value="">Select a caption type</option>
               <option value="standard">Standard</option>
@@ -137,7 +137,7 @@ export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
                 name="captionPosition"
                 value={formData.captionPosition}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
               >
                 <option value="">Select a position</option>
                 <option value="top">Top</option>
@@ -155,7 +155,7 @@ export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
               name="theme"
               value={formData.theme}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
             >
               <option value="">Select a theme</option>
               <option value="sunset">Sunset</option>
@@ -172,7 +172,7 @@ export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
               name="showOutro"
               checked={formData.showOutro}
               onChange={handleChange}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800"
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800"
             />
             <label htmlFor="showOutro" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
               Show Outro
@@ -190,7 +190,7 @@ export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
                   name="outroTheme"
                   value={formData.outroTheme}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
                 >
                   <option value="">Select an outro theme</option>
                   <option value="sunset">Sunset</option>
@@ -213,7 +213,7 @@ export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
                     value={formData.outtroBackgroundColors}
                     onChange={handleChange}
                     placeholder="#RRGGBB"
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
                   />
                 </div>
               )}
@@ -229,7 +229,7 @@ export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
                   value={formData.outtroFontColor}
                   onChange={handleChange}
                   placeholder="#RRGGBB"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
                 />
               </div>
 
@@ -243,7 +243,7 @@ export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
                   name="outroText"
                   value={formData.outroText}
                   onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
                 />
               </div>
             </>
@@ -260,7 +260,7 @@ export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
+              className="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

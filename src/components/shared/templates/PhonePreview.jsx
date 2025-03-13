@@ -65,7 +65,7 @@ export function PhonePreview({
       case 'outlined':
         return 'text-white px-4 py-2 rounded-md text-center text-shadow-outline';
       case 'bold':
-        return 'bg-indigo-600 text-white px-4 py-2 font-bold rounded-md text-center';
+        return 'bg-primary-600 text-white px-4 py-2 font-bold rounded-md text-center';
       case 'gradient':
         return 'bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-md text-center';
       default:

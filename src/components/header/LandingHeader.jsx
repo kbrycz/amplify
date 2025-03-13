@@ -157,14 +157,14 @@ export default function LandingHeader() {
               <div className="mt-6 flex flex-col gap-3">
                 <Link
                   to="/login"
-                  className="inline-flex items-center justify-center rounded-lg border border-indigo-600 bg-white px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 dark:border-indigo-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                  className="inline-flex items-center justify-center rounded-lg border border-primary-600 bg-white px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 dark:border-primary-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                   onClick={closeMobileMenu}
                 >
                   Sign in
                 </Link>
                 <Link
                   to="/signup"
-                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+                  className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-500"
                   onClick={closeMobileMenu}
                 >
                   Sign up
@@ -177,21 +177,21 @@ export default function LandingHeader() {
             <a 
               href="#features" 
               onClick={(e) => scrollToSection(e, 'features')}
-              className="text-sm font-semibold leading-6 text-gray-900 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              className="text-sm font-semibold leading-6 text-gray-900 dark:text-gray-300 hover:text-primary-text-600 dark:hover:text-primary-400 transition-colors"
             >
               Features
             </a>
             <a 
               href="#pricing" 
               onClick={(e) => scrollToSection(e, 'pricing')}
-              className="text-sm font-semibold leading-6 text-gray-900 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              className="text-sm font-semibold leading-6 text-gray-900 dark:text-gray-300 hover:text-primary-text-600 dark:hover:text-primary-400 transition-colors"
             >
               Pricing
             </a>
             <a 
               href="#contact" 
               onClick={(e) => scrollToSection(e, 'contact')}
-              className="text-sm font-semibold leading-6 text-gray-900 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              className="text-sm font-semibold leading-6 text-gray-900 dark:text-gray-300 hover:text-primary-text-600 dark:hover:text-primary-400 transition-colors"
             >
               Contact
             </a>

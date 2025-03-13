@@ -1,8 +1,8 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, Copy, Check, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Copy } from 'lucide-react';
 
 // Updated validation for each step
-const isStepValid = (currentStep, formData, surveyQuestions) => {
+const isStepValid = (currentStep, formData) => {
   switch (currentStep) {
     case 0: // Internal Name: always valid since we want to allow saving drafts
       return Boolean(formData.name?.trim());
@@ -14,25 +14,15 @@ const isStepValid = (currentStep, formData, surveyQuestions) => {
       return true; // Theme selection is always valid since it has a default value
     case 4: // Basic Info: require name and description
       return Boolean(formData.title?.trim() && formData.description?.trim());
-    case 5: // Campaign Details: require category (and subcategory if political) and EITHER at least one non-empty survey question OR an explainer video
-      const hasValidSurveyQuestions = surveyQuestions?.length > 0 && surveyQuestions.some(q => q.question && q.question.trim());
-      const hasExplainerVideo = formData.hasExplainerVideo && formData.explainerVideo;
-      
-      console.log('Campaign Details validation:', {
-        hasValidSurveyQuestions,
-        hasExplainerVideo,
-        surveyQuestions: surveyQuestions || [],
-        hasExplainerVideoFlag: formData.hasExplainerVideo,
-        explainerVideoExists: Boolean(formData.explainerVideo)
-      });
-      
+    case 5: // Campaign Details: require category (and subcategory if political) and at least one non-empty survey question
       return Boolean(
         formData.category &&
         (formData.category === 'political' ? formData.subcategory?.trim() : true) &&
-        (hasValidSurveyQuestions || hasExplainerVideo)
+        formData.surveyQuestions?.length > 0 &&
+        formData.surveyQuestions.every(q => q.question.trim())
       );
-    case 6: // Review: always valid since it's the last step
-      return true;
+    case 6: // Business Info: require Business Name and Business Email
+      return Boolean(formData.businessName?.trim() && formData.email?.trim());
     default:
       return false;
   }
@@ -51,13 +41,10 @@ export function StepNavigation({
   formData,
   surveyQuestions,
   setIsAIModalOpen,
-  onUseTemplate,
-  clearSelectedTemplate,
-  selectedTemplate
+  onUseTemplate
 }) {
-  const canProceed = isStepValid(currentStep, formData, surveyQuestions);
+  const canProceed = isStepValid(currentStep, { ...formData, surveyQuestions });
   const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === totalSteps - 1;
   
   // Debug logging
   React.useEffect(() => {
@@ -65,40 +52,17 @@ export function StepNavigation({
       currentStep, 
       hasCategory: Boolean(formData.category),
       hasSubcategory: Boolean(formData.subcategory),
-      buttonText: getCorrectButtonText(),
-      canProceed,
-      hasExplainerVideo: formData.hasExplainerVideo,
-      explainerVideoExists: Boolean(formData.explainerVideo)
+      buttonText: getCorrectButtonText()
     });
-  }, [currentStep, formData, surveyQuestions, canProceed]);
+  }, [currentStep, formData.category, formData.subcategory, totalSteps]);
   
-  // Ensure button is always enabled on steps 1, 2, and the last step (review)
+  // Ensure button is always enabled on steps 1 and 2
   const isButtonDisabled = React.useMemo(() => {
-    // Always enable the button on the last step (review page)
-    if (isLastStep) {
-      console.log('Button on last step (review) - should be enabled');
-      return isSubmitting;
-    }
-    
-    // Enable the button on steps 1 and 2
     if (currentStep === 1 || currentStep === 2) {
       return isSubmitting;
     }
-    
-    // For other steps, check if the step is valid
     return isSubmitting || !canProceed;
-  }, [currentStep, isSubmitting, canProceed, isLastStep]);
-  
-  // Debug logging for button state
-  React.useEffect(() => {
-    console.log('Button state:', { 
-      currentStep, 
-      isLastStep,
-      isButtonDisabled,
-      isSubmitting,
-      canProceed
-    });
-  }, [currentStep, isLastStep, isButtonDisabled, isSubmitting, canProceed]);
+  }, [currentStep, isSubmitting, canProceed]);
   
   // Get the correct button text based on current state
   const getCorrectButtonText = () => {
@@ -138,12 +102,6 @@ export function StepNavigation({
     console.log('Button text updated:', buttonText);
   }, [currentStep, formData.category, formData.subcategory, isSubmitting]);
 
-  // Function to truncate template title
-  const truncateTitle = (title, maxLength = 14) => {
-    if (!title) return '';
-    return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
-  };
-
   return (
     <div className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-8 w-full ${className}`}>
       {/* Left side - Previous button or Template button (desktop only) */}
@@ -152,33 +110,11 @@ export function StepNavigation({
           // Show "Use Previous Campaign as Template" button on first step (desktop only)
           <button
             type="button"
-            onClick={selectedTemplate ? null : onUseTemplate}
+            onClick={onUseTemplate}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-primary-text-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-primary-text-400 dark:hover:bg-gray-800"
           >
-            {selectedTemplate ? (
-              <>
-                <Check className="h-4 w-4 flex-shrink-0 text-primary-500" />
-                <span className="whitespace-normal text-left">
-                  {`Using "${truncateTitle(selectedTemplate.title)}" as template`}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    clearSelectedTemplate && clearSelectedTemplate();
-                  }}
-                  className="ml-2 p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                  aria-label="Remove template"
-                  title="Remove template"
-                >
-                  <X className="h-3.5 w-3.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" />
-                </button>
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4 flex-shrink-0" />
-                <span className="whitespace-normal text-left">Use Previous Campaign as Template</span>
-              </>
-            )}
+            <Copy className="h-4 w-4 flex-shrink-0" />
+            <span className="whitespace-normal text-left">Use Previous Campaign as Template</span>
           </button>
         ) : (
           // Show Previous button on other steps
@@ -202,33 +138,11 @@ export function StepNavigation({
             <div className="sm:hidden w-full">
               <button
                 type="button"
-                onClick={selectedTemplate ? null : onUseTemplate}
+                onClick={onUseTemplate}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-primary-text-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-primary-text-400 dark:hover:bg-gray-800"
               >
-                {selectedTemplate ? (
-                  <>
-                    <Check className="h-4 w-4 flex-shrink-0 text-primary-500" />
-                    <span className="whitespace-normal text-left">
-                      {`Using "${truncateTitle(selectedTemplate.title)}" as template`}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        clearSelectedTemplate && clearSelectedTemplate();
-                      }}
-                      className="ml-2 p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                      aria-label="Remove template"
-                      title="Remove template"
-                    >
-                      <X className="h-3.5 w-3.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4 flex-shrink-0" />
-                    <span className="whitespace-normal text-left">Use Previous Campaign as Template</span>
-                  </>
-                )}
+                <Copy className="h-4 w-4 flex-shrink-0" />
+                <span className="whitespace-normal text-left">Use Previous Campaign as Template</span>
               </button>
             </div>
 

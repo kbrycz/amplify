@@ -26,7 +26,7 @@ export default function PlanSection({ userPlan, planSuccessMessage, getPlanDispl
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {getPlanDisplayName(userPlan)}
                 </h3>
-                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-500/20">
+                <span className="inline-flex items-center rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700 ring-1 ring-inset ring-primary-600/20 dark:bg-primary-900/30 dark:text-primary-400 dark:ring-primary-500/20">
                   Current Plan
                 </span>
               </div>
@@ -54,10 +54,10 @@ export default function PlanSection({ userPlan, planSuccessMessage, getPlanDispl
         </div>
 
         <div className="mt-8">
-          <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:border-gray-700 dark:from-indigo-950/30 dark:via-gray-900 dark:to-purple-950/30">
+          <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-primary-50 via-white to-purple-50 dark:border-gray-700 dark:from-primary-950/30 dark:via-gray-900 dark:to-purple-950/30">
             <div className="flex flex-col p-6 sm:flex-row sm:items-start sm:gap-4">
-              <div className="mx-auto mb-4 rounded-full bg-indigo-100 p-2.5 dark:bg-indigo-900/50 sm:mx-0 sm:mb-0">
-                <Crown className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="mx-auto mb-4 rounded-full bg-primary-100 p-2.5 dark:bg-primary-900/50 sm:mx-0 sm:mb-0">
+                <Crown className="h-5 w-5 text-primary-text-600 dark:text-primary-text-400" />
               </div>
               <div className="flex-1">
                 {userPlan === 'basic' && (
@@ -88,26 +88,26 @@ export default function PlanSection({ userPlan, planSuccessMessage, getPlanDispl
                   <>
                     <ul className="mt-6 space-y-4 sm:mt-4 sm:space-y-3">
                       <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <Check className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />
                         Unlimited video responses
                       </li>
                       <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <Check className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />
                         Advanced analytics and reporting
                       </li>
                       <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <Check className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />
                         Custom branding and white-labeling
                       </li>
                       <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <Check className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />
                         Priority support
                       </li>
                     </ul>
                     <div className="mt-8 flex flex-col items-center gap-4 sm:mt-6 sm:flex-row">
                       <button
                         onClick={handleNavigateToPricing}
-                        className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500"
+                        className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500"
                       >
                         <Zap className="h-4 w-4" />
                         Upgrade Now
@@ -127,21 +127,21 @@ export default function PlanSection({ userPlan, planSuccessMessage, getPlanDispl
                     </p>
                     <ul className="mt-4 mb-6 space-y-3">
                       <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <Check className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />
                         25 active campaigns (vs. 10 in Pro)
                       </li>
                       <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <Check className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />
                         250 video responses per campaign
                       </li>
                       <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <Check className="h-4 w-4 text-primary-text-600 dark:text-primary-text-400" />
                         4K video quality available
                       </li>
                     </ul>
                     <button
                       onClick={handleNavigateToPricing}
-                      className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500"
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500"
                     >
                       Upgrade to Premium
                     </button>
@@ -155,7 +155,7 @@ export default function PlanSection({ userPlan, planSuccessMessage, getPlanDispl
                     </p>
                     <button
                       onClick={handleNavigateToPricing}
-                      className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500"
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500"
                     >
                       Manage Subscription
                       <ArrowRight className="h-4 w-4 ml-1" />

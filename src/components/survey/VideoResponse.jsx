@@ -33,7 +33,7 @@ export function VideoResponse({
                 <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
                   theme 
                     ? 'bg-white/10 text-white' 
-                    : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400'
+                    : 'bg-primary-100 text-primary-text-600 dark:bg-primary-900/50 dark:text-primary-text-400'
                 }`}>
                   {index + 1}
                 </div>

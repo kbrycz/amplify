@@ -103,7 +103,7 @@ export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
         <div className="flex-1 overflow-y-auto p-4">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-10">
-              <Loader2 className="h-10 w-10 animate-spin text-indigo-600 dark:text-indigo-400" />
+              <Loader2 className="h-10 w-10 animate-spin text-primary-text-600 dark:text-primary-text-400" />
               <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">Loading campaigns...</p>
             </div>
           ) : error ? (
@@ -112,7 +112,7 @@ export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
               <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>
               <button 
                 onClick={fetchCampaigns}
-                className="mt-3 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600"
+                className="mt-3 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600"
               >
                 Try Again
               </button>
@@ -134,14 +134,14 @@ export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
                   onClick={() => handleSelectCampaign(campaign.id)}
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                     selectedCampaignId === campaign.id 
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-700' 
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 dark:border-primary-700' 
                       : 'border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50'
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 mt-1">
-                        <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                        <FileText className="h-5 w-5 text-primary-text-600 dark:text-primary-text-400" />
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white">{campaign.name}</h3>
@@ -149,7 +149,7 @@ export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
                       </div>
                     </div>
                     {selectedCampaignId === campaign.id && (
-                      <Check className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                      <Check className="h-5 w-5 text-primary-text-600 dark:text-primary-text-400" />
                     )}
                   </div>
                   <div className="mt-2 flex items-center justify-between">
@@ -182,7 +182,7 @@ export function CampaignTemplateModal({ isOpen, onClose, onSelectTemplate }) {
           <button
             onClick={handleUseTemplate}
             disabled={!selectedCampaignId || isLoading}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-700 dark:hover:bg-indigo-600"
+            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-primary-700 dark:hover:bg-primary-600"
           >
             Use Template
           </button>

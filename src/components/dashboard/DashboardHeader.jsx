@@ -24,7 +24,7 @@ export default function DashboardHeader({ firstName, isNewUser, onManageCampaign
         </button>
         <button
           onClick={onNewCampaign}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 hover:scale-105 dark:hover:bg-blue-500"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-primary-700 hover:scale-105 dark:hover:bg-primary-500"
         >
           <Plus className="h-4 w-4" />
           New Campaign

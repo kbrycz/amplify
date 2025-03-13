@@ -339,7 +339,7 @@ export function VideoEditorModal({ isOpen, onClose, video, onSave }) {
               Edit Video
             </h3>
             {trimmedDuration > 0 && (
-              <div className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+              <div className="flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900/30 dark:text-primary-400">
                 <Clock className="h-3 w-3" />
                 <span>Trimmed: {formatTime(trimmedDuration)}</span>
               </div>
@@ -350,7 +350,7 @@ export function VideoEditorModal({ isOpen, onClose, video, onSave }) {
               onClick={togglePreviewMode}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
                 previewMode 
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
+                  ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400' 
                   : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
               }`}
             >
@@ -454,7 +454,7 @@ export function VideoEditorModal({ isOpen, onClose, video, onSave }) {
                 >
                   {/* Selected range */}
                   <div 
-                    className="absolute inset-y-0 bg-blue-500/30 border-x border-blue-500"
+                    className="absolute inset-y-0 bg-primary-500/30 border-x border-primary-500"
                     style={{
                       left: `${(startTime / duration) * 100}%`,
                       right: `${100 - (endTime / duration) * 100}%`
@@ -463,14 +463,14 @@ export function VideoEditorModal({ isOpen, onClose, video, onSave }) {
                   
                   {/* Start handle - just the line, no dot */}
                   <div
-                    className="absolute inset-y-0 w-2 cursor-ew-resize bg-blue-500 hover:bg-blue-600 transition-colors"
+                    className="absolute inset-y-0 w-2 cursor-ew-resize bg-primary-500 hover:bg-primary-600 transition-colors"
                     style={{ left: `${(startTime / duration) * 100}%` }}
                     onMouseDown={handleStartDrag('start')}
                   />
                   
                   {/* End handle - just the line, no dot */}
                   <div
-                    className="absolute inset-y-0 w-2 cursor-ew-resize bg-blue-500 hover:bg-blue-600 transition-colors"
+                    className="absolute inset-y-0 w-2 cursor-ew-resize bg-primary-500 hover:bg-primary-600 transition-colors"
                     style={{ left: `${(endTime / duration) * 100}%` }}
                     onMouseDown={handleStartDrag('end')}
                   />
@@ -542,7 +542,7 @@ export function VideoEditorModal({ isOpen, onClose, video, onSave }) {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
             >
               {isSaving ? (
                 <>

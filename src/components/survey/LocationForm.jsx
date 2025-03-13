@@ -69,7 +69,7 @@ export function LocationForm({ formData, handleInputChange, theme, themes, onRep
           href={urls[0]}
           target="_blank"
           rel="noopener noreferrer"
-          className={`text-sm mt-1 block hover:underline ${theme ? themes[theme].text : 'text-blue-600 dark:text-blue-400'}`}
+          className={`text-sm mt-1 block hover:underline ${theme ? themes[theme].text : 'text-primary-600 dark:text-primary-400'}`}
         >
           🌐 Official Website
         </a>
@@ -119,7 +119,7 @@ export function LocationForm({ formData, handleInputChange, theme, themes, onRep
               className={`mb-[2px] px-4 py-2.5 rounded-lg font-medium ${
                 theme 
                   ? `${themes[theme].border} border-2 ${themes[theme].text} hover:bg-white/10` 
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-primary-600 text-white hover:bg-primary-700'
               } ${!isFormValid ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isLoading ? 'Loading...' : 'Find Representatives'}

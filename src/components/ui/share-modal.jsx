@@ -62,8 +62,8 @@ export function ShareModal({ isOpen, onClose, campaignId, campaignName }) {
           </div>
 
           <div>
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-              <Share2 className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/50">
+              <Share2 className="h-6 w-6 text-primary-text-600 dark:text-primary-text-400" />
             </div>
             <div className="mt-3 text-center sm:mt-5">
               <h3 className="text-lg font-semibold leading-6 text-gray-900 dark:text-white">
@@ -145,7 +145,7 @@ export function ShareModal({ isOpen, onClose, campaignId, campaignName }) {
               </div>
               <button
                 onClick={onClose}
-                className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                className="flex-1 rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700"
               >
                 Done
               </button>

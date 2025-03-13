@@ -67,7 +67,7 @@ export function LoadingModal({ isOpen, onClose, status, error, entityName, entit
             ) : (
               <>
                 <div className="mx-auto flex h-12 w-12 items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" />
+                  <Loader2 className="h-8 w-8 animate-spin text-primary-text-600 dark:text-primary-text-400" />
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
                   Creating Your {entityType.charAt(0).toUpperCase() + entityType.slice(1)}

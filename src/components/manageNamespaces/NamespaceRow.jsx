@@ -95,8 +95,8 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
           <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr,1fr,auto] gap-4">
             <div className="self-center">
               <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex-shrink-0">
-                  <span className="text-lg font-medium text-indigo-800 dark:text-indigo-300">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30 flex-shrink-0">
+                  <span className="text-lg font-medium text-primary-800 dark:text-primary-300">
                     {namespace.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -112,7 +112,7 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
             </div>
             
             <div className="hidden lg:flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-primary-text-600 dark:group-hover:text-primary-400 transition-colors">
                 <Users className="h-4 w-4 shrink-0" />
                 <span className="font-medium">
                   {totalMembers} {totalMembers === 1 ? 'member' : 'members'}
@@ -123,7 +123,7 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
             </div>
             
             <div className="hidden lg:flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-primary-text-600 dark:group-hover:text-primary-400 transition-colors">
                 {roleIcon}
                 <span className="font-medium">
                   {currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)}
@@ -142,7 +142,7 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
                   <Trash2 className="h-4 w-4" />
                 </button>
               ) : !isEditMode ? (
-                <div className="text-gray-400 group-hover:text-indigo-500 dark:text-gray-600 dark:group-hover:text-indigo-400">
+                <div className="text-gray-400 group-hover:text-primary-500 dark:text-gray-600 dark:group-hover:text-primary-400">
                   <ChevronRight className="h-5 w-5" />
                 </div>
               ) : null}
@@ -152,7 +152,7 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
           {/* Mobile view for members and role */}
           <div className="lg:hidden grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
             <div className="flex flex-col items-start">
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-primary-text-600 dark:group-hover:text-primary-400 transition-colors">
                 <Users className="h-4 w-4 shrink-0" />
                 <span className="font-medium">
                   {totalMembers} {totalMembers === 1 ? 'member' : 'members'}
@@ -163,7 +163,7 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
             </div>
             
             <div className="flex flex-col items-start">
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-primary-text-600 dark:group-hover:text-primary-400 transition-colors">
                 {roleIcon}
                 <span className="font-medium">
                   {currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)}
@@ -216,7 +216,7 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
                   id="confirm-delete"
                   value={deleteConfirmation}
                   onChange={(e) => setDeleteConfirmation(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   placeholder={namespace.name}
                 />
               </div>
@@ -224,7 +224,7 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
               <div className="mt-6 flex w-full space-x-3">
                 <button
                   onClick={handleCancelDelete}
-                  className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>

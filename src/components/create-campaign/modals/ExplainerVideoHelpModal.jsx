@@ -48,7 +48,7 @@ export function ExplainerVideoHelpModal({ isOpen, onClose }) {
         </button>
         
         <div className="flex items-center gap-2">
-          <Video className="h-5 w-5 text-blue-500" />
+          <Video className="h-5 w-5 text-primary-500" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-white">
             Explainer Video
           </h3>
@@ -80,8 +80,8 @@ export function ExplainerVideoHelpModal({ isOpen, onClose }) {
             </ul>
           </div>
           
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
-            <p className="text-sm text-blue-800 dark:text-blue-300 flex items-start gap-2">
+          <div className="bg-primary-50 dark:bg-primary-900/20 p-3 rounded-md">
+            <p className="text-sm text-primary-800 dark:text-primary-300 flex items-start gap-2">
               <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
               <span>The explainer video is optional. If you don't include one, participants will only see your survey questions.</span>
             </p>
@@ -91,7 +91,7 @@ export function ExplainerVideoHelpModal({ isOpen, onClose }) {
         <div className="mt-6 flex justify-end">
           <button
             onClick={onClose}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+            className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             Got it
           </button>

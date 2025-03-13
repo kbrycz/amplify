@@ -72,7 +72,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 const EmptyStateOverlay = ({ title, description }) => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-[2px] rounded-lg z-10 p-6">
     <div className="max-w-md text-center">
-      <Info className="h-10 w-10 text-indigo-500 dark:text-indigo-400 mx-auto mb-4" />
+      <Info className="h-10 w-10 text-primary-500 dark:text-primary-text-400 mx-auto mb-4" />
       <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{title}</h3>
       <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
     </div>

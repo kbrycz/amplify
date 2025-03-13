@@ -28,12 +28,12 @@ const themes = {
     name: 'Sunset Vibes'
   },
   midnight: {
-    background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
+    background: 'bg-gradient-to-br from-gray-900 via-primary-900 to-gray-900',
     text: 'text-white',
-    subtext: 'text-blue-200',
-    border: 'border-blue-900/50',
-    input: 'bg-blue-950/50',
-    name: 'Midnight Blue'
+    subtext: 'text-primary-200',
+    border: 'border-primary-900/50',
+    input: 'bg-primary-950/50',
+    name: 'Midnight primary'
   },
   nature: {
     background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
@@ -44,7 +44,7 @@ const themes = {
     name: 'Nature Fresh'
   },
   ocean: {
-    background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600',
+    background: 'bg-gradient-to-br from-cyan-500 via-primary-500 to-primary-600',
     text: 'text-white',
     subtext: 'text-cyan-100',
     border: 'border-white/20',
@@ -660,7 +660,7 @@ export default function CreateTemplate() {
         {/* Progress Bar */}
         <div className="relative max-w-[800px] h-1 bg-gray-200 dark:bg-gray-800 mt-4">
           <div
-            className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-400 transition-all duration-500"
+            className="absolute inset-y-0 left-0 bg-primary-600 dark:bg-primary-400 transition-all duration-500"
             style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
           />
         </div>
@@ -750,11 +750,11 @@ export default function CreateTemplate() {
                         {selectedTemplate ? 'Change Template' : 'Use Template'}
                       </button>
                       {selectedTemplate ? (
-                        <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-md dark:bg-blue-900/20 dark:border-blue-800">
+                        <div className="mt-3 p-3 bg-primary-50 border border-primary-100 rounded-md dark:bg-primary-900/20 dark:border-primary-800">
                           <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
                               selectedTemplate.theme ? themes[selectedTemplate.theme]?.background : 
-                              (selectedTemplate.outroTheme ? themes[selectedTemplate.outroTheme]?.background : 'bg-blue-500')
+                              (selectedTemplate.outroTheme ? themes[selectedTemplate.outroTheme]?.background : 'bg-primary-500')
                             }`}>
                               <FileText className="h-4 w-4 text-white" />
                             </div>
@@ -762,7 +762,7 @@ export default function CreateTemplate() {
                               <p className="font-medium text-gray-900 dark:text-white">{selectedTemplate.name || 'Unnamed Template'}</p>
                               <div className="flex flex-wrap gap-2 mt-1">
                                 {selectedTemplate.captionType && (
-                                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                  <span className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900/30 dark:text-primary-300">
                                     {selectedTemplate.captionType} captions {selectedTemplate.captionPosition && `(${selectedTemplate.captionPosition})`}
                                   </span>
                                 )}

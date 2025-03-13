@@ -21,12 +21,12 @@ const themes = {
     name: 'Sunset Vibes'
   },
   midnight: {
-    background: 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900',
+    background: 'bg-gradient-to-br from-gray-900 via-primary-900 to-gray-900',
     text: 'text-white',
-    subtext: 'text-blue-200',
-    border: 'border-blue-900/50',
-    input: 'bg-blue-950/50',
-    name: 'Midnight Blue'
+    subtext: 'text-primary-200',
+    border: 'border-primary-900/50',
+    input: 'bg-primary-950/50',
+    name: 'Midnight primary'
   },
   nature: {
     background: 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600',
@@ -37,7 +37,7 @@ const themes = {
     name: 'Nature Fresh'
   },
   ocean: {
-    background: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600',
+    background: 'bg-gradient-to-br from-cyan-500 via-primary-500 to-primary-600',
     text: 'text-white',
     subtext: 'text-cyan-100',
     border: 'border-white/20',
@@ -177,7 +177,7 @@ export default function VideoPolisherFlow() {
                 onClick={() => {
                   navigate(campaignId ? `/app/campaigns/${campaignId}/responses` : '/app/campaigns');
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm font-medium mt-1 w-full text-center"
+                className="bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded text-sm font-medium mt-1 w-full text-center"
               >
                 Go to Responses
               </button>
@@ -296,7 +296,7 @@ export default function VideoPolisherFlow() {
           </p>
           <div className="relative max-w-[800px] h-1 bg-gray-200 dark:bg-gray-800 mt-4">
             <div
-              className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-400 transition-all duration-500"
+              className="absolute inset-y-0 left-0 bg-primary-600 dark:bg-primary-400 transition-all duration-500"
               style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
             />
           </div>

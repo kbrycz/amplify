@@ -74,7 +74,7 @@ export default function CheckoutCancel() {
           <div className="mt-6 p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
             <div className="flex items-start">
               <div className="flex-shrink-0 mt-1">
-                <Settings className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
+                <Settings className="h-5 w-5 text-primary-500 dark:text-primary-text-400" />
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-gray-900 dark:text-white">
@@ -91,7 +91,7 @@ export default function CheckoutCancel() {
         <div className="mt-8 flex flex-col sm:flex-row gap-4">
           <button
             onClick={handleContinue}
-            className="flex-1 flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
+            className="flex-1 flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800"
           >
             Continue to Dashboard
             <ArrowRight className="ml-2 h-5 w-5" />
@@ -99,7 +99,7 @@ export default function CheckoutCancel() {
           
           <button
             onClick={handleRetry}
-            className="flex-1 flex justify-center items-center py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
+            className="flex-1 flex justify-center items-center py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800"
           >
             View Plans Again
           </button>

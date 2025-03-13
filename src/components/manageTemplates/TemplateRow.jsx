@@ -133,21 +133,21 @@ export default function TemplateRow({
           )}
         </div>
         <div className="hidden lg:flex flex-col justify-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <Type className="h-4 w-4 shrink-0" />
             <span className="font-medium">{template.captionType || 'None'}</span>
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Caption Type</div>
         </div>
         <div className="hidden lg:flex flex-col justify-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <PaintBucket className="h-4 w-4 shrink-0" />
             <span className="font-medium">{template.outtroFontColor ? 'Custom' : 'Default'}</span>
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Font Color</div>
         </div>
         <div className="hidden lg:flex flex-col justify-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <Clock className="h-4 w-4 shrink-0" />
             <span className="tabular-nums font-medium">{lastUpdateStr}</span>
           </div>
@@ -176,7 +176,7 @@ export default function TemplateRow({
               </button>
             </div>
           ) : (
-            <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 dark:text-gray-600 dark:group-hover:text-indigo-400" />
+            <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-primary-500 dark:text-gray-600 dark:group-hover:text-primary-400" />
           )}
         </div>
       </div>
@@ -206,21 +206,21 @@ export default function TemplateRow({
           </div>
         )}
         <div className="flex flex-col items-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <Type className="h-4 w-4 shrink-0" />
             <span className="font-medium">{template.captionType || 'None'}</span>
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Caption Type</div>
         </div>
         <div className="flex flex-col items-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <PaintBucket className="h-4 w-4 shrink-0" />
             <span className="font-medium">{template.outtroFontColor ? 'Custom' : 'Default'}</span>
           </div>
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Font Color</div>
         </div>
         <div className="flex flex-col items-center">
-          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+          <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <Clock className="h-4 w-4 shrink-0" />
             <span className="tabular-nums font-medium">{lastUpdateStr}</span>
           </div>
