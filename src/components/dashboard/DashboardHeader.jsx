@@ -5,9 +5,11 @@ export default function DashboardHeader({ firstName, isNewUser, onManageCampaign
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
-          {isNewUser ? `Welcome, ${firstName}!` : `Welcome back, ${firstName}!`}
-        </h1>
+        <div className="mb-1">
+          <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            {isNewUser ? `Welcome, ${firstName}!` : `Welcome back, ${firstName}!`}
+          </h1>
+        </div>
         <p className="mt-2 text-base text-gray-600 dark:text-gray-400">
           Here's an overview of your account and campaign metrics.
         </p>

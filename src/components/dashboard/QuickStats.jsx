@@ -131,13 +131,13 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
         setModalInfo({
           title: 'Credits Used',
           content: 'You have used ' + (planCredits - (user?.credits || 0)) + ' credits out of ' + 
-                  (user?.plan?.credits || 100) + ' total in your plan.'
+                  planCredits + ' total in your ' + (isPlanBasic ? 'basic' : (user?.plan?.name || 'current')) + ' plan.'
         });
         setShowModal(true);
         break;
       case 'totalCampaigns':
         setModalInfo({
-          title: 'Total Campaigns',
+          title: 'Campaigns Created',
           content: 'You have created ' + (metrics.campaigns || 0) + ' campaigns out of ' + (user?.plan?.campaigns || 10) + ' total in your plan.'
         });
         setShowModal(true);
@@ -179,8 +179,8 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
         break;
       case 'totalTemplates':
         setModalInfo({
-          title: 'Total Templates',
-          content: 'You have access to ' + (metrics.templates || 15) + ' templates that you can use to create new campaigns quickly.'
+          title: 'Templates Created',
+          content: 'You have created a total of ' + (metrics.templates || 0) + ' templates for your campaigns.'
         });
         setShowModal(true);
         break;
@@ -214,15 +214,17 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
   // Format the account age to display properly
   const formattedAccountAge = calculateAccountAge();
   
-  // Calculate plan values
-  const planCredits = user?.plan?.credits || 100;
+  // Calculate plan values based on user's plan
+  // For basic plan, set credits to 5 instead of defaulting to 100
+  const isPlanBasic = user?.plan === 'basic' || user?.plan?.name === 'basic';
+  const planCredits = isPlanBasic ? 5 : (user?.plan?.credits || 100);
   const planCampaigns = user?.plan?.campaigns || 10;
   const creditsRemaining = user?.credits || 0;
   const creditsUsed = planCredits - creditsRemaining;
   const campaignsUsed = metrics.campaigns || 0;
   
-  // Get templates count from metrics
-  const templates = metrics.templates || 15;
+  // Get templates count from metrics (no default value)
+  const templates = metrics.templates || 0;
 
   return (
     <>
@@ -242,12 +244,12 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
               onClick={() => handleCardClick('totalResponses')}
             />
             
-            {/* Total Templates */}
+            {/* Templates Created */}
             <MetricCard
-              title="Total Templates"
+              title="Templates Created"
               value={templates}
               icon={FileText}
-              description="Available campaign templates"
+              description="Templates you've created"
               onClick={() => handleCardClick('totalTemplates')}
             />
             
@@ -269,9 +271,9 @@ export default function QuickStats({ isLoading, metrics, user, navigate }) {
               onClick={() => handleCardClick('creditsUsed')}
             />
             
-            {/* Total Campaigns */}
+            {/* Campaigns Created */}
             <MetricCard
-              title="Total Campaigns"
+              title="Campaigns Created"
               value={`${campaignsUsed}/${planCampaigns}`}
               icon={FolderOpen}
               description="Campaigns created out of plan total"

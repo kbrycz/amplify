@@ -52,11 +52,21 @@ export default function RecentCampaigns({
   onCampaignClick,
   onNewCampaign,
 }) {
+  // Add debugging logs
+  console.log('RecentCampaigns props:', { 
+    isLoading, 
+    totalCampaigns, 
+    recentCampaignsLength: recentCampaigns?.length,
+    recentCampaigns
+  });
+
   if (isLoading) {
     return <RecentCampaignSkeleton />;
   }
 
-  if (totalCampaigns > 0 && recentCampaigns.length > 0) {
+  // Check if we have recent campaigns to display, regardless of totalCampaigns count
+  if (recentCampaigns && recentCampaigns.length > 0) {
+    console.log('Rendering campaigns list with', recentCampaigns.length, 'campaigns');
     return (
       <Card>
         <CardHeader>
@@ -135,6 +145,7 @@ export default function RecentCampaigns({
       </Card>
     );
   } else {
+    console.log('Rendering empty state, no campaigns to display');
     return (
       <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-50 via-white to-white opacity-50 dark:from-indigo-900/20 dark:via-gray-900 dark:to-gray-900" />

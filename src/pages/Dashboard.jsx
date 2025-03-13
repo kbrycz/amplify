@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useServerStatus } from '../context/ServerStatusContext';
+import { useNamespace } from '../context/NamespaceContext';
 import { auth } from '../lib/firebase';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import QuickStats from '../components/dashboard/QuickStats';
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, fetchUserProfile } = useAuth();
   const { checkServerStatus } = useServerStatus();
+  const { namespaces, currentNamespace } = useNamespace();
   const [isLoading, setIsLoading] = useState(true);
   const [metrics, setMetrics] = useState({
     recentCampaigns: [],
@@ -26,6 +28,10 @@ export default function Dashboard() {
     waiting: 0,
     templates: 0,
   });
+
+  // Find the current namespace ID
+  const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
+  const currentNamespaceId = currentNamespaceObj?.id;
 
   // Refresh user data on mount.
   const refreshUserData = async () => {
@@ -40,30 +46,50 @@ export default function Dashboard() {
   };
 
   const fetchRecentCampaigns = async () => {
+    if (!currentNamespaceId) {
+      console.warn('No namespace ID available for fetching recent campaigns');
+      return;
+    }
+
     try {
-      const data = await get('/campaign/campaigns/recent');
-      if (data && data.length > 0) {
+      // Use the correct endpoint format from the server code
+      console.log('Fetching recent campaigns with endpoint:', `/campaign/campaigns/recent?namespaceId=${currentNamespaceId}`);
+      const data = await get(`/campaign/campaigns/recent?namespaceId=${currentNamespaceId}`);
+      console.log('Recent campaigns data:', data); // Add logging to see the data
+      
+      if (data && Array.isArray(data)) {
         // Include counts from API if available.
         const campaignsWithCounts = data.map((campaign) => ({
           ...campaign,
           responseCount: campaign.responsesCount || 0,
           aiVideosCount: campaign.aiVideoCount || 0,
         }));
+        
+        console.log('Processed campaigns:', campaignsWithCounts); // Log processed data
+        
         setMetrics((prev) => ({
           ...prev,
           recentCampaigns: campaignsWithCounts,
         }));
+      } else {
+        console.warn('Recent campaigns data is not an array:', data);
       }
     } catch (err) {
-      console.warn('Campaign fetch warning:', err.message);
+      console.error('Campaign fetch error:', err.message);
       // Check if server is down
       checkServerStatus();
     }
   };
 
   const fetchDashboardData = async () => {
+    if (!currentNamespaceId) {
+      console.warn('No namespace ID available for fetching dashboard data');
+      return;
+    }
+
     try {
-      const data = await get('/dashboard');
+      const data = await get(`/dashboard?namespaceId=${currentNamespaceId}`);
+      console.log('Dashboard data:', data);
       
       if (data && data.metrics) {
         setMetrics((prev) => ({
@@ -90,30 +116,39 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    // Refresh user data and fetch metrics on mount.
+    // Refresh user data on mount to ensure we have the latest profile data
     refreshUserData();
     
     // Set loading state
     setIsLoading(true);
     
-    // Fetch all required metrics
-    Promise.all([
-      fetchDashboardData().catch(err => {
-        console.error('Dashboard data fetch failed:', err);
-        return null;
-      }),
-      fetchRecentCampaigns().catch(err => {
-        console.error('Recent campaigns fetch failed:', err);
-        return null;
-      }),
-    ]).then(() => {
-      // Set loading to false when all data is fetched
+    // Only fetch data if we have a namespace ID
+    if (currentNamespaceId) {
+      console.log('Dashboard: Fetching data for namespace ID:', currentNamespaceId);
+      
+      // Fetch all required metrics
+      Promise.all([
+        fetchDashboardData().catch(err => {
+          console.error('Dashboard data fetch failed:', err);
+          return null;
+        }),
+        fetchRecentCampaigns().catch(err => {
+          console.error('Recent campaigns fetch failed:', err);
+          return null;
+        }),
+      ]).then(() => {
+        // Set loading to false when all data is fetched
+        setIsLoading(false);
+      }).catch(err => {
+        console.error('Error fetching dashboard data:', err);
+        setIsLoading(false);
+      });
+    } else {
+      console.warn('Dashboard: No namespace ID available, skipping data fetch');
+      // If no namespace ID, set loading to false
       setIsLoading(false);
-    }).catch(err => {
-      console.error('Error fetching dashboard data:', err);
-      setIsLoading(false);
-    });
-  }, []);
+    }
+  }, [currentNamespaceId]); // Re-fetch when namespace changes
 
   // Determine if the user is new (signed up less than 5 minutes ago).
   const [isNewUser, setIsNewUser] = useState(false);
@@ -141,6 +176,12 @@ export default function Dashboard() {
       />
 
       <div className="mt-10">
+        {console.log('Dashboard rendering RecentCampaigns with:', {
+          isLoading,
+          totalCampaigns: metrics.campaigns,
+          recentCampaignsLength: metrics.recentCampaigns?.length,
+          recentCampaigns: metrics.recentCampaigns
+        })}
         <RecentCampaigns
           isLoading={isLoading}
           totalCampaigns={metrics.campaigns}

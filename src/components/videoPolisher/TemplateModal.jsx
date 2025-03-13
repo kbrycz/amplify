@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { X, Layout, Check, Loader2, Clock, FolderX } from 'lucide-react';
 import { SERVER_URL, auth } from '../../lib/firebase';
+import { useNamespace } from '../../context/NamespaceContext';
 
 export function TemplateModal({ isOpen, onClose, onSelectTemplate }) {
   const [templates, setTemplates] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState(null);
+  
+  // Get the current namespace from context
+  const { currentNamespace, namespaces } = useNamespace();
+  
+  // Find the current namespace ID
+  const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
+  const currentNamespaceId = currentNamespaceObj?.id;
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && currentNamespaceId) {
       fetchTemplates();
+    } else if (isOpen && !currentNamespaceId) {
+      setError('No namespace selected. Please select a namespace to view templates.');
+      setIsLoading(false);
     }
-  }, [isOpen]);
+  }, [isOpen, currentNamespaceId]);
 
   const fetchTemplates = async () => {
     setIsLoading(true);
@@ -20,14 +31,15 @@ export function TemplateModal({ isOpen, onClose, onSelectTemplate }) {
     
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch(`${SERVER_URL}/templates`, {
+      const response = await fetch(`${SERVER_URL}/templates?namespaceId=${currentNamespaceId}`, {
         headers: {
           'Authorization': `Bearer ${idToken}`
         }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch templates');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch templates');
       }
 
       const data = await response.json();
@@ -57,7 +69,8 @@ export function TemplateModal({ isOpen, onClose, onSelectTemplate }) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch template details');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch template details');
       }
 
       const templateData = await response.json();

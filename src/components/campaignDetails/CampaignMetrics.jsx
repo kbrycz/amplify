@@ -50,9 +50,20 @@ export default function CampaignMetrics({ metrics, campaignId, navigate, campaig
 
   // Helper function to add namespace ID to navigation URLs
   const navigateWithNamespace = (path) => {
-    // Append namespace ID as a query parameter if available
-    const queryParam = currentNamespaceId ? `?namespaceId=${currentNamespaceId}` : '';
-    navigate(`${path}${queryParam}`);
+    // Parse the base path and any existing query parameters
+    const [basePath, existingQuery] = path.split('?');
+    const searchParams = new URLSearchParams(existingQuery || '');
+    
+    // Add namespace ID as a query parameter if available
+    if (currentNamespaceId) {
+      searchParams.set('namespaceId', currentNamespaceId);
+    }
+    
+    // Construct the final URL with all query parameters
+    const queryString = searchParams.toString();
+    const finalPath = queryString ? `${basePath}?${queryString}` : basePath;
+    
+    navigate(finalPath);
   };
 
   return (
@@ -68,7 +79,7 @@ export default function CampaignMetrics({ metrics, campaignId, navigate, campaig
           title="AI Videos"
           value={campaign.aiVideoCount || 0}
           icon={Sparkles}
-          onClick={() => navigateWithNamespace(`/app/campaigns/${campaignId}/responses${currentNamespaceId ? '?' : '&'}ai=true`)}
+          onClick={() => navigateWithNamespace(`/app/campaigns/${campaignId}/responses?ai=true`)}
         />
         <MetricCard
           title="Campaign Age"

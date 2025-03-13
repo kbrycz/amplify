@@ -48,28 +48,54 @@ function timeAgo(date) {
   return 'just now';
 }
 
-export default function TemplateRow({ template, onDelete, onUpdate, isEditMode }) {
+export default function TemplateRow({
+  template,
+  isEditMode,
+  onDelete,
+  onUpdate,
+  onTemplateClick,
+  currentNamespaceId
+}) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const navigate = useNavigate();
 
   const handleDelete = async () => {
+    if (!isConfirmingDelete) {
+      setIsConfirmingDelete(true);
+      return;
+    }
+
     try {
+      setIsDeleting(true);
       await onDelete(template.id);
-      setIsDeleteModalOpen(false);
     } catch (error) {
       console.error('Error deleting template:', error);
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmingDelete(false);
     }
   };
 
-  const handleSave = async (formData) => {
+  const handleUpdate = async (formData) => {
     try {
-      const updatedTemplate = await onUpdate(template.id, formData);
-      setIsEditModalOpen(false);
-      return updatedTemplate;
-    } catch (err) {
-      throw new Error('Failed to update template: ' + err.message);
+      // Make sure we include the namespaceId in the form data
+      const updateData = {
+        ...formData,
+        namespaceId: currentNamespaceId
+      };
+      
+      return await onUpdate(template.id, updateData);
+    } catch (error) {
+      console.error('Error updating template:', error);
+      throw error;
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIsConfirmingDelete(false);
   };
 
   const dateModified = parseDate(template.lastModified);
@@ -214,7 +240,7 @@ export default function TemplateRow({ template, onDelete, onUpdate, isEditMode }
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         template={template}
-        onSave={handleSave}
+        onSave={handleUpdate}
       />
     </div>
   );

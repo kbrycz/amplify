@@ -57,18 +57,13 @@ export default function CreateNamespace() {
       // Make the API call to create the namespace
       const response = await post('/namespaces', namespaceData);
       
-      // Show success in the loading modal first
-      setLoadingModal({ isOpen: true, status: 'success', error: null });
-      
-      // After a short delay, close the loading modal and open the success modal
-      setTimeout(() => {
-        setLoadingModal({ isOpen: false, status: 'success', error: null });
-        setSuccessModal({ 
-          isOpen: true, 
-          namespaceName: formData.name, 
-          namespaceId: response.id 
-        });
-      }, 1500);
+      // Close the loading modal and open the success modal directly
+      setLoadingModal({ isOpen: false, status: 'loading', error: null });
+      setSuccessModal({ 
+        isOpen: true, 
+        namespaceName: formData.name, 
+        namespaceId: response.id 
+      });
     } catch (err) {
       console.error('Error creating namespace:', err);
       setLoadingModal({

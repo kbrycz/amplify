@@ -20,6 +20,8 @@ export default function CampaignSettingsForm({
   handleQuestionChange,
   setIsHelpOpen,
   setIsDeleteModalOpen,
+  currentNamespace,
+  userPermission,
 }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

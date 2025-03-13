@@ -89,18 +89,13 @@ export default function EditNamespace() {
       // Make the API call to update the namespace
       const response = await put(`/namespaces/${id}`, namespaceData);
       
-      // Show success in the loading modal first
-      setLoadingModal({ isOpen: true, status: 'success', error: null });
-      
-      // After a short delay, close the loading modal and open the success modal
-      setTimeout(() => {
-        setLoadingModal({ isOpen: false, status: 'success', error: null });
-        setSuccessModal({ 
-          isOpen: true, 
-          namespaceName: formData.name, 
-          namespaceId: id 
-        });
-      }, 1500);
+      // Close the loading modal and open the success modal directly
+      setLoadingModal({ isOpen: false, status: 'loading', error: null });
+      setSuccessModal({ 
+        isOpen: true, 
+        namespaceName: formData.name, 
+        namespaceId: id 
+      });
     } catch (err) {
       console.error('Error updating namespace:', err);
       setLoadingModal({

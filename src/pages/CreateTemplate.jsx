@@ -15,6 +15,7 @@ import { Captions } from '../components/shared/templates/Captions';
 import { Outro } from '../components/shared/templates/Outro';
 import { StepNavigation } from '../components/shared/templates/StepNavigation';
 import { TemplateModal } from '../components/videoPolisher/TemplateModal';
+import { useNamespace } from '../context/NamespaceContext';
 
 // Theme configuration – should match your campaign themes
 const themes = {
@@ -60,6 +61,14 @@ const steps = [
 
 export default function CreateTemplate() {
   const navigate = useNavigate();
+  
+  // Get the current namespace from context
+  const { currentNamespace, namespaces } = useNamespace();
+  
+  // Find the current namespace ID
+  const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
+  const currentNamespaceId = currentNamespaceObj?.id;
+  
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedTheme, setSelectedTheme] = useState('sunset');
   const [selectedCaptionStyle, setSelectedCaptionStyle] = useState({ style: 'standard', position: 'bottom' });
@@ -104,15 +113,25 @@ export default function CreateTemplate() {
   const draftsRef = useRef(null);
 
   useEffect(() => {
-    fetchDrafts();
-  }, []);
+    if (currentNamespaceId) {
+      fetchDrafts();
+    } else {
+      setError({
+        type: 'error',
+        message: 'No namespace selected. Please select a namespace to create templates.'
+      });
+      setTimeout(() => setError(null), 5000);
+    }
+  }, [currentNamespaceId]);
 
   async function fetchDrafts() {
     setIsLoadingDrafts(true);
     try {
       const user = auth.currentUser;
       if (!user) throw new Error('You must be logged in to view drafts');
-      const response = await fetch(`${SERVER_URL}/draftTemplates/drafts`, {
+      if (!currentNamespaceId) throw new Error('No namespace selected');
+      
+      const response = await fetch(`${SERVER_URL}/draftTemplates/drafts?namespaceId=${currentNamespaceId}`, {
         headers: {
           'Authorization': `Bearer ${await user.getIdToken()}`
         }
@@ -141,17 +160,32 @@ export default function CreateTemplate() {
       setTimeout(() => setError(null), 3000);
       return;
     }
+    
+    if (!currentNamespaceId) {
+      setError({
+        type: 'error',
+        message: 'No namespace selected. Please select a namespace to save drafts.'
+      });
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+    
     setIsSavingDraft(true);
     try {
       const user = auth.currentUser;
       if (!user) throw new Error('You must be logged in to save a draft');
       const draftData = {
+        namespaceId: currentNamespaceId,
         name: formData.name,
         captionType: typeof selectedCaptionStyle === 'object' ? selectedCaptionStyle.style : selectedCaptionStyle,
         captionPosition: typeof selectedCaptionStyle === 'object' ? selectedCaptionStyle.position : 'bottom',
         outtroBackgroundColors: showOutro ? (selectedOutroTheme === 'custom' ? customOutroColor : selectedOutroTheme) : 'none',
         outtroFontColor: showOutro ? outroTextColor : '',
         image: outroLogo,
+        outroText: outroText,
+        outroTheme: selectedOutroTheme,
+        showOutro: showOutro,
+        theme: selectedTheme,
         additionalData: JSON.stringify({
           formData,
           selectedTheme,
@@ -187,7 +221,11 @@ export default function CreateTemplate() {
         });
       }
 
-      if (!response.ok) throw new Error('Failed to save draft');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save draft');
+      }
+      
       const savedDraft = await response.json();
       await fetchDrafts();
       setSelectedDraftId(savedDraft.id);
@@ -196,11 +234,24 @@ export default function CreateTemplate() {
       setTimeout(() => setSaveDraftSuccess(null), 3000);
     } catch (err) {
       console.error('Error saving draft:', err);
+      
+      // Create a more user-friendly error message
+      let errorMessage = 'Unable to save draft at this time. Please try again later.';
+      
+      // Add more specific messages for common errors
+      if (err.message.includes('permission')) {
+        errorMessage = 'You don\'t have permission to save drafts in this namespace.';
+      } else if (err.message.includes('network') || err.message.includes('offline')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+      
       setError({
         type: 'error',
-        message: 'Failed to save draft. Please try again.'
+        message: errorMessage
       });
-      setTimeout(() => setError(null), 3000);
+      
+      // Automatically clear the error after 5 seconds
+      setTimeout(() => setError(null), 5000);
     } finally {
       setIsSavingDraft(false);
     }
@@ -235,17 +286,17 @@ export default function CreateTemplate() {
         email: '',
         phone: ''
       });
-      setSelectedTheme(additionalData.selectedTheme || 'sunset');
+      setSelectedTheme(additionalData.selectedTheme || draft.theme || 'sunset');
       setSelectedCaptionStyle(additionalData.selectedCaptionStyle || {
         style: draft.captionType || 'standard',
         position: draft.captionPosition || 'bottom'
       });
-      setSelectedOutroTheme(additionalData.selectedOutroTheme || draft.outtroBackgroundColors || 'sunset');
+      setSelectedOutroTheme(additionalData.selectedOutroTheme || draft.outroTheme || 'sunset');
       setOutroLogo(additionalData.outroLogo || draft.image || null);
       setCustomOutroColor(additionalData.customOutroColor || '#3B82F6');
-      setOutroText(additionalData.outroText || '');
+      setOutroText(additionalData.outroText || draft.outroText || '');
       setOutroTextColor(additionalData.outroTextColor || draft.outtroFontColor || '#FFFFFF');
-      setShowOutro(additionalData.showOutro !== undefined ? additionalData.showOutro : true);
+      setShowOutro(additionalData.showOutro !== undefined ? additionalData.showOutro : (draft.showOutro !== undefined ? draft.showOutro : true));
       setPreviewImage(additionalData.previewImage || null);
       setSelectedDraftId(draftId);
       setIsEditingDraft(true);
@@ -359,18 +410,33 @@ export default function CreateTemplate() {
       setTimeout(() => setError(null), 3000);
       return;
     }
+    
+    if (!currentNamespaceId) {
+      setError({
+        type: 'error',
+        message: 'No namespace selected. Please select a namespace to create templates.'
+      });
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+    
     setIsSubmitting(true);
     setLoadingModal({ isOpen: true, status: 'loading', error: null });
     try {
       const user = auth.currentUser;
       if (!user) throw new Error('You must be logged in to create a template');
       const templateData = {
+        namespaceId: currentNamespaceId,
         name: formData.name,
         captionType: typeof selectedCaptionStyle === 'object' ? selectedCaptionStyle.style : selectedCaptionStyle,
         captionPosition: typeof selectedCaptionStyle === 'object' ? selectedCaptionStyle.position : 'bottom',
         outtroBackgroundColors: showOutro ? (selectedOutroTheme === 'custom' ? customOutroColor : selectedOutroTheme) : 'none',
         outtroFontColor: showOutro ? outroTextColor : '',
         image: showOutro ? outroLogo : null,
+        outroText: outroText,
+        outroTheme: selectedOutroTheme,
+        showOutro: showOutro,
+        theme: selectedTheme,
         additionalData: JSON.stringify({
           formData,
           selectedTheme,
@@ -393,7 +459,10 @@ export default function CreateTemplate() {
         },
         body: JSON.stringify(templateData)
       });
-      if (!response.ok) throw new Error('Failed to create template');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create template');
+      }
       const createdTemplate = await response.json();
       if (isEditingDraft && selectedDraftId) {
         try {
@@ -554,8 +623,8 @@ export default function CreateTemplate() {
             <button
               type="button"
               onClick={handleSaveDraft}
-              disabled={isSavingDraft}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              disabled={isSavingDraft || !currentNamespaceId}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 disabled:opacity-50"
             >
               {isSavingDraft ? (
                 <>Saving...</>
@@ -568,6 +637,25 @@ export default function CreateTemplate() {
             </button>
           </div>
         </div>
+
+        {/* Namespace warning */}
+        {!currentNamespaceId && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/50 mb-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-amber-400 dark:text-amber-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">Namespace Required</h3>
+                <div className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                  <p>Please select a namespace to create and manage templates. Templates are shared within a namespace.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Progress Bar */}
         <div className="relative max-w-[800px] h-1 bg-gray-200 dark:bg-gray-800 mt-4">
@@ -622,9 +710,21 @@ export default function CreateTemplate() {
             setIsEditingDraft={setIsEditingDraft}
           />
         </div>
-        {error && error.type === 'error' && <ErrorMessage message={error.message} />}
+        {error && error.type === 'error' && (
+          <ErrorMessage 
+            message={error.message} 
+            onClose={() => setError(null)} 
+            duration={5000}
+          />
+        )}
         {deleteMessage && deleteMessage.type === 'success' && <SuccessMessage message={deleteMessage.message} />}
-        {deleteMessage && deleteMessage.type === 'error' && <ErrorMessage message={deleteMessage.message} />}
+        {deleteMessage && deleteMessage.type === 'error' && (
+          <ErrorMessage 
+            message={deleteMessage.message} 
+            onClose={() => setDeleteMessage(null)} 
+            duration={5000}
+          />
+        )}
         <div className={`grid grid-cols-1 ${showPreview ? 'lg:grid-cols-[800px,auto]' : ''} gap-6 items-start ${!showPreview ? 'w-full' : ''}`}>
           <Card className="w-full">
             <CardContent>

@@ -1,211 +1,281 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Save, Loader2 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select';
 
 export function EditTemplateModal({ isOpen, onClose, template, onSave }) {
   const [formData, setFormData] = useState({
-    name: template?.name || '',
-    captionType: template?.captionType || '',
-    captionPosition: template?.captionPosition || '',
-    outtroFontColor: template?.outtroFontColor || '',
-    outtroBackgroundColors: template?.outtroBackgroundColors || '',
+    name: '',
+    captionType: '',
+    captionPosition: '',
+    outtroBackgroundColors: '',
+    outtroFontColor: '',
+    outroText: '',
+    outroTheme: '',
+    showOutro: false,
+    theme: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Reset form state when modal is opened
   useEffect(() => {
-    if (isOpen) {
+    if (template) {
       setFormData({
-        name: template?.name || '',
-        captionType: template?.captionType || '',
-        captionPosition: template?.captionPosition || '',
-        outtroFontColor: template?.outtroFontColor || '',
-        outtroBackgroundColors: template?.outtroBackgroundColors || '',
+        name: template.name || '',
+        captionType: template.captionType || '',
+        captionPosition: template.captionPosition || '',
+        outtroBackgroundColors: template.outtroBackgroundColors || '',
+        outtroFontColor: template.outtroFontColor || '',
+        outroText: template.outroText || '',
+        outroTheme: template.outroTheme || '',
+        showOutro: template.showOutro !== undefined ? template.showOutro : false,
+        theme: template.theme || ''
       });
-      setIsSubmitting(false);
-      setError('');
-      setIsSuccess(false);
     }
-  }, [isOpen, template]);
+  }, [template]);
 
-  const handleClose = () => {
-    setIsSuccess(false);
-    onClose();
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError('');
-    setIsSuccess(false);
+    setError(null);
 
     try {
-      await onSave(formData);
-      setIsSuccess(true);
-      setTimeout(() => {
-        onClose();
-      }, 1000);
+      // Make sure we preserve the namespaceId if it exists in the template
+      const updateData = {
+        ...formData,
+        namespaceId: template.namespaceId
+      };
+      
+      await onSave(updateData);
+      onClose();
     } catch (err) {
-      setError(err.message);
+      console.error('Error saving template:', err);
+      setError(err.message || 'Failed to save template');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
+  if (!isOpen) return null;
 
-      <div className="relative w-full max-w-lg transform overflow-hidden rounded-lg bg-white shadow-xl transition-all dark:bg-gray-900 sm:my-8">
-        <div className="px-4 pb-4 pt-5 sm:p-6">
-          <div className="absolute right-4 top-4">
-            <button
-              onClick={handleClose}
-              className="rounded-lg p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Template</h2>
+          <button
+            onClick={onClose}
+            className="rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/30">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <X className="h-5 w-5 text-red-400" aria-hidden="true" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-300">{error}</h3>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Template Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="captionType" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Caption Type
+            </label>
+            <select
+              id="captionType"
+              name="captionType"
+              value={formData.captionType}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
             >
-              <X className="h-5 w-5" />
+              <option value="">Select a caption type</option>
+              <option value="standard">Standard</option>
+              <option value="subtitle">Subtitle</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+
+          {formData.captionType && formData.captionType !== 'none' && (
+            <div>
+              <label htmlFor="captionPosition" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Caption Position
+              </label>
+              <select
+                id="captionPosition"
+                name="captionPosition"
+                value={formData.captionPosition}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+              >
+                <option value="">Select a position</option>
+                <option value="top">Top</option>
+                <option value="bottom">Bottom</option>
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="theme" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Theme
+            </label>
+            <select
+              id="theme"
+              name="theme"
+              value={formData.theme}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+            >
+              <option value="">Select a theme</option>
+              <option value="sunset">Sunset</option>
+              <option value="ocean">Ocean</option>
+              <option value="forest">Forest</option>
+              <option value="midnight">Midnight</option>
+            </select>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="showOutro"
+              name="showOutro"
+              checked={formData.showOutro}
+              onChange={handleChange}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800"
+            />
+            <label htmlFor="showOutro" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              Show Outro
+            </label>
+          </div>
+
+          {formData.showOutro && (
+            <>
+              <div>
+                <label htmlFor="outroTheme" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Outro Theme
+                </label>
+                <select
+                  id="outroTheme"
+                  name="outroTheme"
+                  value={formData.outroTheme}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+                >
+                  <option value="">Select an outro theme</option>
+                  <option value="sunset">Sunset</option>
+                  <option value="ocean">Ocean</option>
+                  <option value="forest">Forest</option>
+                  <option value="midnight">Midnight</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+
+              {formData.outroTheme === 'custom' && (
+                <div>
+                  <label htmlFor="outtroBackgroundColors" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Custom Background Color
+                  </label>
+                  <input
+                    type="text"
+                    id="outtroBackgroundColors"
+                    name="outtroBackgroundColors"
+                    value={formData.outtroBackgroundColors}
+                    onChange={handleChange}
+                    placeholder="#RRGGBB"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="outtroFontColor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Outro Font Color
+                </label>
+                <input
+                  type="text"
+                  id="outtroFontColor"
+                  name="outtroFontColor"
+                  value={formData.outtroFontColor}
+                  onChange={handleChange}
+                  placeholder="#RRGGBB"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="outroText" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Outro Text
+                </label>
+                <input
+                  type="text"
+                  id="outroText"
+                  name="outroText"
+                  value={formData.outroText}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+                />
+              </div>
+            </>
+          )}
+
+          <div className="mt-5 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
             </button>
           </div>
-
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Edit Template
-            </h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Update your template details below.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Template Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="mt-1"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="captionType">Caption Type</Label>
-              <Select 
-                id="captionType"
-                value={formData.captionType} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, captionType: value }))}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select caption type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">None</SelectItem>
-                  <SelectItem value="Standard">Standard</SelectItem>
-                  <SelectItem value="Subtitle">Subtitle</SelectItem>
-                  <SelectItem value="Overlay">Overlay</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="captionPosition">Caption Position</Label>
-              <Select 
-                id="captionPosition"
-                value={formData.captionPosition} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, captionPosition: value }))}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select caption position" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">None</SelectItem>
-                  <SelectItem value="Top">Top</SelectItem>
-                  <SelectItem value="Bottom">Bottom</SelectItem>
-                  <SelectItem value="Center">Center</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="outtroFontColor">Outtro Font Color</Label>
-              <Input
-                id="outtroFontColor"
-                type="text"
-                value={formData.outtroFontColor}
-                onChange={(e) => setFormData(prev => ({ ...prev, outtroFontColor: e.target.value }))}
-                className="mt-1"
-                placeholder="#FFFFFF"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="outtroBackgroundColors">Outtro Background Colors</Label>
-              <Input
-                id="outtroBackgroundColors"
-                type="text"
-                value={formData.outtroBackgroundColors}
-                onChange={(e) => setFormData(prev => ({ ...prev, outtroBackgroundColors: e.target.value }))}
-                className="mt-1"
-                placeholder="#000000,#111111"
-              />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Comma-separated list of colors for gradient background
-              </p>
-            </div>
-
-            {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-400">
-                {error}
-              </div>
-            )}
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                disabled={isSubmitting}
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50 ${
-                  isSuccess ? 'bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700'
-                }`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Saving...
-                  </>
-                ) : isSuccess ? (
-                  <>
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    Saved!
-                  </>
-                ) : (
-                  'Save Changes'
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
+        </form>
       </div>
     </div>
   );

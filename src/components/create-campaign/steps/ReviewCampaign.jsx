@@ -92,7 +92,7 @@ export function ReviewCampaign({
         <div>
           <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Namespace</h4>
           <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Building className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">{currentNamespace}</span>
@@ -103,13 +103,6 @@ export function ReviewCampaign({
                   <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">{formatPermission(userPermission)}</span>
                 </div>
               )}
-            </div>
-            <div className="flex items-start gap-2 mt-2 text-xs text-gray-600 dark:text-gray-400">
-              <Info className="h-4 w-4 flex-shrink-0 mt-0.5 text-blue-500" />
-              <p>
-                This campaign will be created in the <strong>{currentNamespace}</strong> namespace and will be visible to all members of this namespace. 
-                Members with appropriate permissions will be able to view, edit, or delete this campaign based on their role.
-              </p>
             </div>
           </div>
         </div>

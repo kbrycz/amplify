@@ -7,7 +7,7 @@ import { PhonePreview } from '../create-template/PhonePreview';
 import { InternalName } from '../create-template/steps/InternalName';
 import { Captions } from '../create-template/steps/Captions';
 import { Outro } from '../create-template/steps/Outro';
-import { StepNavigation } from '../create-template/StepNavigation';
+import { StepNavigation } from '../shared/templates/StepNavigation';
 import { useToast } from '../../components/ui/toast-notification';
 
 // Theme configuration – same as CreateTemplate
@@ -322,7 +322,7 @@ export default function VideoPolisherFlow() {
                     isSubmitting={isProcessing}
                     formData={formData}
                     selectedCaptionStyle={selectedCaptionStyle}
-                    finalButtonText="Use 1 Credit to Enhance Video"
+                    finalStepText="Use 1 Credit to Enhance Video"
                   />
                 </div>
               </form>

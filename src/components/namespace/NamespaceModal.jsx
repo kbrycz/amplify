@@ -102,17 +102,6 @@ export default function NamespaceModal() {
         </div>
 
         <div className="space-y-6">
-          {/* Current Namespace */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Current Namespace</h4>
-            <div className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-900/30">
-              <span className="font-medium text-indigo-700 dark:text-indigo-300">{currentNamespace}</span>
-              <span className="text-xs bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300 px-2 py-1 rounded-full">
-                Active
-              </span>
-            </div>
-          </div>
-
           {/* Loading State */}
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-10">

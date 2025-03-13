@@ -1,39 +1,68 @@
-import React from 'react';
-import { X, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Info, AlertCircle, CheckCircle } from 'lucide-react';
 
-export const ErrorMessage = ({ error }) => {
+export const ErrorMessage = ({ error, duration = 5000 }) => {
+  const [isVisible, setIsVisible] = useState(!!error);
+  
+  // Reset visibility when error changes
+  useEffect(() => {
+    if (error) {
+      setIsVisible(true);
+      
+      // Auto-dismiss after duration
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+      }, duration);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [error, duration]);
+  
   if (!error) return null;
   
   // Determine the background and text colors based on the error type
   const getStyles = () => {
     if (error.type === 'success') {
-      return 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      return 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800';
     } else if (error.type === 'info') {
-      return 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      return 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800';
     } else {
-      return 'bg-red-50 text-red-700 dark:bg-red-900/50 dark:text-red-400';
+      return 'bg-red-50 text-red-700 dark:bg-red-900/50 dark:text-red-400 border-red-200 dark:border-red-800';
     }
   };
   
   // Get the appropriate icon based on the error type
   const getIcon = () => {
     if (error.type === 'success') {
-      return (
-        <svg className="h-4 w-4 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
+      return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />;
     } else if (error.type === 'info') {
-      return <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+      return <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
     } else {
-      return <X className="h-4 w-4" />;
+      return <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />;
     }
   };
   
+  // Handle manual close
+  const handleClose = () => {
+    setIsVisible(false);
+  };
+  
   return (
-    <div role="alert" className={`mb-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${getStyles()}`}>
-      {getIcon()}
-      {error.message || error}
+    <div 
+      role="alert" 
+      className={`mb-4 flex items-center justify-between gap-2 rounded-lg px-4 py-3 text-sm border shadow-sm transition-all duration-300 ${getStyles()} ${isVisible ? 'opacity-100 transform-none' : 'opacity-0 transform translate-y-[-10px]'}`}
+    >
+      <div className="flex items-center gap-2">
+        {getIcon()}
+        <span>{error.message || error}</span>
+      </div>
+      <button 
+        onClick={handleClose}
+        className="rounded-full p-1 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors"
+        aria-label="Dismiss"
+      >
+        <X className="h-4 w-4" />
+      </button>
     </div>
   );
 }; 

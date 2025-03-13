@@ -114,7 +114,9 @@ export const useCampaignDrafts = (
         customColors: customColors,
         campaignImage: previewImage,
         subcategory: subcategory,
-        surveyQuestions: surveyQuestions.map(q => q.question),
+        surveyQuestions: Array.isArray(surveyQuestions) 
+          ? JSON.stringify(surveyQuestions.map(q => q.question)) 
+          : JSON.stringify([]),
         hasExplainerVideo: hasExplainerVideo,
         explainerVideo: explainerVideo,
         namespaceId: namespaceId // Add namespace ID to draft data
@@ -150,11 +152,24 @@ export const useCampaignDrafts = (
       setTimeout(() => setError(null), 3000);
     } catch (err) {
       console.error('Error saving draft:', err);
+      
+      // Create a more user-friendly error message
+      let errorMessage = 'Unable to save draft at this time. Please try again later.';
+      
+      // Add more specific messages for common errors
+      if (err.message.includes('permission')) {
+        errorMessage = 'You don\'t have permission to save drafts in this namespace.';
+      } else if (err.message.includes('network') || err.message.includes('offline')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+      
       setError({
         type: 'error',
-        message: `Failed to save draft: ${err.message}`
+        message: errorMessage
       });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Automatically clear the error after 5 seconds
+      setTimeout(() => setError(null), 5000);
     } finally {
       setIsSavingDraft(false);
     }
@@ -212,9 +227,24 @@ export const useCampaignDrafts = (
         // setExplainerVideo(draft.explainerVideo || null);
       }
       
-      setSurveyQuestions(draft.surveyQuestions.map((question, index) => ({
+      // Handle surveyQuestions which might be a string, array, or null
+      let questions = [];
+      if (draft.surveyQuestions) {
+        if (typeof draft.surveyQuestions === 'string') {
+          try {
+            questions = JSON.parse(draft.surveyQuestions);
+          } catch (e) {
+            console.error('Error parsing surveyQuestions:', e);
+            questions = [];
+          }
+        } else if (Array.isArray(draft.surveyQuestions)) {
+          questions = draft.surveyQuestions;
+        }
+      }
+      
+      setSurveyQuestions(questions.map((question, index) => ({
         id: index + 1,
-        question
+        question: typeof question === 'string' ? question : ''
       })));
       setIsDraftsOpen(false);
       

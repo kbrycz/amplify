@@ -36,7 +36,10 @@ export default function Responses() {
     const aiParam = searchParams.get('ai');
     if (aiParam === 'true') {
       setShowAIVideosOnly(true);
+    } else if (aiParam === 'false') {
+      setShowAIVideosOnly(false);
     }
+    // Only run this effect when the location.search changes
   }, [location.search]);
 
   useEffect(() => {
@@ -148,7 +151,7 @@ export default function Responses() {
               const newState = !showAIVideosOnly;
               setShowAIVideosOnly(newState);
               
-              // Update URL to reflect the AI filter state
+              // Update URL to reflect the AI filter state while preserving other parameters
               const searchParams = new URLSearchParams(location.search);
               if (newState) {
                 searchParams.set('ai', 'true');

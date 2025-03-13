@@ -11,6 +11,7 @@ import { StepNavigation } from '../components/shared/templates/StepNavigation';
 import { useToast } from '../components/ui/toast-notification';
 import { TemplateModal } from '../components/videoPolisher/TemplateModal';
 import { FileText, ArrowLeft } from 'lucide-react';
+import { useNamespace } from '../context/NamespaceContext';
 
 const themes = {
   sunset: { background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600', text: 'text-white', subtext: 'text-orange-100', border: 'border-white/20', input: 'bg-white/20', name: 'Sunset Vibes' },
@@ -29,6 +30,13 @@ export default function VideoPolisher() {
   const { id, campaignId } = useParams();
   const navigate = useNavigate();
   const { addToast } = useToast();
+  
+  // Get the current namespace from context
+  const { namespaces, currentNamespace } = useNamespace();
+  
+  // Find the current namespace ID
+  const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
+  const currentNamespaceId = currentNamespaceObj?.id;
 
   const [video, setVideo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -123,6 +131,14 @@ export default function VideoPolisher() {
       setError("Please enter a video name");
       return;
     }
+    
+    // Check if namespace is selected
+    if (!currentNamespaceId) {
+      setError("Please select a namespace before enhancing the video");
+      addToast("Please select a namespace before enhancing the video", "error", 5000);
+      return;
+    }
+    
     setIsProcessing(true);
     try {
       const user = auth.currentUser;
@@ -136,8 +152,12 @@ export default function VideoPolisher() {
         outtroBackgroundColors: showOutro ? (selectedOutroTheme === 'custom' ? customOutroColor : selectedOutroTheme) : 'none',
         outtroFontColor: showOutro ? outroTextColor : '',
         image: showOutro ? outroLogo : null,
-        additionalData: JSON.stringify({ formData, selectedTheme, selectedCaptionStyle, selectedOutroTheme, outroLogo, customOutroColor, outroText, outroTextColor, showOutro })
+        additionalData: JSON.stringify({ formData, selectedTheme, selectedCaptionStyle, selectedOutroTheme, outroLogo, customOutroColor, outroText, outroTextColor, showOutro }),
+        namespaceId: currentNamespaceId // Add the namespace ID to the payload
       };
+      
+      console.log("Sending video enhancement request with payload:", payload);
+      
       const toastId = addToast("Video processing in progress. This may take a few minutes...", "info", 0);
       const response = await fetch(`${SERVER_URL}/creatomate/creatomate-process`, {
         method: 'POST',
@@ -329,11 +349,35 @@ export default function VideoPolisher() {
         Back to responses
       </button>
       
+      {/* Namespace warning */}
+      {!currentNamespaceId && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/50">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-amber-400 dark:text-amber-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">Namespace Required</h3>
+              <div className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                <p>Please select a namespace to enhance this video. Videos are associated with a specific namespace.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="space-y-4">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Enhance Video</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Customize and enhance your video using our AI enhancement tool. Use 1 credit to transform your video.
+            {currentNamespace && (
+              <span className="ml-1 text-indigo-600 dark:text-indigo-400">
+                Current namespace: {currentNamespace}
+              </span>
+            )}
           </p>
           <div className="relative max-w-[800px] h-1 bg-gray-200 dark:bg-gray-800 mt-4">
             <div className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-400 transition-all duration-500" style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }} />
@@ -414,7 +458,7 @@ export default function VideoPolisher() {
                     isSubmitting={isProcessing}
                     formData={formData}
                     selectedCaptionStyle={selectedCaptionStyle}
-                    finalButtonText="Use 1 Credit to Enhance Video"
+                    finalStepText="Use 1 Credit to Enhance Video"
                   />
                 </div>
               </form>

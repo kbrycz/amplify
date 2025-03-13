@@ -44,6 +44,14 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
     }
   };
 
+  // Truncate description for display
+  const getTruncatedDescription = () => {
+    if (!namespace.description) return '';
+    return namespace.description.length > 60 
+      ? `${namespace.description.substring(0, 60)}...` 
+      : namespace.description;
+  };
+
   // Count active members
   const activeMembers = namespace.members?.filter(m => m.status === 'active')?.length || 0;
   const pendingMembers = namespace.members?.filter(m => m.status === 'pending')?.length || 0;
@@ -97,7 +105,7 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
                     {namespace.name}
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Created {formatDate(namespace.createdAt)}
+                    {getTruncatedDescription() || 'No description'}
                   </p>
                 </div>
               </div>
@@ -177,13 +185,6 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
               </div>
             )}
           </div>
-          
-          {/* Description - only visible on desktop */}
-          {namespace.description && (
-            <div className="hidden lg:block mt-3 text-sm text-gray-600 dark:text-gray-400 line-clamp-1 pr-8">
-              {namespace.description}
-            </div>
-          )}
         </div>
       </div>
 

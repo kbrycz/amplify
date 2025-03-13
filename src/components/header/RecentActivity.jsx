@@ -4,6 +4,7 @@ import { get } from '../../lib/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { Star, ChevronDown, ChevronUp } from 'lucide-react'; 
 import { RecentActivitySkeleton } from '../ui/skeleton';
+import { useNamespace } from '../../context/NamespaceContext';
 
 export default function RecentActivity() {
   const [activities, setActivities] = useState([]);
@@ -11,11 +12,21 @@ export default function RecentActivity() {
   const [error, setError] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const INITIAL_ITEMS = 5;
+  const { namespaces, currentNamespace } = useNamespace();
+
+  // Find the current namespace ID
+  const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
+  const currentNamespaceId = currentNamespaceObj?.id;
 
   useEffect(() => {
     async function fetchActivities() {
+      if (!currentNamespaceId) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const data = await get('/activity');
+        const data = await get(`/activity?namespaceId=${currentNamespaceId}`);
         setActivities(data || []);
       } catch (err) {
         console.error('Error fetching recent activity:', err);
@@ -25,7 +36,7 @@ export default function RecentActivity() {
       }
     }
     fetchActivities();
-  }, []);
+  }, [currentNamespaceId]);
 
   if (isLoading) {
     return <RecentActivitySkeleton />;

@@ -36,14 +36,9 @@ export default function NamespaceLoadingModal({ isOpen, status, error, onClose, 
                 Please wait while we {actionText.toLowerCase()} your namespace{namespaceName ? ` "${namespaceName}"` : ''}...
               </p>
               
-              <div className="mt-6 w-full space-y-2">
-                <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-indigo-600 dark:bg-indigo-400 rounded-full animate-pulse" style={{ width: '100%' }}></div>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  This may take a few moments
-                </p>
-              </div>
+              <p className="mt-6 text-xs text-gray-500 dark:text-gray-400">
+                This may take a few moments
+              </p>
             </>
           ) : status === 'success' ? (
             <>

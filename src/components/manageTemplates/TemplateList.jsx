@@ -11,7 +11,8 @@ export default function TemplateList({
   onDelete, 
   onUpdate, 
   onTemplateClick, 
-  onNewTemplate 
+  onNewTemplate, 
+  currentNamespaceId
 }) {
   // When loading, show a skeleton
   if (isLoading) {
@@ -29,6 +30,8 @@ export default function TemplateList({
             onDelete={onDelete}
             onUpdate={onUpdate}
             isEditMode={isEditMode}
+            onTemplateClick={onTemplateClick}
+            currentNamespaceId={currentNamespaceId}
           />
         ))}
       </div>
