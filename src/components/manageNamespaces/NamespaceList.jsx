@@ -14,10 +14,13 @@ export default function NamespaceList({ namespaces, onDelete, onNamespaceClick, 
 
   // Function to get the user's role in a namespace
   const getUserRole = (namespace) => {
-    // The server returns 'permission' as readonly, read/write, or admin
-    // We need to map these to our frontend role names
-    const userEmail = user?.email;
-    const member = namespace.members?.find(m => m.email === userEmail);
+    const userEmail = user?.email?.toLowerCase();
+    if (!userEmail || !namespace.members) return 'readonly';
+    
+    // Find the user in the members array
+    const member = namespace.members.find(m => m.email.toLowerCase() === userEmail);
+    
+    // Return the permission if found, otherwise default to readonly
     return member?.permission || 'readonly';
   };
 

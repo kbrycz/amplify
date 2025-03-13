@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Trash2, Users, Shield, ChevronRight } from 'lucide-react';
+import { Trash2, Users, Shield, ChevronRight, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from '../../context/AuthContext';
 
 export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, currentUserRole, isEditMode = false }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const { user } = useAuth();
   const isAdmin = currentUserRole === 'admin';
 
   // Format the date
@@ -56,6 +58,18 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
   const activeMembers = namespace.members?.filter(m => m.status === 'active')?.length || 0;
   const pendingMembers = namespace.members?.filter(m => m.status === 'pending')?.length || 0;
   const totalMembers = namespace.members?.length || 0;
+
+  // Get the current user's status in this namespace
+  const getUserStatus = () => {
+    if (!user?.email || !namespace.members) return 'active'; // Default to active if no members data
+    
+    const userEmail = user.email.toLowerCase();
+    const member = namespace.members.find(m => m.email.toLowerCase() === userEmail);
+    return member?.status || 'active';
+  };
+  
+  const userStatus = getUserStatus();
+  const isPending = userStatus === 'pending';
 
   const handleDeleteClick = (e) => {
     e.stopPropagation();
@@ -128,6 +142,12 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
                 <span className="font-medium">
                   {currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)}
                 </span>
+                {isPending && (
+                  <span className="ml-1 inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                    <Clock className="mr-1 h-3 w-3" />
+                    Pending
+                  </span>
+                )}
               </div>
               <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Your Role</div>
             </div>
@@ -168,6 +188,12 @@ export default function NamespaceRow({ namespace, roleIcon, onClick, onDelete, c
                 <span className="font-medium">
                   {currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)}
                 </span>
+                {isPending && (
+                  <span className="ml-1 inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                    <Clock className="mr-1 h-3 w-3" />
+                    Pending
+                  </span>
+                )}
               </div>
               <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Your Role</div>
             </div>

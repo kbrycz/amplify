@@ -1,28 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useSettingsForm } from '../hooks/useSettingsForm';
 import { SettingsFormContainer } from '../components/campaignSettings/components/SettingsFormContainer';
 import { PageHeader } from '../components/ui/page-header';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '../components/ui/toast-notification';
 import { useNamespace } from '../context/NamespaceContext';
+import { get } from '../lib/api'; // Import the get function from your API utilities
 
 export default function CampaignSettings() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
-  const { currentNamespace, userPermission } = useNamespace();
+  const { id } = useParams(); // Get campaign ID from URL path parameter
+  const { addToast } = useToast();
+  const { currentNamespace, namespaces } = useNamespace();
   const [campaignData, setCampaignData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [fetchAttempted, setFetchAttempted] = useState(false); // Track if we've attempted to fetch
 
-  // Get campaign ID from URL
-  const getCampaignId = () => {
-    const searchParams = new URLSearchParams(location.search);
-    return searchParams.get('id');
+  const campaignId = id; // Use the ID from URL path parameter
+  
+  // Get the current namespace ID
+  const getCurrentNamespaceId = () => {
+    if (!namespaces || namespaces.length === 0) return null;
+    const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
+    return currentNamespaceObj?.id || null;
   };
-
-  const campaignId = getCampaignId();
+  
+  const namespaceId = getCurrentNamespaceId();
 
   // Fetch campaign data
   useEffect(() => {
@@ -32,51 +38,46 @@ export default function CampaignSettings() {
         setError('Campaign ID is required');
         return;
       }
+      
+      if (!namespaceId) {
+        setIsLoading(false);
+        setError('Namespace ID is required');
+        return;
+      }
+
+      // Prevent multiple fetch attempts
+      if (fetchAttempted) return;
+      setFetchAttempted(true);
 
       try {
-        const response = await fetch(`/api/campaigns/${campaignId}`);
+        // Use the get utility function instead of fetch directly
+        // Include namespaceId as a query parameter
+        const data = await get(`/campaign/campaigns/${campaignId}?namespaceId=${namespaceId}`);
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch campaign data');
+        if (data) {
+          setCampaignData(data);
+        } else {
+          throw new Error('Campaign not found');
         }
-        
-        const data = await response.json();
-        setCampaignData(data);
       } catch (err) {
         console.error('Error fetching campaign data:', err);
         setError(err.message || 'An error occurred while fetching campaign data');
-        toast({
-          title: 'Error',
-          description: err.message || 'Failed to load campaign data',
-          variant: 'destructive',
-        });
+        addToast(err.message || 'Failed to load campaign data', 'error');
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (currentNamespace) {
+    if (currentNamespace && namespaceId && !fetchAttempted) {
       fetchCampaignData();
     }
-  }, [campaignId, currentNamespace, toast]);
+  }, [campaignId, currentNamespace, namespaceId, addToast, fetchAttempted]);
 
   // Initialize form with campaign data
   const settingsForm = useSettingsForm(campaignData);
 
-  // Check if user has permission to edit
-  const canEdit = userPermission === 'admin' || userPermission === 'read/write';
-
-  // Redirect if no permission
-  useEffect(() => {
-    if (!isLoading && !canEdit) {
-      toast({
-        title: 'Permission Denied',
-        description: 'You do not have permission to edit this campaign',
-        variant: 'destructive',
-      });
-      navigate('/campaigns');
-    }
-  }, [isLoading, canEdit, navigate, toast]);
+  // Check if user has permission to edit - for UI purposes only
+  const canEdit = campaignData?.userPermission === 'admin' || campaignData?.userPermission === 'read/write';
 
   if (isLoading) {
     return (
@@ -115,6 +116,8 @@ export default function CampaignSettings() {
         <SettingsFormContainer
           {...settingsForm}
           campaignId={campaignId}
+          namespaceId={namespaceId}
+          readOnly={!canEdit}
         />
       </div>
     </div>

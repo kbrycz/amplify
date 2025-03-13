@@ -34,8 +34,8 @@ export default function ManageNamespaces() {
     try {
       setIsLoading(true);
       setError(null);
-      // Fetch namespaces where the user is a member
-      const data = await get(`/namespaces/account/${user.uid}`);
+      // Use the new endpoint that fetches namespaces based on memberEmails
+      const data = await get('/namespaces/my');
       setNamespaces(data || []);
     } catch (err) {
       console.error('Error fetching namespaces:', err);
