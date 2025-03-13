@@ -23,7 +23,7 @@ export default function ManageCampaignHeader({
           {hasCampaigns && (
             <button
               onClick={onToggleEdit}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors
                 ${isEditMode
                   ? 'border-primary-600 bg-primary-600 text-white hover:bg-primary-700 dark:border-primary-500 dark:bg-primary-600 dark:hover:bg-primary-700'
                   : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -35,7 +35,7 @@ export default function ManageCampaignHeader({
           )}
           <button
             onClick={onNewCampaign}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-primary-700 hover:scale-105 dark:bg-primary-600 dark:hover:bg-primary-700"
           >
             <Plus className="h-4 w-4" />
             New Campaign

@@ -125,9 +125,12 @@ export function Outro({
       {showOutro && (
         <>
           <div className={`transition-opacity duration-200 ${showOutro ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
-            <Label className="text-base font-medium">Upload Your Logo</Label>
+            <Label className="text-base font-medium">Upload Your Logo {showOutro && <span className="text-gray-500">*</span>}</Label>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Your logo will be displayed at the end of your videos. Upload a transparent PNG for best results.
+              {showOutro && !outroLogo && (
+                <span className="ml-1 text-gray-500"> (Required field)</span>
+              )}
             </p>
             <div className="mt-2">
               <div className="flex items-center justify-center w-full min-h-[160px]"
@@ -136,7 +139,7 @@ export function Outro({
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
               >
-                <label className="relative flex items-center justify-center w-full h-full border-2 border-gray-200 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50">
+                <label className="relative flex items-center justify-center w-full h-full border-2 border-gray-200 dark:border-gray-800 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50">
                   <div className="flex flex-col items-center justify-center p-6">
                     {outroLogo ? (
                       <div className="relative w-40 h-40 group">

@@ -105,7 +105,12 @@ export default function VideoPolisher() {
       case 0:
         return Boolean(formData.name?.trim());
       case 1:
+        return true;
       case 2:
+        // If outro is enabled, require an image upload
+        if (showOutro) {
+          return Boolean(outroLogo);
+        }
         return true;
       default:
         return false;
@@ -128,14 +133,21 @@ export default function VideoPolisher() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name?.trim()) {
-      setError("Please enter a video name");
+      setError("Video name is a required field");
+      return;
+    }
+    
+    // Check if outro is enabled but no logo is uploaded
+    if (showOutro && !outroLogo) {
+      setError("Logo upload is required when outro is enabled");
+      addToast("Logo upload is required when outro is enabled", "info", 5000);
       return;
     }
     
     // Check if namespace is selected
     if (!currentNamespaceId) {
       setError("Please select a namespace before enhancing the video");
-      addToast("Please select a namespace before enhancing the video", "error", 5000);
+      addToast("Please select a namespace before enhancing the video", "info", 5000);
       return;
     }
     
@@ -373,11 +385,6 @@ export default function VideoPolisher() {
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Enhance Video</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Customize and enhance your video using our AI enhancement tool. Use 1 credit to transform your video.
-            {currentNamespace && (
-              <span className="ml-1 text-primary-text-600 dark:text-primary-text-400">
-                Current namespace: {currentNamespace}
-              </span>
-            )}
           </p>
           <div className="relative max-w-[800px] h-1 bg-gray-200 dark:bg-gray-800 mt-4">
             <div className="absolute inset-y-0 left-0 bg-primary-600 dark:bg-primary-400 transition-all duration-500" style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }} />
@@ -458,6 +465,7 @@ export default function VideoPolisher() {
                     isSubmitting={isProcessing}
                     formData={formData}
                     selectedCaptionStyle={selectedCaptionStyle}
+                    isStepValid={isStepValid()}
                     finalStepText="Use 1 Credit to Enhance Video"
                   />
                 </div>
