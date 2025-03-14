@@ -1,8 +1,9 @@
 import React from 'react';
 import { campaignQuestions } from '../../components/survey/campaignQuestions';
-import { Tag, FileText, Type, AlignLeft, User, Clock, Calendar } from 'lucide-react';
+import { Tag, FileText, Type, AlignLeft, User, Clock, Calendar, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-export default function CampaignInfo({ campaign }) {
+export default function CampaignInfo({ campaign, userPermission }) {
   // Only render if title, description, category, or subcategory exists
   if (!campaign.title && !campaign.description && !campaign.category && !campaign.subcategory) {
     return null;
@@ -39,6 +40,20 @@ export default function CampaignInfo({ campaign }) {
   return (
     <div className="my-6">
       <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Campaign Information</h3>
+          
+          {/* Only show settings button if user has edit permissions */}
+          {(userPermission === 'admin' || userPermission === 'read/write') && (
+            <Link 
+              to={`/app/campaigns/${campaign.id}/settings`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+            >
+              <Settings className="h-3.5 w-3.5" />
+              Settings
+            </Link>
+          )}
+        </div>
         <div className="flex flex-col md:flex-row md:gap-8">
           {campaign.title && (
             <div className="flex-1">

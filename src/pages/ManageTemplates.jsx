@@ -10,7 +10,7 @@ export default function ManageTemplates() {
   const navigate = useNavigate();
   
   // Get the current namespace from context
-  const { currentNamespace, namespaces } = useNamespace();
+  const { currentNamespace, namespaces, isLoading: namespacesLoading, fetchUserNamespaces } = useNamespace();
   
   // Find the current namespace ID
   const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
@@ -22,14 +22,29 @@ export default function ManageTemplates() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Ensure namespaces are loaded when the component mounts
   useEffect(() => {
-    if (currentNamespaceId) {
-      fetchTemplates();
-    } else {
-      setError('No namespace selected. Please select a namespace to view templates.');
-      setIsLoading(false);
+    if (namespaces.length === 0 && !namespacesLoading) {
+      fetchUserNamespaces();
     }
-  }, [currentNamespaceId]);
+  }, []);
+
+  useEffect(() => {
+    // Only proceed if we're not still loading namespaces
+    if (!namespacesLoading) {
+      if (currentNamespaceId) {
+        fetchTemplates();
+      } else if (namespaces.length > 0) {
+        // Only show error if namespaces are loaded but none is selected
+        setError('No namespace selected. Please select a namespace to view templates.');
+        setIsLoading(false);
+      } else if (namespaces.length === 0) {
+        // If no namespaces exist at all
+        setError('No namespaces available. Please create a namespace first.');
+        setIsLoading(false);
+      }
+    }
+  }, [currentNamespaceId, namespacesLoading, namespaces]);
 
   const fetchTemplates = async () => {
     try {
@@ -45,6 +60,7 @@ export default function ManageTemplates() {
       }
       const data = await response.json();
       setTemplates(data);
+      setError(null); // Clear any previous errors
     } catch (err) {
       console.error('Error fetching templates:', err);
       setError(err.message);
@@ -130,7 +146,7 @@ export default function ManageTemplates() {
       )}
       
       {/* Namespace warning */}
-      {!currentNamespaceId && (
+      {!currentNamespaceId && !namespacesLoading && namespaces.length > 0 && (
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/50">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -156,8 +172,8 @@ export default function ManageTemplates() {
         currentNamespace={currentNamespace}
       />
 
-      {isLoading ? (
-        <LoadingSpinner message="Loading templates..." />
+      {namespacesLoading || isLoading ? (
+        <LoadingSpinner message={namespacesLoading ? "Loading namespaces..." : "Loading templates..."} />
       ) : error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/50">
           <div className="flex">

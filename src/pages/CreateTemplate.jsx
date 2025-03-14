@@ -738,7 +738,7 @@ export default function CreateTemplate() {
               }} className="space-y-8">
                 {currentStep === 0 && (
                   <>
-                    <InternalName formData={formData} handleInputChange={handleInputChange} />
+                    <InternalName formData={formData} handleInputChange={handleInputChange} context="template" />
                     
                     <div className="mt-6">
                       <button

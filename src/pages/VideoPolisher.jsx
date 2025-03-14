@@ -21,7 +21,7 @@ const themes = {
 };
 
 const steps = [
-  { name: 'Name Video' },
+  { name: 'Overview' },
   { name: 'Captions' },
   { name: 'Outro' }
 ];
@@ -103,7 +103,7 @@ export default function VideoPolisher() {
   const isStepValid = () => {
     switch (currentStep) {
       case 0:
-        return Boolean(formData.name?.trim());
+        return true;
       case 1:
         return true;
       case 2:
@@ -132,8 +132,21 @@ export default function VideoPolisher() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Generate a video name if not provided (since we removed the input field)
     if (!formData.name?.trim()) {
-      setError("Video name is a required field");
+      // Use template name if available, otherwise use a default name with timestamp
+      const videoName = selectedTemplate?.name 
+        ? `Enhanced using ${selectedTemplate.name}` 
+        : `Enhanced Video - ${new Date().toLocaleString()}`;
+      
+      setFormData(prev => ({ ...prev, name: videoName }));
+    }
+    
+    // Check if namespace is selected
+    if (!currentNamespaceId) {
+      setError("Please select a namespace before enhancing the video");
+      addToast("Please select a namespace before enhancing the video", "info", 5000);
       return;
     }
     
@@ -144,27 +157,26 @@ export default function VideoPolisher() {
       return;
     }
     
-    // Check if namespace is selected
-    if (!currentNamespaceId) {
-      setError("Please select a namespace before enhancing the video");
-      addToast("Please select a namespace before enhancing the video", "info", 5000);
-      return;
-    }
-    
     setIsProcessing(true);
     try {
       const user = auth.currentUser;
       if (!user) throw new Error("You must be logged in to enhance a video");
       const idToken = await user.getIdToken();
+      
+      // Use the generated name or existing name
+      const videoName = formData.name?.trim() || (selectedTemplate?.name 
+        ? `Enhanced using ${selectedTemplate.name}` 
+        : `Enhanced Video - ${new Date().toLocaleString()}`);
+      
       const payload = {
         videoId: video.id,
-        name: formData.name,
+        name: videoName,
         captionType: typeof selectedCaptionStyle === 'object' ? selectedCaptionStyle.style : selectedCaptionStyle,
         captionPosition: typeof selectedCaptionStyle === 'object' ? selectedCaptionStyle.position : 'bottom',
         outtroBackgroundColors: showOutro ? (selectedOutroTheme === 'custom' ? customOutroColor : selectedOutroTheme) : 'none',
         outtroFontColor: showOutro ? outroTextColor : '',
         image: showOutro ? outroLogo : null,
-        additionalData: JSON.stringify({ formData, selectedTheme, selectedCaptionStyle, selectedOutroTheme, outroLogo, customOutroColor, outroText, outroTextColor, showOutro }),
+        additionalData: JSON.stringify({ formData: {...formData, name: videoName}, selectedTheme, selectedCaptionStyle, selectedOutroTheme, outroLogo, customOutroColor, outroText, outroTextColor, showOutro }),
         namespaceId: currentNamespaceId // Add the namespace ID to the payload
       };
       
@@ -327,7 +339,120 @@ export default function VideoPolisher() {
 
   const renderContent = () => {
     if (currentStep === 0) {
-      return <InternalName formData={formData} handleInputChange={handleInputChange} />;
+      return (
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-base font-medium text-gray-900 dark:text-white">AI Video Enhancement</h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              We're about to use AI to enhance your video with professional features. Here's what will happen:
+            </p>
+            
+            <div className="mt-4 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-1 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                  <span className="text-primary-700 dark:text-primary-300 font-medium text-xs">1</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Smart Captions</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    AI will transcribe your video and add professional captions in your chosen style.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-1 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                  <span className="text-primary-700 dark:text-primary-300 font-medium text-xs">2</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Content Optimization</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    We'll automatically trim silent sections and optimize pacing for better engagement.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-1 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                  <span className="text-primary-700 dark:text-primary-300 font-medium text-xs">3</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Dynamic Framing</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    AI will intelligently zoom and frame important moments to keep viewers engaged.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-1 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                  <span className="text-primary-700 dark:text-primary-300 font-medium text-xs">4</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Professional Outro</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Add a branded outro screen with your logo and call-to-action.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+            <h3 className="text-base font-medium text-gray-900 dark:text-white">Apply a Template</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Speed up the process by selecting a pre-configured template with caption and outro settings.
+            </p>
+            
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => setIsTemplateModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                <FileText className="h-4 w-4" />
+                {selectedTemplate ? 'Change Template' : 'Use Template'}
+              </button>
+              {selectedTemplate ? (
+                <div className="mt-3 p-3 bg-primary-50 border border-primary-100 rounded-md dark:bg-primary-900/20 dark:border-primary-800">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+                      selectedTemplate.theme ? themes[selectedTemplate.theme]?.background : 
+                      (selectedTemplate.outroTheme ? themes[selectedTemplate.outroTheme]?.background : 'bg-primary-500')
+                    }`}>
+                      <FileText className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">{selectedTemplate.name || 'Unnamed Template'}</p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {selectedTemplate.captionType && (
+                          <span className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900/30 dark:text-primary-300">
+                            {selectedTemplate.captionType} captions {selectedTemplate.captionPosition && `(${selectedTemplate.captionPosition})`}
+                          </span>
+                        )}
+                        {selectedTemplate.theme && (
+                          <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                            {themes[selectedTemplate.theme]?.name || selectedTemplate.theme} theme
+                          </span>
+                        )}
+                        {selectedTemplate.outroTheme && (
+                          <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                            {themes[selectedTemplate.outroTheme]?.name || selectedTemplate.outroTheme} outro
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Select a template to use its caption and outro settings.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      );
     } else if (currentStep === 1) {
       return <Captions selectedCaptionStyle={selectedCaptionStyle} setSelectedCaptionStyle={setSelectedCaptionStyle} />;
     } else if (currentStep === 2) {
@@ -405,53 +530,6 @@ export default function VideoPolisher() {
                 {currentStep === 0 && (
                   <>
                     {renderContent()}
-                    
-                    <div className="mt-6">
-                      <button
-                        type="button"
-                        onClick={() => setIsTemplateModalOpen(true)}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-                      >
-                        <FileText className="h-4 w-4" />
-                        {selectedTemplate ? 'Change Template' : 'Use Template'}
-                      </button>
-                      {selectedTemplate ? (
-                        <div className="mt-3 p-3 bg-primary-50 border border-primary-100 rounded-md dark:bg-primary-900/20 dark:border-primary-800">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
-                              selectedTemplate.theme ? themes[selectedTemplate.theme]?.background : 
-                              (selectedTemplate.outroTheme ? themes[selectedTemplate.outroTheme]?.background : 'bg-primary-500')
-                            }`}>
-                              <FileText className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{selectedTemplate.name || 'Unnamed Template'}</p>
-                              <div className="flex flex-wrap gap-2 mt-1">
-                                {selectedTemplate.captionType && (
-                                  <span className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900/30 dark:text-primary-300">
-                                    {selectedTemplate.captionType} captions {selectedTemplate.captionPosition && `(${selectedTemplate.captionPosition})`}
-                                  </span>
-                                )}
-                                {selectedTemplate.theme && (
-                                  <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-                                    {themes[selectedTemplate.theme]?.name || selectedTemplate.theme} theme
-                                  </span>
-                                )}
-                                {selectedTemplate.outroTheme && (
-                                  <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                    {themes[selectedTemplate.outroTheme]?.name || selectedTemplate.outroTheme} outro
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                          Select a template to use its caption and outro settings.
-                        </p>
-                      )}
-                    </div>
                   </>
                 )}
                 {currentStep !== 0 && renderContent()}

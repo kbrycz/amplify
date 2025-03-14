@@ -13,7 +13,9 @@ export function ReviewCampaign({
   themes,
   className = '',
   currentNamespace,
-  userPermission
+  userPermission,
+  isUpdateMode = false,
+  submitButtonText = 'Create Campaign'
 }) {
   // Get theme name for display
   const getThemeName = () => {
@@ -81,9 +83,13 @@ export function ReviewCampaign({
   return (
     <div className={`space-y-6 ${className}`}>
       <div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Review Your Campaign</h3>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+          {isUpdateMode ? "Review Your Campaign Updates" : "Review Your Campaign"}
+        </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Please review all information before creating your campaign.
+          {isUpdateMode 
+            ? "Please review all information before updating your campaign."
+            : "Please review all information before creating your campaign."}
         </p>
       </div>
 

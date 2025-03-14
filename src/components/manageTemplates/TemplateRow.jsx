@@ -142,9 +142,15 @@ export default function TemplateRow({
         <div className="hidden lg:flex flex-col justify-center">
           <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <PaintBucket className="h-4 w-4 shrink-0" />
-            <span className="font-medium">{template.outtroFontColor ? 'Custom' : 'Default'}</span>
+            <span className="font-medium">
+              {!template.showOutro 
+                ? 'No Outro' 
+                : template.outroTheme 
+                  ? template.outroTheme 
+                  : template.outtroBackgroundColors || 'Default'}
+            </span>
           </div>
-          <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Font Color</div>
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Outro</div>
         </div>
         <div className="hidden lg:flex flex-col justify-center">
           <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
@@ -215,9 +221,15 @@ export default function TemplateRow({
         <div className="flex flex-col items-center">
           <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>
             <PaintBucket className="h-4 w-4 shrink-0" />
-            <span className="font-medium">{template.outtroFontColor ? 'Custom' : 'Default'}</span>
+            <span className="font-medium">
+              {!template.showOutro 
+                ? 'No Outro' 
+                : template.outroTheme 
+                  ? template.outroTheme 
+                  : template.outtroBackgroundColors || 'Default'}
+            </span>
           </div>
-          <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Font Color</div>
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">Outro</div>
         </div>
         <div className="flex flex-col items-center">
           <div className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors ${!isEditMode && 'group-hover:text-primary-text-600 dark:group-hover:text-primary-400'}`}>

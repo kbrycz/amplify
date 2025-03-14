@@ -381,6 +381,7 @@ export default function TemplateDetails() {
                   <InternalName 
                     formData={template} 
                     handleInputChange={handleInputChange} 
+                    context="template"
                   />
                 )}
                 {currentStep === 1 && (

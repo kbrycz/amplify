@@ -53,7 +53,9 @@ export function StepNavigation({
   setIsAIModalOpen,
   onUseTemplate,
   clearSelectedTemplate,
-  selectedTemplate
+  selectedTemplate,
+  submitButtonText,
+  onSubmit
 }) {
   const canProceed = isStepValid(currentStep, formData, surveyQuestions);
   const isFirstStep = currentStep === 0;
@@ -109,11 +111,11 @@ export function StepNavigation({
     });
     
     if (isSubmitting) {
-      return currentStep === totalSteps - 1 ? 'Creating...' : 'Next...';
+      return currentStep === totalSteps - 1 ? (submitButtonText ? submitButtonText.replace('Update', 'Updating').replace('Create', 'Creating') : 'Creating...') : 'Next...';
     }
     
     if (currentStep === totalSteps - 1) {
-      return 'Create Campaign';
+      return submitButtonText || 'Create Campaign';
     }
     
     // Always show "Continue without template" on step 1 if no category is selected
@@ -136,12 +138,22 @@ export function StepNavigation({
     // This will force the component to re-render with the correct button text
     const buttonText = getCorrectButtonText();
     console.log('Button text updated:', buttonText);
-  }, [currentStep, formData.category, formData.subcategory, isSubmitting]);
+  }, [currentStep, formData.category, formData.subcategory, isSubmitting, submitButtonText]);
 
   // Function to truncate template title
   const truncateTitle = (title, maxLength = 14) => {
     if (!title) return '';
     return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
+  };
+
+  // Handle button click based on whether we're on the last step
+  const handleButtonClick = (e) => {
+    if (isLastStep && onSubmit) {
+      e.preventDefault();
+      onSubmit();
+    } else {
+      onNext();
+    }
   };
 
   return (
@@ -287,7 +299,7 @@ export function StepNavigation({
         {/* Next/Submit button - always last */}
         <button
           type={currentStep === totalSteps - 1 ? 'submit' : 'button'}
-          onClick={currentStep < totalSteps - 1 ? onNext : undefined}
+          onClick={handleButtonClick}
           disabled={isButtonDisabled}
           className={`inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 ${
             isButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''
