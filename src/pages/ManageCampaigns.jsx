@@ -11,25 +11,60 @@ export default function ManageCampaigns() {
   const [campaigns, setCampaigns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   
   // Get the current namespace from context
-  const { currentNamespace, namespaces, userPermission } = useNamespace();
+  const { currentNamespace, namespaces, userPermission, isLoading: namespacesLoading, fetchUserNamespaces } = useNamespace();
   
   // Find the current namespace ID
   const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
   const currentNamespaceId = currentNamespaceObj?.id;
 
+  // Ensure namespaces are loaded when the component mounts
   useEffect(() => {
-    if (currentNamespaceId) {
-      fetchCampaigns();
-    } else {
-      setIsLoading(false);
-      setCampaigns([]);
-      setError('No namespace selected. Please select a namespace to view campaigns.');
+    if (namespaces.length === 0 && !namespacesLoading) {
+      fetchUserNamespaces();
     }
-  }, [currentNamespaceId]);
+  }, []);
+
+  // Delay showing errors to prevent flashing
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setShowError(true);
+      }, 500); // Delay showing error by 500ms
+      return () => clearTimeout(timer);
+    } else {
+      setShowError(false);
+    }
+  }, [error]);
+
+  // Mark when initial load is complete
+  useEffect(() => {
+    if (!namespacesLoading && !isLoading) {
+      setInitialLoadComplete(true);
+    }
+  }, [namespacesLoading, isLoading]);
+
+  useEffect(() => {
+    // Only proceed if we're not still loading namespaces
+    if (!namespacesLoading) {
+      if (currentNamespaceId) {
+        fetchCampaigns();
+      } else if (namespaces.length > 0) {
+        // Only show error if namespaces are loaded but none is selected
+        setError('No namespace selected. Please select a namespace to view campaigns.');
+        setIsLoading(false);
+      } else if (namespaces.length === 0) {
+        // If no namespaces exist at all
+        setError('No namespaces available. Please create a namespace first.');
+        setIsLoading(false);
+      }
+    }
+  }, [currentNamespaceId, namespacesLoading, namespaces]);
 
   const fetchCampaigns = async () => {
     if (!currentNamespaceId) return;
@@ -52,6 +87,7 @@ export default function ManageCampaigns() {
       
       const data = await response.json();
       setCampaigns(data);
+      setError(null); // Clear any previous errors
     } catch (err) {
       console.error('Error fetching campaigns:', err);
       setError(err.message);
@@ -149,7 +185,26 @@ export default function ManageCampaigns() {
         </div>
       )}
       
-      {error && (
+      {/* Namespace warning - only show after initial load and with a delay */}
+      {!currentNamespaceId && !namespacesLoading && namespaces.length > 0 && initialLoadComplete && showError && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/50">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-amber-400 dark:text-amber-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">Namespace Required</h3>
+              <div className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                <p>Please select a namespace to view and manage campaigns. Campaigns are shared within a namespace.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {error && showError && (
         <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path
@@ -167,11 +222,11 @@ export default function ManageCampaigns() {
         onToggleEdit={() => setIsEditMode(!isEditMode)}
         onNewCampaign={() => navigate('/app/campaigns/new')}
         hasCampaigns={!isLoading && campaigns.length > 0}
-        currentNamespace={currentNamespace?.name}
+        currentNamespace={currentNamespace}
       />
 
-      {isLoading ? (
-        <LoadingSpinner message="Loading campaigns..." />
+      {namespacesLoading || isLoading ? (
+        <LoadingSpinner message={namespacesLoading ? "Loading namespaces..." : "Loading campaigns..."} />
       ) : (
         <CampaignList
           isLoading={isLoading}

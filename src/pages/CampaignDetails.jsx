@@ -14,7 +14,7 @@ export default function CampaignDetails() {
   const navigate = useNavigate();
   
   // Get the current namespace from context
-  const { currentNamespace, namespaces, userPermission } = useNamespace();
+  const { currentNamespace, namespaces, userPermission, isLoading: namespacesLoading, fetchUserNamespaces } = useNamespace();
   
   // Find the current namespace ID
   const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
@@ -23,21 +23,57 @@ export default function CampaignDetails() {
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [metrics, setMetrics] = useState({
     responses: 0,
     audience: 0,
     avgResponseTime: 0,
   });
+
+  // Ensure namespaces are loaded when the component mounts
+  useEffect(() => {
+    if (namespaces.length === 0 && !namespacesLoading) {
+      fetchUserNamespaces();
+    }
+  }, []);
+
+  // Delay showing errors to prevent flashing
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setShowError(true);
+      }, 500); // Delay showing error by 500ms
+      return () => clearTimeout(timer);
+    } else {
+      setShowError(false);
+    }
+  }, [error]);
+
+  // Mark when initial load is complete
+  useEffect(() => {
+    if (!namespacesLoading && !isLoading) {
+      setInitialLoadComplete(true);
+    }
+  }, [namespacesLoading, isLoading]);
   
   useEffect(() => {
-    if (currentNamespaceId) {
-      fetchCampaignData();
-    } else {
-      setError('No namespace selected. Please select a namespace to view campaign details.');
-      setIsLoading(false);
+    // Only proceed if we're not still loading namespaces
+    if (!namespacesLoading) {
+      if (currentNamespaceId) {
+        fetchCampaignData();
+      } else if (namespaces.length > 0) {
+        // Only show error if namespaces are loaded but none is selected
+        setError('No namespace selected. Please select a namespace to view campaign details.');
+        setIsLoading(false);
+      } else if (namespaces.length === 0) {
+        // If no namespaces exist at all
+        setError('No namespaces available. Please create a namespace first.');
+        setIsLoading(false);
+      }
     }
-  }, [id, currentNamespaceId]);
+  }, [id, currentNamespaceId, namespacesLoading, namespaces]);
   
   const fetchCampaignData = async () => {
     try {
@@ -58,6 +94,7 @@ export default function CampaignDetails() {
       
       const data = await response.json();
       setCampaign(data);
+      setError(null); // Clear any previous errors
       
       // Set metrics using counts included in campaign data (or fallback values)
       setMetrics({
@@ -74,18 +111,22 @@ export default function CampaignDetails() {
     }
   };
   
-  if (isLoading) {
+  if (namespacesLoading || (isLoading && !error)) {
     return <CampaignDetailsSkeleton />;
   }
   
   // Create a unified error/not found component with better styling
-  if (error || !campaign) {
+  if ((error && showError) || !campaign) {
     const isForbiddenError = error && (error.includes('Forbidden') || error.includes('does not belong to this namespace'));
     const isNotFoundError = !campaign || error?.includes('not found');
+    const isNamespaceError = error && (error.includes('No namespace selected') || error.includes('No namespaces available'));
     
     let title, message;
     
-    if (isForbiddenError) {
+    if (isNamespaceError) {
+      title = "Namespace Required";
+      message = error;
+    } else if (isForbiddenError) {
       title = "Campaign Not Available";
       message = "This campaign is not available in your current namespace. It may belong to a different namespace or workspace.";
     } else if (isNotFoundError) {
@@ -114,7 +155,7 @@ export default function CampaignDetails() {
               {message}
             </p>
             
-            {error && !isForbiddenError && !isNotFoundError && (
+            {error && !isForbiddenError && !isNotFoundError && !isNamespaceError && (
               <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-md text-left text-sm text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300">
                 <p className="font-medium mb-1">Error details:</p>
                 <p>{error}</p>

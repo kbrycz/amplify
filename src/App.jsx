@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet, useNavigat
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ServerStatusProvider, useServerStatus } from './context/ServerStatusContext';
-import { NamespaceProvider } from './context/NamespaceContext';
+import { NamespaceProvider, useNamespace } from './context/NamespaceContext';
 import { ToastProvider } from './components/ui/toast-notification';
 import ServerDownBanner from './components/ui/ServerDownBanner';
 import NamespaceModal from './components/namespace/NamespaceModal';
@@ -111,6 +111,27 @@ function ServerStatusBanner() {
 
 function AppLayout() {
   const location = useLocation();
+  const { isLoading: namespacesLoading } = useNamespace();
+  
+  // Show a loading screen when namespaces are loading on initial load
+  if (namespacesLoading && !localStorage.getItem('initialNamespaceLoadComplete')) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent dark:border-primary-400 dark:border-r-transparent" role="status">
+            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+          </div>
+          <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">Loading your workspace...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Set flag when namespaces have loaded once
+  if (!namespacesLoading && !localStorage.getItem('initialNamespaceLoadComplete')) {
+    localStorage.setItem('initialNamespaceLoadComplete', 'true');
+  }
+  
   if (location.pathname === '/pricing') {
     return (
       <>
@@ -119,24 +140,23 @@ function AppLayout() {
       </>
     );
   }
+  
   return (
     <SidebarProvider>
-      <NamespaceProvider>
-        <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
-          <ServerStatusBanner />
-          <div className="flex flex-1 h-screen overflow-hidden">
-            <Sidebar />
-            <div className="flex-1 flex flex-col h-screen overflow-hidden">
-              <Header />
-              <Backdrop />
-              <div className="flex-1 overflow-y-auto">
-                <Outlet />
-              </div>
+      <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+        <ServerStatusBanner />
+        <div className="flex flex-1 h-screen overflow-hidden">
+          <Sidebar />
+          <div className="flex-1 flex flex-col h-screen overflow-hidden">
+            <Header />
+            <Backdrop />
+            <div className="flex-1 overflow-y-auto">
+              <Outlet />
             </div>
           </div>
-          <NamespaceModal />
         </div>
-      </NamespaceProvider>
+        <NamespaceModal />
+      </div>
     </SidebarProvider>
   );
 }
@@ -233,7 +253,7 @@ function App() {
                   <CheckoutCancel />
                 </>
               </RequireAuth>} />
-              <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
+              <Route path="/app" element={<RequireAuth><NamespaceProvider><AppLayout /></NamespaceProvider></RequireAuth>}>
                 <Route index element={<Dashboard />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="campaigns/new" element={<CreateCampaign />} />

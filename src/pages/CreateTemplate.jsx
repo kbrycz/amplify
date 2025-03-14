@@ -63,7 +63,7 @@ export default function CreateTemplate() {
   const navigate = useNavigate();
   
   // Get the current namespace from context
-  const { currentNamespace, namespaces } = useNamespace();
+  const { currentNamespace, namespaces, isLoading: namespacesLoading, fetchUserNamespaces } = useNamespace();
   
   // Find the current namespace ID
   const currentNamespaceObj = namespaces.find(ns => ns.name === currentNamespace);
@@ -83,6 +83,8 @@ export default function CreateTemplate() {
   const [previewImage, setPreviewImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState(null);
   const [drafts, setDrafts] = useState([]);
   const [isLoadingDrafts, setIsLoadingDrafts] = useState(true);
@@ -112,17 +114,54 @@ export default function CreateTemplate() {
   const [formData, setFormData, clearFormCache] = useFormCache(initialFormData, 'template-form');
   const draftsRef = useRef(null);
 
+  // Ensure namespaces are loaded when the component mounts
   useEffect(() => {
-    if (currentNamespaceId) {
-      fetchDrafts();
-    } else {
-      setError({
-        type: 'error',
-        message: 'No namespace selected. Please select a namespace to create templates.'
-      });
-      setTimeout(() => setError(null), 5000);
+    if (namespaces.length === 0 && !namespacesLoading) {
+      fetchUserNamespaces();
     }
-  }, [currentNamespaceId]);
+  }, []);
+
+  // Delay showing errors to prevent flashing
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setShowError(true);
+      }, 500); // Delay showing error by 500ms
+      return () => clearTimeout(timer);
+    } else {
+      setShowError(false);
+    }
+  }, [error]);
+
+  // Mark when initial load is complete
+  useEffect(() => {
+    if (!namespacesLoading && !isLoadingDrafts) {
+      setInitialLoadComplete(true);
+    }
+  }, [namespacesLoading, isLoadingDrafts]);
+
+  useEffect(() => {
+    // Only proceed if we're not still loading namespaces
+    if (!namespacesLoading) {
+      if (currentNamespaceId) {
+        fetchDrafts();
+      } else if (namespaces.length > 0) {
+        // Only show error if namespaces are loaded but none is selected
+        setError({
+          type: 'error',
+          message: 'No namespace selected. Please select a namespace to create templates.'
+        });
+        setIsLoadingDrafts(false);
+      } else if (namespaces.length === 0) {
+        // If no namespaces exist at all
+        setError({
+          type: 'error',
+          message: 'No namespaces available. Please create a namespace first.'
+        });
+        setIsLoadingDrafts(false);
+      }
+    }
+  }, [currentNamespaceId, namespacesLoading, namespaces]);
 
   async function fetchDrafts() {
     setIsLoadingDrafts(true);
@@ -139,13 +178,13 @@ export default function CreateTemplate() {
       if (!response.ok) throw new Error('Failed to fetch drafts');
       const draftsData = await response.json();
       setDrafts(draftsData);
+      setError(null); // Clear any previous errors
     } catch (err) {
       console.error('Error fetching drafts:', err);
       setError({
         type: 'error',
         message: 'Failed to load drafts. Please try again.'
       });
-      setTimeout(() => setError(null), 3000);
     } finally {
       setIsLoadingDrafts(false);
     }
@@ -638,8 +677,8 @@ export default function CreateTemplate() {
           </div>
         </div>
 
-        {/* Namespace warning */}
-        {!currentNamespaceId && (
+        {/* Namespace warning - only show after initial load and with a delay */}
+        {!currentNamespaceId && !namespacesLoading && namespaces.length > 0 && initialLoadComplete && showError && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/50 mb-4">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -667,7 +706,18 @@ export default function CreateTemplate() {
 
         {/* Drafts Section */}
         <div className="relative max-w-[800px] mt-4" ref={draftsRef}>
-          {isLoadingDrafts ? (
+          {namespacesLoading ? (
+            <div className="w-full flex items-center gap-2 p-3 text-sm text-gray-600 bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
+              <div className="animate-pulse flex items-center gap-2 w-full">
+                <div className="h-4 w-4 bg-gray-300 rounded dark:bg-gray-700" />
+                <div className="h-4 w-24 bg-gray-300 rounded dark:bg-gray-700" />
+                <div className="ml-auto flex items-center gap-2">
+                  <div className="h-4 w-16 bg-gray-300 rounded dark:bg-gray-700" />
+                  <div className="h-4 w-4 bg-gray-300 rounded dark:bg-gray-700" />
+                </div>
+              </div>
+            </div>
+          ) : isLoadingDrafts ? (
             <div className="w-full flex items-center gap-2 p-3 text-sm text-gray-600 bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-400">
               <div className="animate-pulse flex items-center gap-2 w-full">
                 <div className="h-4 w-4 bg-gray-300 rounded dark:bg-gray-700" />
@@ -710,7 +760,7 @@ export default function CreateTemplate() {
             setIsEditingDraft={setIsEditingDraft}
           />
         </div>
-        {error && error.type === 'error' && (
+        {error && error.type === 'error' && showError && (
           <ErrorMessage 
             message={error.message} 
             onClose={() => setError(null)} 
@@ -718,137 +768,150 @@ export default function CreateTemplate() {
           />
         )}
         {deleteMessage && deleteMessage.type === 'success' && <SuccessMessage message={deleteMessage.message} />}
-        {deleteMessage && deleteMessage.type === 'error' && (
+        {deleteMessage && deleteMessage.type === 'error' && showError && (
           <ErrorMessage 
             message={deleteMessage.message} 
             onClose={() => setDeleteMessage(null)} 
             duration={5000}
           />
         )}
-        <div className={`grid grid-cols-1 ${showPreview ? 'lg:grid-cols-[800px,auto]' : ''} gap-6 items-start ${!showPreview ? 'w-full' : ''}`}>
-          <Card className="w-full">
-            <CardContent>
-              <form onSubmit={(e) => {
-                if (currentStep !== steps.length - 1) {
-                  e.preventDefault();
-                  handleNext(e);
-                } else {
-                  handleSubmit(e);
-                }
-              }} className="space-y-8">
-                {currentStep === 0 && (
-                  <>
-                    <InternalName formData={formData} handleInputChange={handleInputChange} context="template" />
-                    
-                    <div className="mt-6">
-                      <button
-                        type="button"
-                        onClick={() => setIsTemplateModalOpen(true)}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-                      >
-                        <FileText className="h-4 w-4" />
-                        {selectedTemplate ? 'Change Template' : 'Use Template'}
-                      </button>
-                      {selectedTemplate ? (
-                        <div className="mt-3 p-3 bg-primary-50 border border-primary-100 rounded-md dark:bg-primary-900/20 dark:border-primary-800">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
-                              selectedTemplate.theme ? themes[selectedTemplate.theme]?.background : 
-                              (selectedTemplate.outroTheme ? themes[selectedTemplate.outroTheme]?.background : 'bg-primary-500')
-                            }`}>
-                              <FileText className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{selectedTemplate.name || 'Unnamed Template'}</p>
-                              <div className="flex flex-wrap gap-2 mt-1">
-                                {selectedTemplate.captionType && (
-                                  <span className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900/30 dark:text-primary-300">
-                                    {selectedTemplate.captionType} captions {selectedTemplate.captionPosition && `(${selectedTemplate.captionPosition})`}
-                                  </span>
-                                )}
-                                {selectedTemplate.theme && (
-                                  <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-                                    {themes[selectedTemplate.theme]?.name || selectedTemplate.theme} theme
-                                  </span>
-                                )}
-                                {selectedTemplate.outroTheme && (
-                                  <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                    {themes[selectedTemplate.outroTheme]?.name || selectedTemplate.outroTheme} outro
-                                  </span>
-                                )}
+        
+        {/* Show loading spinner when namespaces are loading */}
+        {namespacesLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent dark:border-primary-400 dark:border-r-transparent" role="status">
+                <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+              </div>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading namespaces...</p>
+            </div>
+          </div>
+        ) : (
+          <div className={`grid grid-cols-1 ${showPreview ? 'lg:grid-cols-[800px,auto]' : ''} gap-6 items-start ${!showPreview ? 'w-full' : ''}`}>
+            <Card className="w-full">
+              <CardContent>
+                <form onSubmit={(e) => {
+                  if (currentStep !== steps.length - 1) {
+                    e.preventDefault();
+                    handleNext(e);
+                  } else {
+                    handleSubmit(e);
+                  }
+                }} className="space-y-8">
+                  {currentStep === 0 && (
+                    <>
+                      <InternalName formData={formData} handleInputChange={handleInputChange} context="template" />
+                      
+                      <div className="mt-6">
+                        <button
+                          type="button"
+                          onClick={() => setIsTemplateModalOpen(true)}
+                          className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                        >
+                          <FileText className="h-4 w-4" />
+                          {selectedTemplate ? 'Change Template' : 'Use Template'}
+                        </button>
+                        {selectedTemplate ? (
+                          <div className="mt-3 p-3 bg-primary-50 border border-primary-100 rounded-md dark:bg-primary-900/20 dark:border-primary-800">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+                                selectedTemplate.theme ? themes[selectedTemplate.theme]?.background : 
+                                (selectedTemplate.outroTheme ? themes[selectedTemplate.outroTheme]?.background : 'bg-primary-500')
+                              }`}>
+                                <FileText className="h-4 w-4 text-white" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">{selectedTemplate.name || 'Unnamed Template'}</p>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {selectedTemplate.captionType && (
+                                    <span className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900/30 dark:text-primary-300">
+                                      {selectedTemplate.captionType} captions {selectedTemplate.captionPosition && `(${selectedTemplate.captionPosition})`}
+                                    </span>
+                                  )}
+                                  {selectedTemplate.theme && (
+                                    <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                                      {themes[selectedTemplate.theme]?.name || selectedTemplate.theme} theme
+                                    </span>
+                                  )}
+                                  {selectedTemplate.outroTheme && (
+                                    <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                      {themes[selectedTemplate.outroTheme]?.name || selectedTemplate.outroTheme} outro
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ) : (
-                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                          Select a template to use its caption and outro settings.
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-                {currentStep === 1 && (
-                  <Captions
-                    selectedCaptionStyle={selectedCaptionStyle}
-                    setSelectedCaptionStyle={setSelectedCaptionStyle}
-                  />
-                )}
-                {currentStep === 2 && (
-                  <Outro
-                    selectedOutroTheme={selectedOutroTheme}
-                    setSelectedOutroTheme={setSelectedOutroTheme}
-                    outroLogo={outroLogo}
-                    setOutroLogo={setOutroLogo}
-                    customOutroColor={customOutroColor}
-                    setCustomOutroColor={setCustomOutroColor}
-                    outroText={outroText}
-                    setOutroText={setOutroText}
-                    outroTextColor={outroTextColor}
-                    setOutroTextColor={setOutroTextColor}
-                    showOutro={showOutro}
-                    setShowOutro={setShowOutro}
-                  />
-                )}
-                {saveDraftSuccess && <SuccessMessage message={saveDraftSuccess} />}
-                <div className="mt-8">
-                  <StepNavigation
-                    currentStep={currentStep}
-                    totalSteps={steps.length}
-                    onPrevious={handlePrevious}
-                    onNext={handleNext}
-                    isSubmitting={isSubmitting}
-                    isSavingDraft={isSavingDraft}
-                    handleSaveDraft={handleSaveDraft}
-                    isEditingDraft={isEditingDraft}
-                    formData={formData}
-                    selectedCaptionStyle={selectedCaptionStyle}
-                  />
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-          {showPreview && (
-            <PhonePreview
-              selectedTheme={selectedTheme}
-              formData={formData}
-              currentStep={currentStep}
-              themes={themes}
-              selectedCaptionStyle={selectedCaptionStyle}
-              selectedOutroTheme={selectedOutroTheme}
-              outroLogo={outroLogo}
-              customOutroColor={customOutroColor}
-              outroText={outroText}
-              outroTextColor={outroTextColor}
-              showOutro={showOutro}
-              videoUrl={previewImage}
-              isVideoLoading={isVideoLoading}
-              setIsVideoLoading={setIsVideoLoading}
-              isPhonePreviewLoading={isPhonePreviewLoading}
-              setIsPhonePreviewLoading={setIsPhonePreviewLoading}
-            />
-          )}
-        </div>
+                        ) : (
+                          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            Select a template to use its caption and outro settings.
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  {currentStep === 1 && (
+                    <Captions
+                      selectedCaptionStyle={selectedCaptionStyle}
+                      setSelectedCaptionStyle={setSelectedCaptionStyle}
+                    />
+                  )}
+                  {currentStep === 2 && (
+                    <Outro
+                      selectedOutroTheme={selectedOutroTheme}
+                      setSelectedOutroTheme={setSelectedOutroTheme}
+                      outroLogo={outroLogo}
+                      setOutroLogo={setOutroLogo}
+                      customOutroColor={customOutroColor}
+                      setCustomOutroColor={setCustomOutroColor}
+                      outroText={outroText}
+                      setOutroText={setOutroText}
+                      outroTextColor={outroTextColor}
+                      setOutroTextColor={setOutroTextColor}
+                      showOutro={showOutro}
+                      setShowOutro={setShowOutro}
+                    />
+                  )}
+                  {saveDraftSuccess && <SuccessMessage message={saveDraftSuccess} />}
+                  <div className="mt-8">
+                    <StepNavigation
+                      currentStep={currentStep}
+                      totalSteps={steps.length}
+                      onPrevious={handlePrevious}
+                      onNext={handleNext}
+                      isSubmitting={isSubmitting}
+                      isSavingDraft={isSavingDraft}
+                      handleSaveDraft={handleSaveDraft}
+                      isEditingDraft={isEditingDraft}
+                      formData={formData}
+                      selectedCaptionStyle={selectedCaptionStyle}
+                    />
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+            {showPreview && (
+              <PhonePreview
+                selectedTheme={selectedTheme}
+                formData={formData}
+                currentStep={currentStep}
+                themes={themes}
+                selectedCaptionStyle={selectedCaptionStyle}
+                selectedOutroTheme={selectedOutroTheme}
+                outroLogo={outroLogo}
+                customOutroColor={customOutroColor}
+                outroText={outroText}
+                outroTextColor={outroTextColor}
+                showOutro={showOutro}
+                videoUrl={previewImage}
+                isVideoLoading={isVideoLoading}
+                setIsVideoLoading={setIsVideoLoading}
+                isPhonePreviewLoading={isPhonePreviewLoading}
+                setIsPhonePreviewLoading={setIsPhonePreviewLoading}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Template Modal */}

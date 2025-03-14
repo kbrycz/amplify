@@ -16,7 +16,7 @@ export function NamespaceProvider({ children }) {
   });
   const [isNamespaceModalOpen, setIsNamespaceModalOpen] = useState(false);
   const [namespaces, setNamespaces] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userPermission, setUserPermission] = useState(null);
 
@@ -86,7 +86,10 @@ export function NamespaceProvider({ children }) {
       
       setNamespaces([]);
     } finally {
-      setIsLoading(false);
+      // Add a small delay before setting isLoading to false to prevent UI flashing
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 300);
     }
   };
 

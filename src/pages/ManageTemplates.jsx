@@ -21,6 +21,8 @@ export default function ManageTemplates() {
   const [error, setError] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showError, setShowError] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   // Ensure namespaces are loaded when the component mounts
   useEffect(() => {
@@ -28,6 +30,25 @@ export default function ManageTemplates() {
       fetchUserNamespaces();
     }
   }, []);
+
+  // Delay showing errors to prevent flashing
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setShowError(true);
+      }, 500); // Delay showing error by 500ms
+      return () => clearTimeout(timer);
+    } else {
+      setShowError(false);
+    }
+  }, [error]);
+
+  // Mark when initial load is complete
+  useEffect(() => {
+    if (!namespacesLoading && !isLoading) {
+      setInitialLoadComplete(true);
+    }
+  }, [namespacesLoading, isLoading]);
 
   useEffect(() => {
     // Only proceed if we're not still loading namespaces
@@ -145,8 +166,8 @@ export default function ManageTemplates() {
         </div>
       )}
       
-      {/* Namespace warning */}
-      {!currentNamespaceId && !namespacesLoading && namespaces.length > 0 && (
+      {/* Namespace warning - only show after initial load and with a delay */}
+      {!currentNamespaceId && !namespacesLoading && namespaces.length > 0 && initialLoadComplete && showError && (
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/50">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -174,7 +195,7 @@ export default function ManageTemplates() {
 
       {namespacesLoading || isLoading ? (
         <LoadingSpinner message={namespacesLoading ? "Loading namespaces..." : "Loading templates..."} />
-      ) : error ? (
+      ) : error && showError ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/50">
           <div className="flex">
             <div className="flex-shrink-0">
