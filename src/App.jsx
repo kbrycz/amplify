@@ -12,6 +12,8 @@ import SignIn from './pages/SignIn';
 import { CookieConsent } from './components/ui/cookie-consent';
 import SignUp from './pages/SignUp';
 import About from './pages/About';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import Header from './components/header/Header';
 import Sidebar from './components/header/Sidebar';
 import Backdrop from './components//header/Backdrop';
@@ -221,6 +223,18 @@ function App() {
                 <>
                   <ServerStatusBanner />
                   <About />
+                </>
+              } />
+              <Route path="/terms" element={
+                <>
+                  <ServerStatusBanner />
+                  <TermsOfService />
+                </>
+              } />
+              <Route path="/privacy" element={
+                <>
+                  <ServerStatusBanner />
+                  <PrivacyPolicy />
                 </>
               } />
               <Route path="/login" element={<RequireUnauth>

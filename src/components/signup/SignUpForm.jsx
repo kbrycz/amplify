@@ -1,5 +1,6 @@
 // src/components/signup/SignUpForm.jsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function SignUpForm({ error, loadingState, handleSubmit }) {
   return (
@@ -105,19 +106,19 @@ export default function SignUpForm({ error, loadingState, handleSubmit }) {
               className="ml-2 block text-sm text-gray-900 dark:text-white"
             >
               I agree to the{' '}
-              <a
-                href="#"
+              <Link
+                to="/terms"
                 className="font-semibold text-primary-text-600 hover:text-primary-500"
               >
                 Terms of Service
-              </a>{' '}
+              </Link>{' '}
               and{' '}
-              <a
-                href="#"
+              <Link
+                to="/privacy"
                 className="font-semibold text-primary-text-600 hover:text-primary-500"
               >
                 Privacy Policy
-              </a>
+              </Link>
             </label>
           </div>
 
