@@ -54,7 +54,7 @@ export default function PlanSection({ userPlan, planSuccessMessage, getPlanDispl
         </div>
 
         <div className="mt-8">
-          <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-primary-50 via-white to-purple-50 dark:border-gray-700 dark:from-primary-950/30 dark:via-gray-900 dark:to-purple-950/30">
+          <div className="rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
             <div className="flex flex-col p-6 sm:flex-row sm:items-start sm:gap-4">
               <div className="mx-auto mb-4 rounded-full bg-primary-100 p-2.5 dark:bg-primary-900/50 sm:mx-0 sm:mb-0">
                 <Crown className="h-5 w-5 text-primary-text-600 dark:text-primary-text-400" />
@@ -107,7 +107,7 @@ export default function PlanSection({ userPlan, planSuccessMessage, getPlanDispl
                     <div className="mt-8 flex flex-col items-center gap-4 sm:mt-6 sm:flex-row">
                       <button
                         onClick={handleNavigateToPricing}
-                        className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500"
+                        className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
                       >
                         <Zap className="h-4 w-4" />
                         Upgrade Now
@@ -141,7 +141,7 @@ export default function PlanSection({ userPlan, planSuccessMessage, getPlanDispl
                     </ul>
                     <button
                       onClick={handleNavigateToPricing}
-                      className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500"
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
                     >
                       Upgrade to Premium
                     </button>
@@ -155,7 +155,7 @@ export default function PlanSection({ userPlan, planSuccessMessage, getPlanDispl
                     </p>
                     <button
                       onClick={handleNavigateToPricing}
-                      className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500"
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
                     >
                       Manage Subscription
                       <ArrowRight className="h-4 w-4 ml-1" />
