@@ -124,6 +124,7 @@ export default function PricingPage() {
 
     try {
       if (!user) {
+        // Store the selected plan in localStorage and redirect to signup
         localStorage.setItem('selectedPlan', planId);
         navigate('/signup');
         return;
@@ -161,17 +162,14 @@ export default function PricingPage() {
     const targetRank = planRank[planId] || 1;
     const isDowngrade = targetRank < currentRank;
 
-    if (newSignup) {
-      await completeNewSignup();
-      if (isFromSettings) {
-        navigate('/app/account', { state: { planUpdated: true, plan: planId } });
-      } else {
-        navigate('/app/dashboard');
+    // For basic plan or downgrades, we don't need Stripe
+    if (planId === 'basic' || isDowngrade) {
+      if (newSignup) {
+        await completeNewSignup();
       }
-      return;
-    }
-    if (isDowngrade) {
+      
       await updateUserPlan(planId);
+      
       if (isFromSettings) {
         navigate('/app/account', { 
           state: { 
@@ -185,15 +183,8 @@ export default function PricingPage() {
       }
       return;
     }
-    if (planId === 'basic' && !isDowngrade) {
-      await updateUserPlan('basic');
-      if (isFromSettings) {
-        navigate('/app/account', { state: { planUpdated: true, plan: 'basic' } });
-      } else {
-        navigate('/app/dashboard');
-      }
-      return;
-    }
+    
+    // For pro and premium plans, we need to redirect to Stripe
     try {
       const idToken = await auth.currentUser.getIdToken();
       const { sessionId } = await createCheckoutSession(planId, idToken);

@@ -39,10 +39,10 @@ export const completeNewSignup = async (setNewSignup, setUser) => {
 };
 
 // Signs in with Google using a popup credential
-export const signInWithGoogle = async (credential, firstName, lastName, setUser) => {
+export const signInWithGoogle = async (credential, firstName, lastName, plan = 'basic', setUser) => {
   try {
     const firebaseUser = auth.currentUser;
-    await createUserProfile(firebaseUser, firstName, lastName, 'basic');
+    await createUserProfile(firebaseUser, firstName, lastName, plan);
     await fetchUserProfile(firebaseUser, setUser);
     return firebaseUser;
   } catch (error) {

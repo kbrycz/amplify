@@ -58,8 +58,8 @@ export function AuthProvider({ children }) {
     signUp: (email, password, firstName, lastName, plan = 'basic') =>
       signUp(email, password, firstName, lastName, plan, setNewSignup),
     signOut: () => signOut(auth),
-    signInWithGoogle: (credential, firstName, lastName) =>
-      signInWithGoogle(credential, firstName, lastName, setUser),
+    signInWithGoogle: (credential, firstName, lastName, plan = 'basic') =>
+      signInWithGoogle(credential, firstName, lastName, plan, setUser),
     updateUserProfile: (updates) => updateUserProfile(updates, setUser),
     changePassword: (currentPassword, newPassword) =>
       changePassword(currentPassword, newPassword, setUser),

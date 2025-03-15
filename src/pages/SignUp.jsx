@@ -1,5 +1,5 @@
 // src/pages/SignUp.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleAuthProvider } from '../lib/firebase';
@@ -26,6 +26,9 @@ export default function SignUp() {
     const confirmPassword = formData.get('confirm-password');
     const firstName = formData.get('first-name');
     const lastName = formData.get('last-name');
+    
+    // Get the selected plan from localStorage
+    const selectedPlan = localStorage.getItem('selectedPlan') || 'basic';
 
     setLoadingState({ email: true, google: false });
     setError('');
@@ -43,7 +46,7 @@ export default function SignUp() {
     }
 
     try {
-      await signUp(email, password, firstName, lastName);
+      await signUp(email, password, firstName, lastName, selectedPlan);
       navigate('/pricing', { replace: true });
     } catch (err) {
       console.error('Signup error:', err);
@@ -63,6 +66,10 @@ export default function SignUp() {
   const handleGoogleSignUp = async () => {
     setLoadingState({ email: false, google: true });
     setError('');
+    
+    // Get the selected plan from localStorage
+    const selectedPlan = localStorage.getItem('selectedPlan') || 'basic';
+    
     try {
       const result = await signInWithPopup(auth, googleAuthProvider);
       const user = result.user;
@@ -70,7 +77,7 @@ export default function SignUp() {
       const nameParts = displayName.split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-      await signInWithGoogle(result.credential, firstName, lastName);
+      await signInWithGoogle(result.credential, firstName, lastName, selectedPlan);
       navigate('/pricing', { replace: true });
     } catch (err) {
       console.error('Google signup error:', err);
