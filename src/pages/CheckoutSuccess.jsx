@@ -146,7 +146,7 @@ export default function CheckoutSuccess() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg transform overflow-hidden rounded-xl bg-white shadow-xl transition-all dark:bg-gray-900 sm:my-8">
+      <div className="w-full max-w-lg transform overflow-hidden rounded-xl bg-white shadow-xl transition-all dark:bg-gray-800 dark:border dark:border-gray-700 dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] sm:my-8">
         <div className="px-6 py-8 sm:px-8 sm:py-10">
           <div className="text-center">
             {isLoading ? (
@@ -199,7 +199,7 @@ export default function CheckoutSuccess() {
                 
                 {/* Only show features section if verification succeeded */}
                 {!error && planDetails && (
-                  <div className="mt-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5">
+                  <div className="mt-6 bg-gray-50 dark:bg-gray-700/40 rounded-xl p-5">
                     <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
                       Your New Capabilities
                     </h4>
@@ -221,7 +221,7 @@ export default function CheckoutSuccess() {
                     ${isPremium && !error
                       ? 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500' 
                       : 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500'} 
-                    focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900`}
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800`}
                 >
                   Continue to Dashboard
                   <ArrowRight className="h-4 w-4" />
